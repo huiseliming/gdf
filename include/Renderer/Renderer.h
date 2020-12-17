@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "Singleton.h"
+#include "Base/Singleton.h"
 
 class Renderer : public Singleton<Renderer>
 {

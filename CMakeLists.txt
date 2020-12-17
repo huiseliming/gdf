@@ -30,7 +30,8 @@ include(cmake/tools.cmake)
 SET_OUTPUT_DIRECTORY(${CMAKE_BINARY_DIR})
 
 # set system name
-add_definitions(-DSYSTEM_NAME=${CMAKE_SYSTEM_NAME})
+add_definitions(-DPLATFORM_OS=${CMAKE_SYSTEM_NAME})
+add_definitions(-D${CMAKE_SYSTEM_NAME})
 
 # set build type (default Release)
 SET_DEFAULT_BUILD_TYPE()
