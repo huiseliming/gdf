@@ -1,9 +1,11 @@
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
 #include "Base/Window.h"
 #include "Base/StringTool.h"
+#include "Base/Exception.h"
 
 Window::Window()
+    : m_pGLFWWindow(nullptr)
+    , m_width(0)
+    , m_height(0)
 {
 }
 
@@ -51,18 +53,25 @@ void Window::PollEvents()
     glfwPollEvents();
 }
 
+bool Window::ShouldClose() 
+{
+    return glfwWindowShouldClose(m_pGLFWWindow);
+}
+
+
 void Window::FramebufferResizeCallback(GLFWwindow* window, int width, int height)
 {
     //auto application_ptr = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
     //application_ptr->get_render_engine_ptr()->Resize();
 }
 
-GLFWwindow* Window::GetGLFWWindow() { return m_pGLFWWindow; }
-
-bool Window::ShouldClose() 
+void Window::CreateWindowSurface(VkInstance instance, VkSurfaceKHR* surface)
 {
-    return glfwWindowShouldClose(m_pGLFWWindow);
+    if (glfwCreateWindowSurface(instance, m_pGLFWWindow, nullptr, surface))
+        THROW_EXCEPT("Failed to create window surface");
 }
+
+GLFWwindow* Window::GetGLFWWindow() { return m_pGLFWWindow; }
 
     
 void Window::glfwInit()

@@ -1,6 +1,9 @@
 #pragma once
 #include <string>
 #include "Base/NonCopyable.h"
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
 struct GLFWwindow;
 
 class Window : public NonCopyable
@@ -18,8 +21,9 @@ public:
     void PollEvents();
     bool ShouldClose();
 
-
     static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
+
+    void CreateWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
 
     GLFWwindow* GetGLFWWindow();
     
