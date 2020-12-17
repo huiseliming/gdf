@@ -46,7 +46,7 @@ file(GLOB_RECURSE Header include/*.h)
 file(GLOB_RECURSE Source src/*.cpp)
 
 # dependent library 
-set(DependentLibraries glfw glm Vulkan::Vulkan )
+set(DependentLibraries glfw glm::glm Vulkan::Vulkan )
 # cmake set library 
 if(BUILD_SHARED_LIBS)
 add_library(${PROJECT_NAME} STATIC 
