@@ -1,13 +1,11 @@
 #pragma once
-#include <string>
 #include "Base/Singleton.h"
+#include <string>
 
 class Renderer : public Singleton<Renderer>
 {
 public:
-    
 private:
-
 public:
     static bool GitRetrievedState();
     static bool GitIsDirty();

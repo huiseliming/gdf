@@ -1,6 +1,7 @@
 #pragma once
-#include <string>
 #include "Base/NonCopyable.h"
+#include <string>
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -21,17 +22,17 @@ public:
     void PollEvents();
     bool ShouldClose();
 
-    static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
+    static void FramebufferResizeCallback(GLFWwindow *window, int width, int height);
 
-    void CreateWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
+    void CreateWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 
-    GLFWwindow* GetGLFWWindow();
-    
+    GLFWwindow *GetGLFWWindow();
+
     static void glfwInit();
     static void glfwTerminate();
-    
+
 private:
-    GLFWwindow* m_pGLFWWindow;
+    GLFWwindow *m_pGLFWWindow;
     int m_width;
     int m_height;
 };

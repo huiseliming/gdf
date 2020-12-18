@@ -1,20 +1,10 @@
 #pragma once
 
-
 namespace Runtime
 {
-    //call in main thread
-    void Initialize();
-    //call in main thread 
-    void Cleanup();
+// call in main thread
+void Initialize();
+// call in main thread
+void Cleanup();
 
-}
-
-
-
-
-
-
-
-
-
+} // namespace Runtime
