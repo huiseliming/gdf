@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.17)
 
+# export compiler commands
+set(CMAKE_EXPORT_COMPILECOMMANDS ON)
+
 # set vcpkg triplet and toolchain_file
 if(WIN32)
     if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
@@ -23,7 +26,6 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(glm REQUIRED)
 find_package(Vulkan REQUIRED)
 
-
 include(cmake/tools.cmake)
 
 # set output directory
@@ -46,18 +48,23 @@ file(GLOB_RECURSE Header include/*.h)
 file(GLOB_RECURSE Source src/*.cpp)
 
 # dependent library 
-set(DependentLibraries glfw glm::glm Vulkan::Vulkan )
+set(DependentLibraries glfw Vulkan::Vulkan )
+if(UNIX AND APPLE)
+    list(APPEND DependentLibraries glm::glm)
+else()
+    list(APPEND DependentLibraries glm)
+endif()
+
+
 # cmake set library 
 if(BUILD_SHARED_LIBS)
 add_library(${PROJECT_NAME} STATIC 
     ${Header}
-    ${Source}
-    )
+    ${Source})
 else()
 add_library(${PROJECT_NAME} SHARED 
     ${Header}
-    ${Source}
-    )
+    ${Source})
 endif()
 
 target_link_libraries(${PROJECT_NAME} 
