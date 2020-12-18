@@ -8,7 +8,7 @@ if(WIN32)
     if(DEFINED ENV{VCPKG_DEFAULT_TRIPLET} AND NOT DEFINED VCPKG_TARGET_TRIPLET)
       set(VCPKG_TARGET_TRIPLET "$ENV{VCPKG_DEFAULT_TRIPLET}" CACHE STRING "")
     elseif(NOT DEFINED VCPKG_TARGET_TRIPLET)
-      set(VCPKG_TARGET_TRIPLET "x64-windows-static" CACHE STRING "")
+      set(VCPKG_TARGET_TRIPLET "x64-windows-static-md" CACHE STRING "")
     endif()
     message("CMAKE_TOOLCHAIN_FILE: " ${CMAKE_TOOLCHAIN_FILE})
     message("VCPKG_TARGET_TRIPLET: " ${VCPKG_TARGET_TRIPLET})
@@ -17,7 +17,12 @@ endif()
 project(Renderer VERSION 0.0.0)
 
 # option
-option(BUILD_SHARED_LIBS "True when building shared library" True)
+option(BUILD_SHARED_LIBS "True when building shared library" False)
+
+# set windows export symbols(spawn .lib)
+if(WIN32)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
 
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm REQUIRED)
@@ -55,11 +60,11 @@ endif()
 
 # cmake set library 
 if(BUILD_SHARED_LIBS)
-add_library(${PROJECT_NAME} STATIC 
+add_library(${PROJECT_NAME} SHARED
     ${Header}
     ${Source})
 else()
-add_library(${PROJECT_NAME} SHARED 
+add_library(${PROJECT_NAME} STATIC 
     ${Header}
     ${Source})
 endif()
