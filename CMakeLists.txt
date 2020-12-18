@@ -19,8 +19,10 @@ project(Renderer VERSION 0.0.0)
 # option
 option(BUILD_SHARED_LIBS "True when building shared library" True)
 
-# set windows export symbols(spawn .lib)
 if(WIN32)
+    # window macro define
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    # set windows export symbols(spawn .lib)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
