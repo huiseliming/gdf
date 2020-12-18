@@ -17,7 +17,7 @@ endif()
 project(Renderer VERSION 0.0.0)
 
 # option
-option(BUILD_SHARED_LIBS "True when building shared library" False)
+option(BUILD_SHARED_LIBS "True when building shared library" True)
 
 # set windows export symbols(spawn .lib)
 if(WIN32)
