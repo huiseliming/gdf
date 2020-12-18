@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.17)
 
-# export compiler commands
-set(CMAKE_EXPORT_COMPILECOMMANDS ON)
-
 # set vcpkg triplet and toolchain_file
 if(WIN32)
     if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
@@ -141,4 +138,3 @@ export(EXPORT ${PROJECT_NAME}Targets
     FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Targets.cmake"
     NAMESPACE ${PROJECT_NAME}::
 )
-
