@@ -14,14 +14,14 @@ int main()
         {
             window.PollEvents();
         }
-    
+        
         Runtime::Cleanup();
     }
-    catch (const std::exception& e)
+    catch (const Exception& e)
     {
         std::cout << e.what();
     }
-    catch (const Exception& e)
+    catch (const std::exception& e)
     {
         std::cout << e.what();
     }
