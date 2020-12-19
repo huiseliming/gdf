@@ -6,16 +6,6 @@ Window::Window() : pGLFWWindow_(nullptr), width_(0), height_(0)
 {
 }
 
-Window::Window(std::string applicationName, int width, int height)
-{
-    Create(applicationName, width, height);
-}
-
-Window::Window(std::wstring applicationName, int width, int height)
-{
-    Create(applicationName, width, height);
-}
-
 Window::~Window()
 {
     Destroy();
@@ -28,13 +18,11 @@ void Window::Create(std::string applicationName, int width, int height)
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     pGLFWWindow_ = glfwCreateWindow(width_, height_, applicationName.c_str(), nullptr, nullptr);
-    // glfwSetWindowUserPointer(pGLFWWindow_, application_ptr__);
+    glfwSetWindowUserPointer(pGLFWWindow_, this);
+    glfwSetCursorPosCallback(pGLFWWindow_, Window::CursorPosCallback);
+    glfwSetScrollCallback(pGLFWWindow_, Window::ScrollCallback);
+    glfwSetMouseButtonCallback(pGLFWWindow_, Window::MouseButtonCallback);
     // glfwSetFramebufferSizeCallback(pGLFWWindow_, Window::FramebufferResizeCallback);
-}
-
-void Window::Create(std::wstring applicationName, int width, int height)
-{
-    Create(String::ConvertString(applicationName), width, height);
 }
 
 void Window::Destroy()
@@ -53,6 +41,23 @@ void Window::PollEvents()
 bool Window::ShouldClose()
 {
     return glfwWindowShouldClose(pGLFWWindow_);
+}
+
+void Window::CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
+{
+    Window *pWindow = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
+    pWindow->mouse_.position = {xpos, ypos};
+}
+
+void Window::ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
+{
+    Window *pWindow = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
+    pWindow->mouse_.offset = {xoffset, yoffset};
+}
+
+void Window::MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
+{
+    Window *pWindow = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
 }
 
 void Window::FramebufferResizeCallback(GLFWwindow *window, int width, int height)
