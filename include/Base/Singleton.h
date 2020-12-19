@@ -18,23 +18,23 @@ public:
 
     static T &Instance()
     {
-        return *sm_instance;
+        return *pInstance_;
     }
 
     template <typename... Args>
     static void Create(Args &&...args)
     {
-        sm_instance.reset(new T(std::forward<Args>(args)...));
+        pInstance_.reset(new T(std::forward<Args>(args)...));
     }
 
     static void Destroy()
     {
-        sm_instance.reset();
+        pInstance_.reset();
     }
 
 private:
-    static std::unique_ptr<T> sm_instance;
+    static std::unique_ptr<T> pInstance_;
 };
 
 template <typename T>
-std::unique_ptr<T> Singleton<T>::sm_instance;
+std::unique_ptr<T> Singleton<T>::pInstance_;

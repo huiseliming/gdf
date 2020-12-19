@@ -9,21 +9,21 @@
 class Exception : public std::exception
 {
 public:
-    Exception(int line, const char *file) noexcept : m_line(line), m_file(file)
+    Exception(int line, const char *file) noexcept : line_(line), file_(file)
     {
     }
     explicit Exception(int line, const char *file, char const *const message) noexcept
-        : m_line(line), m_file(file), m_message(message)
+        : line_(line), file_(file), message_(message)
     {
     }
     const char *what() const noexcept override
     {
         std::ostringstream oss;
         oss << "[Type       ] " << GetType() << std::endl
-            << "[Description] " << m_message << std::endl
+            << "[Description] " << message_ << std::endl
             << GetOriginString() << std::endl;
-        m_whatBuffer = oss.str();
-        return m_whatBuffer.c_str();
+        whatBuffer_ = oss.str();
+        return whatBuffer_.c_str();
     }
 
     virtual const char *GetType() const noexcept
@@ -34,16 +34,16 @@ public:
     std::string GetOriginString() const noexcept
     {
         std::ostringstream oss;
-        oss << "[File] " << m_file << std::endl << "[Line] " << m_line;
+        oss << "[File] " << file_ << std::endl << "[Line] " << line_;
         return oss.str();
     }
 
 private:
-    int m_line;
-    std::string m_file;
-    std::string m_message;
+    int line_;
+    std::string file_;
+    std::string message_;
 
 protected:
-    mutable std::string m_whatBuffer;
+    mutable std::string whatBuffer_;
     ;
 };

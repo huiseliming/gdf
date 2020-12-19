@@ -2,7 +2,7 @@
 #include "Base/Exception.h"
 #include "Base/StringTool.h"
 
-Window::Window() : m_pGLFWWindow(nullptr), m_width(0), m_height(0)
+Window::Window() : pGLFWWindow_(nullptr), width_(0), height_(0)
 {
 }
 
@@ -23,13 +23,13 @@ Window::~Window()
 
 void Window::Create(std::string applicationName, int width, int height)
 {
-    m_width = width;
-    m_height = height;
+    width_ = width;
+    height_ = height;
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    m_pGLFWWindow = glfwCreateWindow(m_width, m_height, applicationName.c_str(), nullptr, nullptr);
-    // glfwSetWindowUserPointer(m_pGLFWWindow, application_ptr__);
-    // glfwSetFramebufferSizeCallback(m_pGLFWWindow, Window::FramebufferResizeCallback);
+    pGLFWWindow_ = glfwCreateWindow(width_, height_, applicationName.c_str(), nullptr, nullptr);
+    // glfwSetWindowUserPointer(pGLFWWindow_, application_ptr__);
+    // glfwSetFramebufferSizeCallback(pGLFWWindow_, Window::FramebufferResizeCallback);
 }
 
 void Window::Create(std::wstring applicationName, int width, int height)
@@ -39,9 +39,9 @@ void Window::Create(std::wstring applicationName, int width, int height)
 
 void Window::Destroy()
 {
-    if (m_pGLFWWindow != nullptr) {
-        glfwDestroyWindow(m_pGLFWWindow);
-        m_pGLFWWindow = nullptr;
+    if (pGLFWWindow_ != nullptr) {
+        glfwDestroyWindow(pGLFWWindow_);
+        pGLFWWindow_ = nullptr;
     }
 }
 
@@ -52,7 +52,7 @@ void Window::PollEvents()
 
 bool Window::ShouldClose()
 {
-    return glfwWindowShouldClose(m_pGLFWWindow);
+    return glfwWindowShouldClose(pGLFWWindow_);
 }
 
 void Window::FramebufferResizeCallback(GLFWwindow *window, int width, int height)
@@ -63,13 +63,13 @@ void Window::FramebufferResizeCallback(GLFWwindow *window, int width, int height
 
 void Window::CreateWindowSurface(VkInstance instance, VkSurfaceKHR *surface)
 {
-    if (glfwCreateWindowSurface(instance, m_pGLFWWindow, nullptr, surface))
+    if (glfwCreateWindowSurface(instance, pGLFWWindow_, nullptr, surface))
         THROW_EXCEPT("Failed to create window surface");
 }
 
 GLFWwindow *Window::GetGLFWWindow()
 {
-    return m_pGLFWWindow;
+    return pGLFWWindow_;
 }
 
 void Window::glfwInit()

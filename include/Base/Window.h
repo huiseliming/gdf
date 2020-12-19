@@ -32,7 +32,7 @@ public:
     static void glfwTerminate();
 
 private:
-    GLFWwindow *m_pGLFWWindow;
-    int m_width;
-    int m_height;
+    GLFWwindow *pGLFWWindow_;
+    int width_;
+    int height_;
 };
