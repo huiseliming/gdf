@@ -29,6 +29,9 @@ endif()
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm REQUIRED)
 find_package(Vulkan REQUIRED)
+if(WIN32)
+    find_package(fmt CONFIG REQUIRED)
+endif()
 
 include(cmake/tools.cmake)
 
@@ -62,6 +65,9 @@ else()
     list(APPEND DependentLibraries glm)
 endif()
 
+if(WIN32)
+    list(APPEND DependentLibraries fmt::fmt)
+endif()
 
 # cmake set library 
 if(BUILD_SHARED_LIBS)

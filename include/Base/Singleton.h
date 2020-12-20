@@ -11,14 +11,19 @@ private:
     Singleton<T>(Singleton<T> &&) = delete;
     Singleton<T> &operator=(Singleton<T> &&) = delete;
 
+protected:
     Singleton<T>() = default;
 
 public:
     virtual ~Singleton<T>() = default;
 
-    static T &Instance()
+    static T &instance()
     {
         return *pInstance_;
+    }
+    static T *pInstance()
+    {
+        return pInstance_.get();
     }
 
     template <typename... Args>
