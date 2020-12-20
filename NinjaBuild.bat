@@ -7,4 +7,3 @@ rem use -DCMAKE_EXPORT_COMPILE_COMMANDS=ON export compile_commands.json file for
 cmake -G "Ninja" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B out/build
 cd out/build
 ninja all
-pause

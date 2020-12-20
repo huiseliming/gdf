@@ -38,13 +38,15 @@ SET_OUTPUT_DIRECTORY(${CMAKE_BINARY_DIR})
 # set system name
 add_definitions(-DPLATFORM_OS=${CMAKE_SYSTEM_NAME})
 add_definitions(-D${CMAKE_SYSTEM_NAME})
+add_definitions(-DAPPLICATION_NAME="${PROJECT_NAME}")
+add_definitions(-DGLFW_INCLUDE_VULKAN)
 
 # set build type (default Release)
 SET_DEFAULT_BUILD_TYPE()
 #set(CMAKE_BUILD_TYPE "Debug")
 
 # set cpp standard 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 

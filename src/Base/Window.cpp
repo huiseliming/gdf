@@ -19,7 +19,7 @@ void Window::Create(const std::string &applicationName, const int width, const i
     width_ = width;
     height_ = height;
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     pGLFWWindow_ = glfwCreateWindow(width_, height_, applicationName.c_str(), nullptr, nullptr);
     glfwSetWindowUserPointer(pGLFWWindow_, this);
     // mouse callback
@@ -59,6 +59,17 @@ void Window::CreateWindowSurface(const VkInstance instance, VkSurfaceKHR *surfac
 {
     if (glfwCreateWindowSurface(instance, pGLFWWindow_, nullptr, surface))
         THROW_EXCEPT("Failed to create window surface");
+}
+
+bool Window::GetRequiredInstanceExtensions(std::vector<std::string>& glfwRequiredInstanceExtensions)
+{
+    if (!glfwVulkanSupported())
+        return false;
+    uint32_t extensionCount;
+    const char **extensionNames = glfwGetRequiredInstanceExtensions(&extensionCount);
+    for (uint32_t i = 0; i < extensionCount; i++)
+        glfwRequiredInstanceExtensions.push_back(extensionNames[i]);
+    return true;
 }
 
 void Window::preProcessing()

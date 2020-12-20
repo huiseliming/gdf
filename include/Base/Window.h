@@ -4,8 +4,6 @@
 #include "Base/NonCopyable.h"
 #include <string>
 
-
-#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
 struct GLFWwindow;
@@ -23,10 +21,10 @@ public:
     void PollEvents();
     bool ShouldClose();
 
-    void CreateWindowSurface(const VkInstance instance, VkSurfaceKHR *surface);
-
     void preProcessing();
     void postProcessing();
+
+    void CreateWindowSurface(const VkInstance instance, VkSurfaceKHR *surface);
 
     GLFWwindow *pGLFWWindow()
     {
@@ -42,6 +40,8 @@ public:
     {
         return keyboard_;
     }
+
+    static bool GetRequiredInstanceExtensions(std::vector<std::string> &glfwRequiredInstanceExtensions);
 
 private:
     // Mouse Callback
