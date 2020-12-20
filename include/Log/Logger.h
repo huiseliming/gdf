@@ -26,7 +26,4 @@ public:
         std::cerr << "[" << category.name << "][" << std::to_string(level) << "]"
                   << fmt::format(message, std::forward<Args>(args)...) << "\n";
     }
-
-private:
-    std::thread logThread;
 };

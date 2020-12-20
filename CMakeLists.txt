@@ -29,9 +29,8 @@ endif()
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm REQUIRED)
 find_package(Vulkan REQUIRED)
-if(WIN32)
-    find_package(fmt CONFIG REQUIRED)
-endif()
+find_package(fmt CONFIG REQUIRED)
+
 
 include(cmake/tools.cmake)
 
@@ -58,15 +57,11 @@ file(GLOB_RECURSE Header include/*.h)
 file(GLOB_RECURSE Source src/*.cpp)
 
 # dependent library 
-set(DependentLibraries glfw Vulkan::Vulkan )
+set(DependentLibraries glfw Vulkan::Vulkan fmt::fmt)
 if(UNIX AND APPLE)
     list(APPEND DependentLibraries glm::glm)
 else()
     list(APPEND DependentLibraries glm)
-endif()
-
-if(WIN32)
-    list(APPEND DependentLibraries fmt::fmt)
 endif()
 
 # cmake set library 
