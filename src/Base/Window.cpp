@@ -2,7 +2,7 @@
 #include "Base/Exception.h"
 #include "Base/StringTool.h"
 
-Window::Window() : pGLFWWindow_(nullptr), width_(0), height_(0)
+Window::Window() : pGLFWWindow_(nullptr), width_(0), height_(0), resized_(false)
 {
 }
 
@@ -13,6 +13,9 @@ Window::~Window()
 
 void Window::Create(const std::string &applicationName, const int width, const int height)
 {
+    // exist window check
+    if (pGLFWWindow_ != nullptr)
+        return;
     width_ = width;
     height_ = height;
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -27,6 +30,8 @@ void Window::Create(const std::string &applicationName, const int width, const i
     // keyboard callback
     glfwSetKeyCallback(pGLFWWindow_, Window::KeyCallback);
     glfwSetCharCallback(pGLFWWindow_, Window::CharCallback);
+    // window callback
+    glfwSetWindowSizeCallback(pGLFWWindow_, Window::WindowSizeCallback);
     // glfwSetFramebufferSizeCallback(pGLFWWindow_, Window::FramebufferResizeCallback);
 }
 
@@ -60,6 +65,7 @@ void Window::preProcessing()
 {
     mouse_.preProcessing(*this);
     keyboard_.preProcessing(*this);
+    resized_ = false;
 }
 
 void Window::postProcessing()
@@ -120,6 +126,12 @@ void Window::CharCallback(GLFWwindow *window, unsigned int codepoint)
 {
     Window *pWindow = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
     pWindow->keyboard_.unicodePoint = codepoint;
+}
+
+void Window::WindowSizeCallback(GLFWwindow *window, int width, int height)
+{
+    Window *pWindow = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
+    pWindow->resized_ = true;
 }
 
 void Window::FramebufferResizeCallback(GLFWwindow *window, int width, int height)

@@ -53,6 +53,7 @@ private:
     static void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
     static void CharCallback(GLFWwindow *window, unsigned int codepoint);
     // Window Callback
+    static void WindowSizeCallback(GLFWwindow *window, int width, int height);
     static void FramebufferResizeCallback(GLFWwindow *window, int width, int height);
 
 private:
@@ -61,4 +62,5 @@ private:
     int height_;
     Mouse mouse_;
     Keyboard keyboard_;
+    bool resized_;
 };
