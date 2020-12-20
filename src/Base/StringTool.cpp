@@ -3,7 +3,7 @@
 namespace String
 {
 
-std::wstring ConvertWstring(std::string in)
+std::wstring ConvertWstring(const std::string &in)
 {
     mbstate_t state = {};
     const char *mbstr = in.c_str();
@@ -14,7 +14,7 @@ std::wstring ConvertWstring(std::string in)
     return wstr;
 }
 
-std::string ConvertString(std::wstring in)
+std::string ConvertString(const std::wstring &in)
 {
     mbstate_t state = {};
     const wchar_t *wstr = in.c_str();

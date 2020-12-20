@@ -7,12 +7,12 @@ namespace Runtime
 void Initialize()
 {
     std::wcout << L"Runtime Initialize\n";
-    Window::glfwInit();
+    ::glfwInit();
 }
 
 void Cleanup()
 {
-    Window::glfwTerminate();
+    ::glfwTerminate();
     std::wcout << L"Runtime Cleanup\n";
 }
 } // namespace Runtime

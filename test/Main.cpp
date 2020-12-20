@@ -1,10 +1,8 @@
-#include <stdlib.h>
-
-#include <iostream>
-
 #include "Base/Exception.h"
 #include "Base/Window.h"
 #include "Runtime.h"
+#include <iostream>
+#include <stdlib.h>
 
 int main(int argc, char **argv)
 {

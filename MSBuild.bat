@@ -5,5 +5,5 @@ CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary
 rem Generate Vsual Studio 2019 project.
 cmake -G "Visual Studio 16 2019" -A "x64" -S . -B out/build
 cd out/build
-MSBuild.exe ALL_BUILD.vcxproj -property:Configuration=Release
+MSBuild.exe ALL_BUILD.vcxproj -property:Configuration=Debug
 pause

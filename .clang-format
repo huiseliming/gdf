@@ -5,6 +5,8 @@ ColumnLimit: 100
 AccessModifierOffset: -4
 AlwaysBreakTemplateDeclarations: Yes
 BreakBeforeBraces: Linux
+BinPackArguments: false
+BinPackParameters: false
 BraceWrapping:
   BeforeCatch: false
   BeforeElse: false

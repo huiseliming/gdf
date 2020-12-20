@@ -11,7 +11,7 @@ Window::~Window()
     Destroy();
 }
 
-void Window::Create(std::string applicationName, int width, int height)
+void Window::Create(const std::string &applicationName, const int width, const int height)
 {
     width_ = width;
     height_ = height;
@@ -19,9 +19,14 @@ void Window::Create(std::string applicationName, int width, int height)
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     pGLFWWindow_ = glfwCreateWindow(width_, height_, applicationName.c_str(), nullptr, nullptr);
     glfwSetWindowUserPointer(pGLFWWindow_, this);
+    // mouse callback
     glfwSetCursorPosCallback(pGLFWWindow_, Window::CursorPosCallback);
+    glfwSetCursorEnterCallback(pGLFWWindow_, Window::CursorEntryCallback);
     glfwSetScrollCallback(pGLFWWindow_, Window::ScrollCallback);
     glfwSetMouseButtonCallback(pGLFWWindow_, Window::MouseButtonCallback);
+    // keyboard callback
+    glfwSetKeyCallback(pGLFWWindow_, Window::KeyCallback);
+    glfwSetCharCallback(pGLFWWindow_, Window::CharCallback);
     // glfwSetFramebufferSizeCallback(pGLFWWindow_, Window::FramebufferResizeCallback);
 }
 
@@ -35,7 +40,9 @@ void Window::Destroy()
 
 void Window::PollEvents()
 {
+    preProcessing();
     glfwPollEvents();
+    postProcessing();
 }
 
 bool Window::ShouldClose()
@@ -43,10 +50,37 @@ bool Window::ShouldClose()
     return glfwWindowShouldClose(pGLFWWindow_);
 }
 
+void Window::CreateWindowSurface(const VkInstance instance, VkSurfaceKHR *surface)
+{
+    if (glfwCreateWindowSurface(instance, pGLFWWindow_, nullptr, surface))
+        THROW_EXCEPT("Failed to create window surface");
+}
+
+void Window::preProcessing()
+{
+    mouse_.preProcessing(*this);
+    keyboard_.preProcessing(*this);
+}
+
+void Window::postProcessing()
+{
+    mouse_.postProcessing(*this);
+    keyboard_.postProcessing(*this);
+}
+
 void Window::CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
 {
     Window *pWindow = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
     pWindow->mouse_.position = {xpos, ypos};
+}
+
+void Window::CursorEntryCallback(GLFWwindow *window, int entered)
+{
+    Window *pWindow = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
+    if (entered == GLFW_TRUE)
+        pWindow->mouse_.inWindow = true;
+    else
+        pWindow->mouse_.inWindow = false;
 }
 
 void Window::ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
@@ -58,31 +92,38 @@ void Window::ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
 void Window::MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 {
     Window *pWindow = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
+    if (action == GLFW_PRESS) {
+        pWindow->mouse_.pressedButtons.insert(button);
+        pWindow->mouse_.heldButtons.insert(button);
+    } else if (action == GLFW_RELEASE) {
+        pWindow->mouse_.releasedButtons.insert(button);
+        pWindow->mouse_.heldButtons.erase(button);
+    }
+}
+
+void Window::KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+    Window *pWindow = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
+    if (action == GLFW_PRESS) {
+        pWindow->keyboard_.pressedKeys.insert(key);
+        pWindow->keyboard_.heldKeys.insert(key);
+    } else if (action == GLFW_REPEAT) {
+        pWindow->keyboard_.repeatKey = key;
+        pWindow->keyboard_.heldKeys.insert(key);
+    } else if (action == GLFW_RELEASE) {
+        pWindow->keyboard_.releasedKeys.insert(key);
+        pWindow->keyboard_.heldKeys.erase(key);
+    }
+}
+
+void Window::CharCallback(GLFWwindow *window, unsigned int codepoint)
+{
+    Window *pWindow = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
+    pWindow->keyboard_.unicodePoint = codepoint;
 }
 
 void Window::FramebufferResizeCallback(GLFWwindow *window, int width, int height)
 {
     // auto application_ptr = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
     // application_ptr->get_render_engine_ptr()->Resize();
-}
-
-void Window::CreateWindowSurface(VkInstance instance, VkSurfaceKHR *surface)
-{
-    if (glfwCreateWindowSurface(instance, pGLFWWindow_, nullptr, surface))
-        THROW_EXCEPT("Failed to create window surface");
-}
-
-GLFWwindow *Window::GetGLFWWindow()
-{
-    return pGLFWWindow_;
-}
-
-void Window::glfwInit()
-{
-    ::glfwInit();
-}
-
-void Window::glfwTerminate()
-{
-    ::glfwTerminate();
 }
