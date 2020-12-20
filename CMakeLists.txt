@@ -45,7 +45,8 @@ SET_DEFAULT_BUILD_TYPE()
 
 # set cpp standard 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # library header file and source file
 file(GLOB_RECURSE Header include/*.h)
