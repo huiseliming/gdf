@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/out/build/bin/test.exe",
             "args": [],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/out/build/bin",
             "environment": [],
             "externalConsole": false,
             "preLaunchTask": "NinjaBuild"
