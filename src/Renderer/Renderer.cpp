@@ -1,5 +1,5 @@
 #include "Renderer/Renderer.h"
-#include "Renderer/Git.h"
+#include "Git.h"
 
 bool Renderer::GitRetrievedState()
 {

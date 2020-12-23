@@ -14,7 +14,7 @@ if(WIN32)
     message("VCPKG_TARGET_TRIPLET: " ${VCPKG_TARGET_TRIPLET})
 endif()
 
-project(Renderer VERSION 0.0.0)
+project(gdf VERSION 0.0.0)
 
 # option
 option(BUILD_SHARED_LIBS "True when building shared library" True)
@@ -88,7 +88,7 @@ SET_TARGET_POSTFIX(${PROJECT_NAME})
 
 # configure git version control
 set(PRE_CONFIGURE_FILE "cmake/Git.h.in")
-set(POST_CONFIGURE_FILE "include/${PROJECT_NAME}/Git.h")
+set(POST_CONFIGURE_FILE "include/Git.h")
 include(cmake/git_watcher.cmake)
 add_dependencies(${PROJECT_NAME} check_git)
 

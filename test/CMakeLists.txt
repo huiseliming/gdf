@@ -1,7 +1,7 @@
 
 macro(my_add_test test_name)
 add_executable(${test_name} ${test_name}.cpp)
-target_link_libraries(${test_name} Renderer)
+target_link_libraries(${test_name} gdf)
 endmacro(${test_name})
 
 my_add_test(MouseAndKeyboard)
@@ -10,5 +10,5 @@ my_add_test(MouseAndKeyboard)
 #target_link_libraries(MouseAndKeyboard Renderer)
 
 add_executable(test Main.cpp)
-target_link_libraries(test Renderer)
+target_link_libraries(test gdf)
 

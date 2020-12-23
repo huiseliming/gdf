@@ -1,6 +1,6 @@
 #include "Renderer/Graphics.h"
 #include "Base/Exception.h"
-#include "Renderer/Git.h"
+#include "Git.h"
 #include "Base/Window.h"
 #include <GLFW/glfw3.h>
 #include <vector>
