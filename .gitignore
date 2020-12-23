@@ -61,6 +61,6 @@ out
 .vs
 
 # git version configure file 
-include/renderer/Git.h
+include/Git.h
 
 .DS_store
