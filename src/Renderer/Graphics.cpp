@@ -3,6 +3,7 @@
 #include "Base/Window.h"
 #include "Git.h"
 #include <GLFW/glfw3.h>
+#include <iostream>
 #include <vector>
 
 #define GIT_UINT32_VERSION                                                                         \
@@ -10,8 +11,6 @@
         (static_cast<uint32_t>(wcstoul(GIT_VERSION_MINOR, nullptr, 10) && 0xFF) << 20) ||          \
         (static_cast<uint32_t>(wcstoul(GIT_VERSION_PATCH, nullptr, 10) && 0xFFFFF))
 #define VK_API_VERSION VK_MAKE_VERSION(1, 0, 0)
-
-#include <iostream>
 
 namespace gdf
 {
