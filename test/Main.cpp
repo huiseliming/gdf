@@ -16,19 +16,7 @@ int main(int argc, char **argv)
 {
     try {
         gdf::Initialize();
-        {
-            LOG(General,
-                LogLevel::Info,
-                "Version   : {}",
-                String::ConvertString(gdf::GitVerison()));
-            LOG(General,
-                LogLevel::Info,
-                "HeadSHA1  : {}",
-                String::ConvertString(gdf::GitHeadSHA1()));
-            LOG(General,
-                LogLevel::Info,
-                "CommitDate: {}",
-                String::ConvertString(gdf::GitCommitDate()));
+        try {
             Window window;
             Graphics gfx;
             window.Create("test", 800, 600);
@@ -39,14 +27,14 @@ int main(int argc, char **argv)
             }
             LOG(General, LogLevel::Info, "Exiting main loop");
             gfx.Cleanup();
+        } catch (const std::exception &e) {
+            LOG(General, LogLevel::Fatal, "Fatal exception: ", e.what());
+        } catch (...) {
+            LOG(General, LogLevel::Fatal, "Fatal undefined exception!");
         }
         gdf::Cleanup();
-    } catch (const Exception &e) {
-        std::cout << e.what();
-    } catch (const std::exception &e) {
-        std::cout << e.what();
     } catch (...) {
-        std::cout << "Catch Undefined Exception!\n";
+        std::cout << "gdf Initialize/Cleanup Exception!\n";
     }
     return EXIT_SUCCESS;
 }

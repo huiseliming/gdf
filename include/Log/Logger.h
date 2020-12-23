@@ -25,8 +25,10 @@ public:
              const std::string_view message,
              Args &&...args)
     {
-        std::cerr << "[" << category.displayName_ << "][" << std::to_string(level) << "]"
-                  << fmt::format(message, std::forward<Args>(args)...) << "\n";
+        std::cerr << fmt::format("[{:s}][{:s}] {:s}\n",
+                                 category.displayName_,
+                                 std::to_string(level),
+                                 fmt::format(message, std::forward<Args>(args)...));
     }
 };
 } // namespace gdf

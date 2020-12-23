@@ -3,7 +3,7 @@
 
 #define VK_ASSERT_SUCCESSED(result)                                                                \
     if ((result) != VK_SUCCESS) {                                                                  \
-        THROW_EXCEPT("Assert " #result "Failed");                                                  \
+        THROW_EXCEPT("Assert " #result "Failed!");                                                 \
     }
 
 #define VK_DESTROY_CALLBACK(Device, VulkanObject)                                                  \

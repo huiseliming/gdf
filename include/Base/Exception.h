@@ -21,9 +21,9 @@ public:
     const char *what() const noexcept override
     {
         std::ostringstream oss;
-        oss << "[Type       ] " << GetType() << std::endl
-            << "[Description] " << message_ << std::endl
-            << GetOriginString() << std::endl;
+        oss << "[Type       ] " << GetType() << "\n"
+            << "[Description] " << message_ << "\n"
+            << GetOriginString();
         whatBuffer_ = oss.str();
         return whatBuffer_.c_str();
     }
@@ -36,7 +36,7 @@ public:
     std::string GetOriginString() const noexcept
     {
         std::ostringstream oss;
-        oss << "[File] " << file_ << std::endl << "[Line] " << line_;
+        oss << "[File] " << file_ << "\n[Line] " << line_;
         return oss.str();
     }
 
