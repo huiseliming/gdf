@@ -12,6 +12,24 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "${workspaceFolder}/build.sh",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "clear",
+            "type": "shell",
+            "command": "${workspaceFolder}/clear.sh",
+            "problemMatcher": [
+                "$eslint-stylish"
+            ]
         }
     ]
 }

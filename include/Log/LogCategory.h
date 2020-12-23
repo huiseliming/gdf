@@ -2,6 +2,9 @@
 #include "Log/LogLevel.h"
 #include <string>
 
+namespace gdf
+{
+
 class LogCategory
 {
 public:
@@ -29,3 +32,4 @@ protected:
             return logCategory;                                                                    \
         }                                                                                          \
     };
+} // namespace gdf

@@ -1,6 +1,7 @@
 #pragma once
 #include <set>
-
+namespace gdf
+{
 class Window;
 
 struct Keyboard {
@@ -26,3 +27,4 @@ private:
     {
     }
 };
+} // namespace gdf

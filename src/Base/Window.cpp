@@ -1,6 +1,8 @@
 #include "Base/Window.h"
 #include "Base/Exception.h"
 #include "Base/StringTool.h"
+namespace gdf
+{
 
 Window::Window() : pGLFWWindow_(nullptr), width_(0), height_(0), resized_(false)
 {
@@ -61,7 +63,7 @@ void Window::CreateWindowSurface(const VkInstance instance, VkSurfaceKHR *surfac
         THROW_EXCEPT("Failed to create window surface");
 }
 
-bool Window::GetRequiredInstanceExtensions(std::vector<std::string>& glfwRequiredInstanceExtensions)
+bool Window::GetRequiredInstanceExtensions(std::vector<std::string> &glfwRequiredInstanceExtensions)
 {
     if (!glfwVulkanSupported())
         return false;
@@ -150,3 +152,4 @@ void Window::FramebufferResizeCallback(GLFWwindow *window, int width, int height
     // auto application_ptr = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
     // application_ptr->get_render_engine_ptr()->Resize();
 }
+} // namespace gdf

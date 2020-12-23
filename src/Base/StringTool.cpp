@@ -1,5 +1,6 @@
 #include "Base/StringTool.h"
-
+namespace gdf
+{
 namespace String
 {
 
@@ -26,3 +27,4 @@ std::string ConvertString(const std::wstring &in)
 }
 
 } // namespace String
+} // namespace gdf

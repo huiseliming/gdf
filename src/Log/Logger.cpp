@@ -1,18 +1,18 @@
 #include "Log/Logger.h"
 namespace std
 {
-std::string to_string(LogLevel level)
+std::string to_string(gdf::LogLevel level)
 {
     switch (level) {
-    case LogLevel::Fatal:
+    case gdf::LogLevel::Fatal:
         return "Fatal  ";
-    case LogLevel::Error:
+    case gdf::LogLevel::Error:
         return "Error  ";
-    case LogLevel::Warning:
+    case gdf::LogLevel::Warning:
         return "Warning";
-    case LogLevel::Info:
+    case gdf::LogLevel::Info:
         return "Info   ";
-    case LogLevel::Verbose:
+    case gdf::LogLevel::Verbose:
         return "Verbose";
     default:
         break;
@@ -20,8 +20,10 @@ std::string to_string(LogLevel level)
     return "None";
 }
 } // namespace std
-
+namespace gdf
+{
 Logger::~Logger()
 {
     std::cerr << std::flush;
 }
+} // namespace gdf

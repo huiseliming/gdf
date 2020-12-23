@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdint>
+namespace gdf
+{
 #define LOG_LEVEL_FATAL LogLevel::Fatal
 #define LOG_LEVEL_ERROR LogLevel::Error
 #define LOG_LEVEL_WARNING LogLevel::Warning
@@ -17,3 +19,4 @@ enum class LogLevel : uint8_t
     All = Verbose,
     MaxCount,
 };
+} // namespace gdf

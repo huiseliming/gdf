@@ -7,26 +7,39 @@
 #include <iostream>
 #include <stdlib.h>
 
+using namespace gdf;
+
 LOG_DEFINE_CATEGORY(General, LogLevel::All, LogLevel::Info)
 
 int main(int argc, char **argv)
 {
-    LOG(General, LogLevel::Info, "Version   : {}", String::ConvertString(Runtime::GitVerison()));
-    LOG(General, LogLevel::Info, "HeadSHA1  : {}", String::ConvertString(Runtime::GitHeadSHA1()));
-    LOG(General, LogLevel::Info, "CommitDate: {}", String::ConvertString(Runtime::GitCommitDate()));
     try {
-        Runtime::Initialize();
-        Window window;
-        Graphics gfx;
-        window.Create("test", 800, 600);
-        gfx.Initialize();
-        LOG(General, LogLevel::Info, "Entering main loop");
-        while (!window.ShouldClose()) {
-            window.PollEvents();
+        gdf::Initialize();
+        {
+            LOG(General,
+                LogLevel::Info,
+                "Version   : {}",
+                String::ConvertString(gdf::GitVerison()));
+            LOG(General,
+                LogLevel::Info,
+                "HeadSHA1  : {}",
+                String::ConvertString(gdf::GitHeadSHA1()));
+            LOG(General,
+                LogLevel::Info,
+                "CommitDate: {}",
+                String::ConvertString(gdf::GitCommitDate()));
+            Window window;
+            Graphics gfx;
+            window.Create("test", 800, 600);
+            gfx.Initialize();
+            LOG(General, LogLevel::Info, "Entering main loop");
+            while (!window.ShouldClose()) {
+                window.PollEvents();
+            }
+            LOG(General, LogLevel::Info, "Exiting main loop");
+            gfx.Cleanup();
         }
-        LOG(General, LogLevel::Info, "Exiting main loop");
-        gfx.Cleanup();
-        Runtime::Cleanup();
+        gdf::Cleanup();
     } catch (const Exception &e) {
         std::cout << e.what();
     } catch (const std::exception &e) {

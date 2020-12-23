@@ -7,7 +7,8 @@
 #include <GLFW/glfw3.h>
 
 struct GLFWwindow;
-
+namespace gdf
+{
 class Window : public NonCopyable
 {
 public:
@@ -41,7 +42,8 @@ public:
         return keyboard_;
     }
 
-    static bool GetRequiredInstanceExtensions(std::vector<std::string> &glfwRequiredInstanceExtensions);
+    static bool GetRequiredInstanceExtensions(
+        std::vector<std::string> &glfwRequiredInstanceExtensions);
 
 private:
     // Mouse Callback
@@ -64,3 +66,4 @@ private:
     Keyboard keyboard_;
     bool resized_;
 };
+} // namespace gdf

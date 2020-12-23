@@ -1,7 +1,8 @@
 #pragma once
 #include <memory>
 #include <mutex>
-
+namespace gdf
+{
 template <typename T>
 class Singleton
 {
@@ -43,3 +44,4 @@ private:
 
 template <typename T>
 std::unique_ptr<T> Singleton<T>::pInstance_;
+} // namespace gdf

@@ -1,5 +1,6 @@
 #pragma once
-
+namespace gdf
+{
 class NonCopyable
 {
 private:
@@ -10,3 +11,4 @@ protected:
     NonCopyable() = default;
     virtual ~NonCopyable() = default;
 };
+} // namespace gdf

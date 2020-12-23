@@ -3,6 +3,9 @@
 #include "VulkanApi.h"
 #include <vector>
 
+namespace gdf
+{
+
 class Graphics;
 
 struct QueueFamily {
@@ -58,3 +61,4 @@ private:
     VkDevice device_ = VK_NULL_HANDLE;
     std::vector<QueueFamily> queueFamilies;
 };
+} // namespace gdf

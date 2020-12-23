@@ -1,10 +1,9 @@
 #include "Renderer/Graphics.h"
 #include "Base/Exception.h"
-#include "Git.h"
 #include "Base/Window.h"
+#include "Git.h"
 #include <GLFW/glfw3.h>
 #include <vector>
-
 
 #define GIT_UINT32_VERSION                                                                         \
     (static_cast<uint32_t>(wcstoul(GIT_VERSION_MAJOR, nullptr, 10) && 0xF) << 28) ||               \
@@ -13,6 +12,10 @@
 #define VK_API_VERSION VK_MAKE_VERSION(1, 0, 0)
 
 #include <iostream>
+
+namespace gdf
+{
+
 bool Graphics::Initialize()
 {
     std::vector<std::string> glfwRequiredInstanceExtensions;
@@ -52,7 +55,8 @@ bool Graphics::Initialize()
     uint32_t queueFamilyCount;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueFamilyCount, nullptr);
     std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueFamilyCount, queueFamilyProperties.data());
+    vkGetPhysicalDeviceQueueFamilyProperties(
+        physicalDevice_, &queueFamilyCount, queueFamilyProperties.data());
     std::vector<VkDeviceQueueCreateInfo> queuesCI;
     uint32_t maxQueueCount = 0;
     for (uint32_t i = 0; i < queueFamilyCount; ++i) {
@@ -60,15 +64,15 @@ bool Graphics::Initialize()
             .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
             .queueFamilyIndex = i,
             .queueCount = queueFamilyProperties[i].queueCount,
-            });
+        });
         maxQueueCount = std::max(maxQueueCount, queueFamilyProperties[i].queueCount);
     }
-    std::vector<float> queuePriorities(maxQueueCount,0.0f);
+    std::vector<float> queuePriorities(maxQueueCount, 0.0f);
     for (uint32_t i = 0; i < queueFamilyCount; ++i) {
         queuesCI[i].pQueuePriorities = queuePriorities.data();
     }
 
-    // Logical Device 
+    // Logical Device
     VkDeviceCreateInfo deviceCI{.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
                                 .queueCreateInfoCount = static_cast<uint32_t>(queuesCI.size()),
                                 .pQueueCreateInfos = queuesCI.data(),
@@ -81,7 +85,8 @@ bool Graphics::Initialize()
     //
     queueFamilies.resize(queueFamilyCount);
     for (uint32_t i = 0; i < queueFamilyCount; i++)
-        queueFamilies[i].Attach(device_, queueFamilyProperties[i].queueFlags, i, queueFamilyProperties[i].queueCount);
+        queueFamilies[i].Attach(
+            device_, queueFamilyProperties[i].queueFlags, i, queueFamilyProperties[i].queueCount);
 
     return true;
 }
@@ -100,3 +105,4 @@ bool Graphics::IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice)
     vkGetPhysicalDeviceProperties(physicalDevice, &properties);
     return true;
 }
+} // namespace gdf

@@ -4,7 +4,8 @@
 #include <set>
 #include <vector>
 
-
+namespace gdf
+{
 class Window;
 
 struct Mouse {
@@ -60,3 +61,4 @@ private:
         }
     }
 };
+} // namespace gdf

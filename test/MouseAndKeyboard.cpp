@@ -4,10 +4,12 @@
 #include <iostream>
 #include <stdlib.h>
 
+using namespace gdf;
+
 int main(int argc, char **argv)
 {
     try {
-        Runtime::Initialize();
+        gdf::Initialize();
         Window window;
         window.Create("test", 800, 600);
         window.mouse().mouseEntredCallbacks_.push_back(
@@ -42,7 +44,7 @@ int main(int argc, char **argv)
             for (auto heldKey : window.keyboard().heldKeys)
                 std::cout << "MouseHeldKey:" << heldKey << "\n";
         }
-        Runtime::Cleanup();
+        gdf::Cleanup();
     } catch (const Exception &e) {
         std::cout << e.what();
     } catch (const std::exception &e) {

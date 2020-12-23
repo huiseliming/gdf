@@ -6,13 +6,15 @@
 
 namespace std
 {
-std::string to_string(LogLevel);
+std::string to_string(gdf::LogLevel);
 }
 
 #define LOG(CATEGOTY, LOG_LEVEL, MESSAGE, ...)                                                     \
     if constexpr (static_cast<int>(LOG_LEVEL) <= static_cast<int>(CATEGOTY::compilerLevel))        \
     Logger::instance().Log(CATEGOTY::instance(), LOG_LEVEL, MESSAGE, ##__VA_ARGS__)
 
+namespace gdf
+{
 class Logger : public Singleton<Logger>
 {
 public:
@@ -27,3 +29,4 @@ public:
                   << fmt::format(message, std::forward<Args>(args)...) << "\n";
     }
 };
+} // namespace gdf

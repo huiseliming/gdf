@@ -1,24 +1,23 @@
 #include "Base/Window.h"
-#include "Log/Logger.h"
 #include "Git.h"
-
-LOG_DEFINE_CATEGORY(General, LogLevel::All, LogLevel::Info)
-namespace Runtime
+#include "Log/Logger.h"
+namespace gdf
 {
+LOG_DEFINE_CATEGORY(gdfLog, LogLevel::All, LogLevel::Info)
+
 void Initialize()
 {
-    std::wcout << L"Runtime Initialize\n";
-    ::glfwInit();
+    glfwInit();
     Logger::Create();
-    //LOG(General, LogLevel::Info, "Runtime Initialize\n");
+    LOG(gdfLog, LogLevel::Info, "Runtime Initialize");
 }
 
 void Cleanup()
 {
+
+    LOG(gdfLog, LogLevel::Info, "Runtime Initialize");
     Logger::Destroy();
     ::glfwTerminate();
-    //LOG(General, LogLevel::Info, "Runtime Initialize\n");
-    std::wcout << L"Runtime Cleanup\n";
 }
 
 bool GitRetrievedState()
@@ -82,7 +81,4 @@ std::wstring GitVerisonPatch()
     return GIT_VERSION_PATCH;
 }
 
-
-
-
-} // namespace Runtime
+} // namespace gdf

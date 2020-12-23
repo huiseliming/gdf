@@ -5,7 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "test",
+            "name": "test(lldb)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/out/build/bin/test",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/out/build/bin",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
+            "name": "test(windows)",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/out/build/bin/test.exe",
@@ -15,6 +27,6 @@
             "environment": [],
             "externalConsole": false,
             "preLaunchTask": "NinjaBuild"
-        }
+        },
     ]
 }
