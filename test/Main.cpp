@@ -1,4 +1,5 @@
 #include "Base/Exception.h"
+#include "Base/StringTool.h"
 #include "Base/Window.h"
 #include "Log/Logger.h"
 #include "Renderer/Graphics.h"
@@ -10,6 +11,9 @@ LOG_DEFINE_CATEGORY(General, LogLevel::All, LogLevel::Info)
 
 int main(int argc, char **argv)
 {
+    LOG(General, LogLevel::Info, "Version   : {}", String::ConvertString(Runtime::GitVerison()));
+    LOG(General, LogLevel::Info, "HeadSHA1  : {}", String::ConvertString(Runtime::GitHeadSHA1()));
+    LOG(General, LogLevel::Info, "CommitDate: {}", String::ConvertString(Runtime::GitCommitDate()));
     try {
         Runtime::Initialize();
         Window window;
