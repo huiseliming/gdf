@@ -36,16 +36,22 @@ include(cmake/tools.cmake)
 
 # set output directory
 SET_OUTPUT_DIRECTORY(${CMAKE_BINARY_DIR})
+# set build type (default Release)
+SET_DEFAULT_BUILD_TYPE()
+set(CMAKE_BUILD_TYPE "Debug")
+message("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 # set system name
 add_definitions(-DPLATFORM_OS=${CMAKE_SYSTEM_NAME})
 add_definitions(-D${CMAKE_SYSTEM_NAME})
 add_definitions(-DAPPLICATION_NAME="${PROJECT_NAME}")
 add_definitions(-DGLFW_INCLUDE_VULKAN)
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+    add_definitions(-DGDF_DEBUG)
+else()
+    add_definitions(-DGDF_RELEASE)
+endif()
 
-# set build type (default Release)
-SET_DEFAULT_BUILD_TYPE()
-#set(CMAKE_BUILD_TYPE "Debug")
 
 # set cpp standard 
 set(CMAKE_CXX_STANDARD 20)

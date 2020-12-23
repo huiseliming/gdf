@@ -1,9 +1,10 @@
+#include "gdf.h"
 #include "Base/Window.h"
 #include "Git.h"
 #include "Log/Logger.h"
 namespace gdf
 {
-LOG_DEFINE_CATEGORY(gdfLog, LogLevel::All, LogLevel::Info)
+DEFINE_LOG_CATEGORY(gdfLog)
 
 void Initialize()
 {

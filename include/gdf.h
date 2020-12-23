@@ -1,8 +1,13 @@
 #pragma once
+#include "Log/LogCategory.h"
 #include <string>
-
 namespace gdf
 {
+#ifdef GDF_DEBUG
+DECLARE_LOG_CATEGORY(gdfLog, LogLevel::All, LogLevel::Debug)
+#else
+DECLARE_LOG_CATEGORY(gdfLog, LogLevel::All, LogLevel::Info)
+#endif
 // call in main thread
 void Initialize();
 // call in main thread

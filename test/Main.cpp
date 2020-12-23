@@ -9,7 +9,8 @@
 
 using namespace gdf;
 
-LOG_DEFINE_CATEGORY(General, LogLevel::All, LogLevel::Info)
+DECLARE_LOG_CATEGORY(General, LogLevel::All, LogLevel::Info)
+DEFINE_LOG_CATEGORY(General)
 
 int main(int argc, char **argv)
 {

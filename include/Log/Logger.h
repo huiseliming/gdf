@@ -25,7 +25,7 @@ public:
              const std::string_view message,
              Args &&...args)
     {
-        std::cerr << "[" << category.name << "][" << std::to_string(level) << "]"
+        std::cerr << "[" << category.displayName_ << "][" << std::to_string(level) << "]"
                   << fmt::format(message, std::forward<Args>(args)...) << "\n";
     }
 };

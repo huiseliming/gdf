@@ -8,28 +8,34 @@ namespace gdf
 class LogCategory
 {
 public:
-    std::string_view name;
-    LogLevel minLevel;
+    std::string_view displayName_;
+    LogLevel runtimeLevel_;
 
 protected:
-    LogCategory(std::string_view name, LogLevel minLevel) : name(name), minLevel(minLevel)
+    LogCategory(std::string_view displayName, LogLevel runtimeLevel)
+        : displayName_(displayName), runtimeLevel_(runtimeLevel)
     {
     }
 };
 
-#define LOG_DEFINE_CATEGORY(CATEGORY_NAME, RUNTIME_LEVEL, COMPILER_LEVEL)                          \
+#define DECLARE_LOG_CATEGORY(CATEGORY_NAME, RUNTIME_DEFAULT_LEVLE, COMPILER_LEVEL)                 \
     class CATEGORY_NAME : public LogCategory                                                       \
     {                                                                                              \
     public:                                                                                        \
-        inline static constexpr std::string_view name = #CATEGORY_NAME;                            \
-        inline static constexpr LogLevel compilerLevel = COMPILER_LEVEL;                           \
-        CATEGORY_NAME() : LogCategory(#CATEGORY_NAME, RUNTIME_LEVEL)                               \
-        {                                                                                          \
-        }                                                                                          \
-        inline static CATEGORY_NAME &instance()                                                    \
-        {                                                                                          \
-            static CATEGORY_NAME logCategory;                                                      \
-            return logCategory;                                                                    \
-        }                                                                                          \
+        static constexpr LogLevel compilerLevel = COMPILER_LEVEL;                                  \
+        CATEGORY_NAME(std::string_view displayName = #CATEGORY_NAME,                               \
+                      LogLevel runtimeLevel = RUNTIME_DEFAULT_LEVLE);                              \
+        static CATEGORY_NAME &instance();                                                          \
     };
+#define DEFINE_LOG_CATEGORY(CATEGORY_NAME)                                                         \
+    CATEGORY_NAME &CATEGORY_NAME::instance()                                                       \
+    {                                                                                              \
+        static CATEGORY_NAME logCategory;                                                          \
+        return logCategory;                                                                        \
+    }                                                                                              \
+    CATEGORY_NAME::CATEGORY_NAME(std::string_view displayName, LogLevel runtimeLevel)              \
+        : LogCategory(displayName, runtimeLevel)                                                   \
+    {                                                                                              \
+    }
+
 } // namespace gdf
