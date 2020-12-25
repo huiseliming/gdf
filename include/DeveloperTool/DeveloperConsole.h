@@ -13,6 +13,7 @@ DECLARE_INTERNAL_LOG_CATEGORY(ConsoleCommand, LogLevel::All, LogLevel::All)
 class GDF_EXPORT DeveloperConsole : public CommandRunner ,public LogSink
 {
 public:
+    DeveloperConsole(size_t maxEntries = 1024);
 
     bool RunCommand(std::string_view commandCall);
 
@@ -22,6 +23,13 @@ public:
                      const std::string_view message);
     virtual void Exception();
 
+    size_t maxEntries()
+    {
+        return maxEntries_;
+    }
+
+    void maxEntries(size_t maxEntries);
+
     DeveloperConsole &Instance();
 
 private:
@@ -30,8 +38,10 @@ private:
         LogLevel level;
         std::string_view message;
     };
-
-    std::deque<Entry> entries;
+    
+    size_t maxEntries_;
+    std::mutex sync_;
+    std::deque<Entry> entries_;
 };
 
 }
