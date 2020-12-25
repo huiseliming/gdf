@@ -1,3 +1,4 @@
+#include "Base/CommandRunner.h"
 #include "Base/Exception.h"
 #include "Base/StringTool.h"
 #include "Base/Window.h"
@@ -6,14 +7,16 @@
 #include "gdf.h"
 #include <iostream>
 #include <stdlib.h>
+#include <string>
+#include <string_view>
 
 using namespace gdf;
 
 DECLARE_LOG_CATEGORY(General, LogLevel::All, LogLevel::Info)
 DEFINE_LOG_CATEGORY(General)
-
 int main(int argc, char **argv)
 {
+    CommandRunner commandRunner;
     try {
         gdf::Initialize();
         try {

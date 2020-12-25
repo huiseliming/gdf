@@ -19,6 +19,8 @@ class Logger : public Singleton<Logger>
 {
 public:
     ~Logger();
+
+
     template <typename... Args>
     void Log(const LogCategory &category,
              LogLevel level,
@@ -30,5 +32,6 @@ public:
                                  std::to_string(level),
                                  fmt::format(message, std::forward<Args>(args)...));
     }
+
 };
 } // namespace gdf
