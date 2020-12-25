@@ -10,13 +10,13 @@ void Initialize()
 {
     glfwInit();
     Logger::Create();
-    LOG(gdfLog, LogLevel::Info, "gdf Initialize");
+    GDF_LOG(gdfLog, LogLevel::Info, "gdf Initialize");
 }
 
 void Cleanup()
 {
 
-    LOG(gdfLog, LogLevel::Info, "gdf Cleanup");
+    GDF_LOG(gdfLog, LogLevel::Info, "gdf Cleanup");
     Logger::Destroy();
     ::glfwTerminate();
 }

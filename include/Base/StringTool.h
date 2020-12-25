@@ -1,5 +1,5 @@
 #pragma once
-#include "gdf_export.h"
+#include "Base/Common.h"
 #include <string>
 
 namespace gdf

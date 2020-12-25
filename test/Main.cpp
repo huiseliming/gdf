@@ -3,6 +3,7 @@
 #include "Base/StringTool.h"
 #include "Base/Window.h"
 #include "Log/Logger.h"
+#include "Log/StdSink.h"
 #include "Renderer/Graphics.h"
 #include "gdf.h"
 #include <fmt/core.h>
@@ -13,21 +14,6 @@
 #include <string_view>
 using namespace gdf;
 
-class CerrSink : public LogSink
-{
-public:
-    virtual void Log(const LogCategory &category, const LogLevel level, std::string_view message)
-    {
-        std::cerr << fmt::format(
-            "[{:s}][{:s}] {:s}\n", category.displayName_, std::to_string(level), message);
-    }
-
-    virtual void Exception()
-    {
-        std::cerr << std::flush;
-    }
-};
-
 DECLARE_LOG_CATEGORY(General, LogLevel::All, LogLevel::Info)
 DEFINE_LOG_CATEGORY(General)
 
@@ -36,24 +22,27 @@ int main(int argc, char **argv)
     try {
         gdf::Initialize();
         try {
-            CerrSink cerrSink;
             CommandRunner commandRunner;
             Logger::instance().RegisterSink(&cerrSink);
+            Logger::instance().RegisterSink(&coutSink);
             Window window;
             Graphics gfx;
             window.Create("test", 800, 600);
             gfx.Initialize();
-            LOG(General, LogLevel::Info, "Entering main loop");
+            GDF_LOG(General, LogLevel::Info, "Entering main loop");
             while (!window.ShouldClose()) {
                 window.PollEvents();
+                GDF_LOG(General, LogLevel::Info, "test");
             }
-            LOG(General, LogLevel::Info, "Exiting main loop");
+            GDF_LOG(General, LogLevel::Info, "Exiting main loop");
             gfx.Cleanup();
         } catch (const std::exception &e) {
-            LOG(General, LogLevel::Fatal, "Fatal exception: ", e.what());
+            GDF_LOG(General, LogLevel::Fatal, "Fatal exception: ", e.what());
         } catch (...) {
-            LOG(General, LogLevel::Fatal, "Fatal undefined exception!");
+            GDF_LOG(General, LogLevel::Fatal, "Fatal undefined exception!");
         }
+        Logger::instance().DeregisterSink(&cerrSink);
+        Logger::instance().DeregisterSink(&coutSink);
         gdf::Cleanup();
     } catch (...) {
         std::cout << "gdf Initialize/Cleanup Exception!\n";

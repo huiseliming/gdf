@@ -14,6 +14,16 @@
             }
         },
         {
+            "label": "MSBuild",
+            "type": "shell",
+            "command": "${workspaceFolder}/MSBuild.bat",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
             "label": "build",
             "type": "shell",
             "command": "${workspaceFolder}/build.sh",

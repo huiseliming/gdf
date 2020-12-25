@@ -14,7 +14,7 @@ namespace std
 GDF_EXPORT std::string to_string(gdf::LogLevel);
 }
 
-#define LOG(CATEGOTY, LOG_LEVEL, MESSAGE, ...)                                                     \
+#define GDF_LOG(CATEGOTY, LOG_LEVEL, MESSAGE, ...)                                                     \
     if constexpr (static_cast<int>(LOG_LEVEL) <= static_cast<int>(CATEGOTY::compilerLevel))        \
     Logger::instance().Log(CATEGOTY::instance(), LOG_LEVEL, MESSAGE, ##__VA_ARGS__)
 

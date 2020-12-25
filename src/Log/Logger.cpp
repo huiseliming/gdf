@@ -30,7 +30,7 @@ void Logger::Log(const LogCategory &category, const LogLevel level, const std::s
     for (auto sink : sinks) {
         sink->Log(category, level, message);
     }
-    if (level == LogLevel::Fatal) {
+    if (level == LogLevel::Fatal) [[unlikely]]{
         for (auto &sink : sinks) {
             sink->Exception();
         }
