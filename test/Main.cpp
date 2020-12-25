@@ -5,12 +5,25 @@
 #include "Log/Logger.h"
 #include "Renderer/Graphics.h"
 #include "gdf.h"
+#include <fmt/core.h>
 #include <iostream>
 #include <stdlib.h>
 #include <string>
 #include <string_view>
-
 using namespace gdf;
+
+class CerrSink : public LogSink
+{
+    virtual void Log(const LogCategory &category, const LogLevel level, std::string_view message)
+    {
+        std::cerr << fmt::format(
+            "[{:s}][{:s}] {:s}\n", category.displayName_, std::to_string(level), message);
+    }
+
+    virtual void Exception()
+    {
+    }
+};
 
 DECLARE_LOG_CATEGORY(General, LogLevel::All, LogLevel::Info)
 DEFINE_LOG_CATEGORY(General)

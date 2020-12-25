@@ -1,9 +1,11 @@
 #pragma once
 #include "Base/Singleton.h"
+#include "Log/LogSink.h"
 #include "LogCategory.h"
 #include <fmt/core.h>
 #include <iostream>
-
+#include <mutex>
+#include <vector>
 namespace std
 {
 std::string to_string(gdf::LogLevel);
@@ -20,18 +22,22 @@ class Logger : public Singleton<Logger>
 public:
     ~Logger();
 
+    void Log(const LogCategory &category, const LogLevel level, const std::string_view message);
 
     template <typename... Args>
     void Log(const LogCategory &category,
-             LogLevel level,
+             const LogLevel level,
              const std::string_view message,
              Args &&...args)
     {
-        std::cerr << fmt::format("[{:s}][{:s}] {:s}\n",
-                                 category.displayName_,
-                                 std::to_string(level),
-                                 fmt::format(message, std::forward<Args>(args)...));
+        Log(category, level, fmt::format(message, std::forward<Args>(args)...));
     }
 
+    bool RegisterSink(LogSink *pSink);
+    bool DeregisterSink(LogSink *pSink);
+
+private:
+    std::mutex sync;
+    std::vector<LogSink *> sinks;
 };
 } // namespace gdf
