@@ -1,14 +1,14 @@
 #pragma once
+#include "gdf_export.h"
 #include <exception>
 #include <sstream>
 #include <string>
 
 #define EXCEPT(...) Exception(__LINE__, __FILE__, ##__VA_ARGS__)
 #define THROW_EXCEPT(...) throw EXCEPT(__VA_ARGS__)
-
 namespace gdf
 {
-class Exception : public std::exception
+class GDF_EXPORT Exception : public std::exception
 {
 public:
     Exception(int line, const char *file) noexcept : line_(line), file_(file)

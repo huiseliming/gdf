@@ -8,7 +8,7 @@ namespace gdf
 
 class Graphics;
 
-struct QueueFamily {
+struct GDF_EXPORT QueueFamily {
     VkQueueFlags flag;
     uint32_t family;
     std::vector<VkQueue> queue;
@@ -29,7 +29,7 @@ private:
     }
 };
 
-class Graphics : public NonCopyable
+class GDF_EXPORT Graphics : public NonCopyable
 {
 public:
     bool Initialize();

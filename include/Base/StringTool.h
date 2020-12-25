@@ -1,4 +1,5 @@
 #pragma once
+#include "gdf_export.h"
 #include <string>
 
 namespace gdf
@@ -6,8 +7,8 @@ namespace gdf
 namespace String
 {
 
-std::wstring ConvertWstring(const std::string &in);
-std::string ConvertString(const std::wstring &in);
+GDF_EXPORT std::wstring ConvertWstring(const std::string &in);
+GDF_EXPORT std::string ConvertString(const std::wstring &in);
 
 } // namespace String
 } // namespace gdf

@@ -9,7 +9,7 @@
 struct GLFWwindow;
 namespace gdf
 {
-class Window : public NonCopyable
+class GDF_EXPORT Window : public NonCopyable
 {
 public:
     Window();

@@ -1,11 +1,12 @@
 #pragma once
+#include "gdf_export.h"
 #include "Log/LogLevel.h"
 #include <string>
 
 namespace gdf
 {
 
-class LogCategory
+class GDF_EXPORT LogCategory
 {
 public:
     std::string_view displayName_;
@@ -19,7 +20,7 @@ protected:
 };
 
 #define DECLARE_LOG_CATEGORY(CATEGORY_NAME, RUNTIME_DEFAULT_LEVLE, COMPILER_LEVEL)                 \
-    class CATEGORY_NAME : public LogCategory                                                       \
+    class GDF_EXPORT CATEGORY_NAME : public LogCategory                                                       \
     {                                                                                              \
     public:                                                                                        \
         static constexpr LogLevel compilerLevel = COMPILER_LEVEL;                                  \

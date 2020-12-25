@@ -1,4 +1,5 @@
 #pragma once
+#include "gdf_export.h"
 #include <functional>
 #include <glm/vec2.hpp>
 #include <set>
@@ -8,7 +9,7 @@ namespace gdf
 {
 class Window;
 
-struct Mouse {
+struct GDF_EXPORT Mouse {
     bool inWindow;
     bool oldInWindow;
 

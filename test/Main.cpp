@@ -7,6 +7,7 @@
 #include "gdf.h"
 #include <fmt/core.h>
 #include <iostream>
+#include <ostream>
 #include <stdlib.h>
 #include <string>
 #include <string_view>
@@ -14,6 +15,7 @@ using namespace gdf;
 
 class CerrSink : public LogSink
 {
+public:
     virtual void Log(const LogCategory &category, const LogLevel level, std::string_view message)
     {
         std::cerr << fmt::format(
@@ -22,7 +24,17 @@ class CerrSink : public LogSink
 
     virtual void Exception()
     {
+        std::cerr << std::flush;
     }
+
+    static CerrSink &Instance(){
+        static CerrSink cerrSink;
+        return cerrSink;
+    }
+    static CerrSink *pInstance(){
+        return &Instance();
+    }
+
 };
 
 DECLARE_LOG_CATEGORY(General, LogLevel::All, LogLevel::Info)
@@ -30,6 +42,7 @@ DEFINE_LOG_CATEGORY(General)
 int main(int argc, char **argv)
 {
     CommandRunner commandRunner;
+    //Logger::instance().RegisterSink(CerrSink::pInstance());
     try {
         gdf::Initialize();
         try {

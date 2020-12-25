@@ -1,10 +1,11 @@
 #pragma once
+#include "gdf_export.h"
 #include <set>
 namespace gdf
 {
 class Window;
 
-struct Keyboard {
+struct GDF_EXPORT Keyboard {
     int32_t unicodePoint;
     int32_t repeatKey;
 

@@ -1,6 +1,5 @@
 #pragma once
-#include "Base/NonCopyable.h"
-
+#include "gdf_export.h"
 #include <functional>
 #include <mutex>
 #include <map>
@@ -8,10 +7,11 @@
 #include <string_view>
 #include <unordered_map>
 
+
 namespace gdf
 {
 
-class CommandRunner : public NonCopyable
+class GDF_EXPORT CommandRunner
 {
 public:
     bool RegisterCommand(std::string_view commandName, std::function<void (std::string_view commandName)>&& function);

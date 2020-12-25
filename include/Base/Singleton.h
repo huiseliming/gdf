@@ -1,10 +1,11 @@
 #pragma once
+#include "gdf_export.h"
 #include <memory>
 #include <mutex>
 namespace gdf
 {
 template <typename T>
-class Singleton
+class GDF_EXPORT Singleton
 {
 private:
     Singleton<T>(const Singleton<T> &) = delete;

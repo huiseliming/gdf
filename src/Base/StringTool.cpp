@@ -1,4 +1,5 @@
 #include "Base/StringTool.h"
+
 namespace gdf
 {
 namespace String

@@ -23,7 +23,7 @@ if(WIN32)
     # window macro define
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     # set windows export symbols(spawn .lib)
-    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    #set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
 find_package(glfw3 CONFIG REQUIRED)
@@ -76,9 +76,7 @@ add_library(${PROJECT_NAME} SHARED
     ${Header}
     ${Source})
 else()
-add_library(${PROJECT_NAME} STATIC 
-    ${Header}
-    ${Source})
+    message(FATAL_ERROR "Can't build static library!")
 endif()
 
 target_link_libraries(${PROJECT_NAME} 
@@ -87,7 +85,12 @@ target_link_libraries(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>    #${CMAKE_INSTALL_PREFIX}/include
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/exports>
+    $<INSTALL_INTERFACE:exports>    #${CMAKE_INSTALL_PREFIX}/include
     )
+# For windows export symbols
+include(GenerateExportHeader)
+generate_export_header(${PROJECT_NAME} EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/exports/gdf_export.h)
 
 #set target postfix 
 SET_TARGET_POSTFIX(${PROJECT_NAME})

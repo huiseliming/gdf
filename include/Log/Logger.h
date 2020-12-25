@@ -6,6 +6,9 @@
 #include <iostream>
 #include <mutex>
 #include <vector>
+
+
+
 namespace std
 {
 std::string to_string(gdf::LogLevel);
@@ -17,7 +20,7 @@ std::string to_string(gdf::LogLevel);
 
 namespace gdf
 {
-class Logger : public Singleton<Logger>
+class GDF_EXPORT Logger : public Singleton<Logger>
 {
 public:
     ~Logger();
@@ -40,4 +43,7 @@ private:
     std::mutex sync;
     std::vector<LogSink *> sinks;
 };
+
+template class GDF_EXPORT Singleton<Logger>;
+
 } // namespace gdf

@@ -1,7 +1,8 @@
 #pragma once
+#include "gdf_export.h"
 namespace gdf
 {
-class NonCopyable
+class GDF_EXPORT NonCopyable
 {
 private:
     NonCopyable(const NonCopyable &) = delete;
