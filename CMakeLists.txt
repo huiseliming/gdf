@@ -17,7 +17,8 @@ endif()
 project(gdf VERSION 0.0.0)
 
 # option
-option(BUILD_SHARED_LIBS "True when building shared library" True)
+option(BUILD_SHARED_LIBS "True when build shared library" True)
+option(BUILD_TESTS "True when build tests library" True)
 
 if(WIN32)
     # window macro define
@@ -30,7 +31,7 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(glm REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(fmt CONFIG REQUIRED)
-
+find_package(Catch2 REQUIRED)
 
 include(cmake/tools.cmake)
 
@@ -102,7 +103,9 @@ include(cmake/git_watcher.cmake)
 add_dependencies(${PROJECT_NAME} check_git)
 
 # test
-add_subdirectory(test)
+if(BUILD_TESTS)
+    add_subdirectory(test)
+endif()
 
 # install targets and create export-set
 install(TARGETS ${PROJECT_NAME} 

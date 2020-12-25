@@ -1,14 +1,13 @@
 
-macro(my_add_test test_name)
-add_executable(${test_name} ${test_name}.cpp)
-target_link_libraries(${test_name} gdf)
-endmacro(${test_name})
+enable_testing()
 
-my_add_test(MouseAndKeyboard)
+add_executable(gdf_test gdf_test.cpp)
+target_link_libraries(gdf_test PRIVATE gdf Catch2::Catch2)
 
-#add_executable(MouseAndKeyboard MouseAndKeyboard.cpp)
-#target_link_libraries(MouseAndKeyboard Renderer)
+add_executable(MouseAndKeyboard MouseAndKeyboard.cpp)
+target_link_libraries(MouseAndKeyboard gdf)
 
-add_executable(test Main.cpp)
-target_link_libraries(test gdf)
+add_executable(Main Main.cpp)
+target_link_libraries(Main gdf)
 
+ 

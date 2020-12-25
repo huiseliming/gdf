@@ -1,7 +1,7 @@
-#include "DeveloperTool/DeveloperConsole.h"
 #include "Base/Exception.h"
 #include "Base/StringTool.h"
 #include "Base/Window.h"
+#include "DeveloperTool/DeveloperConsole.h"
 #include "Log/Logger.h"
 #include "Log/StdSink.h"
 #include "Renderer/Graphics.h"
@@ -25,9 +25,8 @@ int main(int argc, char **argv)
             DeveloperConsole developerConsole;
             Logger::instance().RegisterSink(&cerrSink);
             Logger::instance().RegisterSink(&coutSink);
-            developerConsole.RegisterCommand("PrintTest", [](std::string_view){
-                GDF_LOG(General, LogLevel::Info, "Test");
-            });
+            developerConsole.RegisterCommand(
+                "PrintTest", [](std::string_view) { GDF_LOG(General, LogLevel::Info, "Test"); });
             Window window;
             Graphics gfx;
             window.Create("test", 800, 600);
@@ -52,4 +51,3 @@ int main(int argc, char **argv)
     }
     return EXIT_SUCCESS;
 }
-

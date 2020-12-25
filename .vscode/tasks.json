@@ -40,6 +40,16 @@
             "problemMatcher": [
                 "$eslint-stylish"
             ]
-        }
+        },
+        {
+            "label": "clearbuild",
+            "type": "shell",
+            "command": "${workspaceFolder}/clearbuild.sh",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+        },
     ]
 }

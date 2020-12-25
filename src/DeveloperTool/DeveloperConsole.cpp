@@ -1,4 +1,4 @@
-#include "DeveloperTool\DeveloperConsole.h"
+#include "DeveloperTool/DeveloperConsole.h"
 #include "Log/Logger.h"
 #include "fmt/core.h"
 
@@ -15,15 +15,15 @@ bool DeveloperConsole::RunCommand(std::string_view commandCall)
 {
     GDF_LOG(ConsoleCommand, LogLevel::Info, fmt::format("CmdRun: {:s}", commandCall));
     if (!CommandRunner::RunCommand(commandCall)) {
-        GDF_LOG(ConsoleCommand, LogLevel::Info, fmt::format("CmdNoFind: {:s}",commandCall));
+        GDF_LOG(ConsoleCommand, LogLevel::Info, fmt::format("CmdNoFind: {:s}", commandCall));
         return false;
     }
     return true;
 }
 
-void DeveloperConsole::Log( const LogCategory &category,
-                            const LogLevel level,
-                            const std::string_view message)
+void DeveloperConsole::Log(const LogCategory &category,
+                           const LogLevel level,
+                           const std::string_view message)
 {
     std::scoped_lock<std::mutex> lock(sync_);
     entries_.emplace_back(Entry{const_cast<LogCategory &>(category), level, message});

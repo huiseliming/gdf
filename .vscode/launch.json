@@ -5,10 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Main(lldb)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/out/build/bin/Main",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/out/build/bin",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
             "name": "test(lldb)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/out/build/bin/test",
+            "program": "${workspaceFolder}/out/build/bin/gdf_test",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/out/build/bin",
@@ -20,7 +32,7 @@
             "name": "test(windows)",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/out/build/bin/test.exe",
+            "program": "${workspaceFolder}/out/build/bin/Main.exe",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/out/build/bin",
