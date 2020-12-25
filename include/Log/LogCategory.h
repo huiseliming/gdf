@@ -23,9 +23,9 @@ protected:
     class GDF_EXPORT CATEGORY_NAME : public LogCategory                                                       \
     {                                                                                              \
     public:                                                                                        \
-        static constexpr LogLevel compilerLevel = COMPILER_LEVEL;                                  \
+        static constexpr LogLevel compilerLevel = (COMPILER_LEVEL);                                  \
         CATEGORY_NAME(std::string_view displayName = #CATEGORY_NAME,                               \
-                      LogLevel runtimeLevel = RUNTIME_DEFAULT_LEVLE);                              \
+                      LogLevel runtimeLevel = (RUNTIME_DEFAULT_LEVLE));                              \
         static CATEGORY_NAME &instance();                                                          \
     };
 #define DEFINE_INTERNAL_LOG_CATEGORY(CATEGORY_NAME)                                                         \
@@ -43,9 +43,9 @@ protected:
     class CATEGORY_NAME : public LogCategory                                                       \
     {                                                                                              \
     public:                                                                                        \
-        static constexpr LogLevel compilerLevel = COMPILER_LEVEL;                                  \
+        static constexpr LogLevel compilerLevel = (COMPILER_LEVEL);                                  \
         CATEGORY_NAME(std::string_view displayName = #CATEGORY_NAME,                               \
-                      LogLevel runtimeLevel = RUNTIME_DEFAULT_LEVLE);                              \
+                      LogLevel runtimeLevel = (RUNTIME_DEFAULT_LEVLE));                              \
         static CATEGORY_NAME &instance();                                                          \
     };
 #define DEFINE_LOG_CATEGORY(CATEGORY_NAME) DEFINE_INTERNAL_LOG_CATEGORY(CATEGORY_NAME)

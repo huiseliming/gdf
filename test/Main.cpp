@@ -1,4 +1,4 @@
-#include "Base/CommandRunner.h"
+#include "DeveloperTool/DeveloperConsole.h"
 #include "Base/Exception.h"
 #include "Base/StringTool.h"
 #include "Base/Window.h"
@@ -22,9 +22,12 @@ int main(int argc, char **argv)
     try {
         gdf::Initialize();
         try {
-            CommandRunner commandRunner;
+            DeveloperConsole developerConsole;
             Logger::instance().RegisterSink(&cerrSink);
             Logger::instance().RegisterSink(&coutSink);
+            developerConsole.RegisterCommand("PrintTest", [](std::string_view){
+                GDF_LOG(General, LogLevel::Info, "Test");
+            });
             Window window;
             Graphics gfx;
             window.Create("test", 800, 600);
@@ -32,20 +35,21 @@ int main(int argc, char **argv)
             GDF_LOG(General, LogLevel::Info, "Entering main loop");
             while (!window.ShouldClose()) {
                 window.PollEvents();
-                GDF_LOG(General, LogLevel::Info, "test");
+                developerConsole.RunCommand("Prinest");
             }
             GDF_LOG(General, LogLevel::Info, "Exiting main loop");
             gfx.Cleanup();
+            Logger::instance().DeregisterSink(&cerrSink);
+            Logger::instance().DeregisterSink(&coutSink);
         } catch (const std::exception &e) {
             GDF_LOG(General, LogLevel::Fatal, "Fatal exception: ", e.what());
         } catch (...) {
             GDF_LOG(General, LogLevel::Fatal, "Fatal undefined exception!");
         }
-        Logger::instance().DeregisterSink(&cerrSink);
-        Logger::instance().DeregisterSink(&coutSink);
         gdf::Cleanup();
     } catch (...) {
         std::cout << "gdf Initialize/Cleanup Exception!\n";
     }
     return EXIT_SUCCESS;
 }
+
