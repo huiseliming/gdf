@@ -26,26 +26,19 @@ public:
     {
         std::cerr << std::flush;
     }
-
-    static CerrSink &Instance(){
-        static CerrSink cerrSink;
-        return cerrSink;
-    }
-    static CerrSink *pInstance(){
-        return &Instance();
-    }
-
 };
 
 DECLARE_LOG_CATEGORY(General, LogLevel::All, LogLevel::Info)
 DEFINE_LOG_CATEGORY(General)
+
 int main(int argc, char **argv)
 {
-    CommandRunner commandRunner;
-    //Logger::instance().RegisterSink(CerrSink::pInstance());
     try {
         gdf::Initialize();
         try {
+            CerrSink cerrSink;
+            CommandRunner commandRunner;
+            Logger::instance().RegisterSink(&cerrSink);
             Window window;
             Graphics gfx;
             window.Create("test", 800, 600);

@@ -11,7 +11,7 @@
 
 namespace std
 {
-std::string to_string(gdf::LogLevel);
+GDF_EXPORT std::string to_string(gdf::LogLevel);
 }
 
 #define LOG(CATEGOTY, LOG_LEVEL, MESSAGE, ...)                                                     \
