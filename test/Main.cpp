@@ -1,5 +1,5 @@
 #include "Base/Exception.h"
-#include "Base/ProgramTime.h"
+#include "Base/Clock.h"
 #include "Base/StringTool.h"
 #include "Base/Window.h"
 #include "DeveloperTool/DeveloperConsole.h"
@@ -29,10 +29,10 @@ int main(int argc, char **argv)
             DeveloperConsole developerConsole;
             Logger::instance().RegisterSink(&cerrSink);
             Logger::instance().RegisterSink(&coutSink);
-        GDF_LOG(General,
-                LogLevel::Info,
-                "Exiting main loop in {}",
-                std::chrono::duration<float>(ProgramTime::now().time_since_epoch()).count());
+            GDF_LOG(General,
+                    LogLevel::Info,
+                    "Exiting main loop in {}",
+                    ProgramClock::ProgramStartTime().time_since_epoch().count());
             developerConsole.RegisterCommand(
                 "PrintTest", [](std::string_view) { GDF_LOG(General, LogLevel::Info, "Test"); });
             Window window;
@@ -42,20 +42,15 @@ int main(int argc, char **argv)
             GDF_LOG(General, LogLevel::Info, "Entering main loop");
             while (!window.ShouldClose()) {
                 window.PollEvents();
+                std::this_thread::yield();
                 // developerConsole.RunCommand("Prinest");
             }
             GDF_LOG(General, LogLevel::Info, "Exiting main loop");
-            GDF_LOG(General,
-                    LogLevel::Info,
-                    "Exiting main loop in {}",
-                    std::chrono::duration_cast<std::chrono::milliseconds>(
-                        ProgramTime::now().time_since_epoch())
-                        .count());
-            GDF_LOG(General,
-                    LogLevel::Info,
-                    "Exiting main loop in {}",
-                    std::chrono::duration<float>(ProgramTime::now().time_since_epoch()).count());
             gfx.Cleanup();
+            GDF_LOG(General,
+                    LogLevel::Info,
+                    "Exiting main loop in {}",
+                    ProgramClock::now().time_since_epoch().count());
             Logger::instance().DeregisterSink(&cerrSink);
             Logger::instance().DeregisterSink(&coutSink);
         } catch (const std::exception &e) {

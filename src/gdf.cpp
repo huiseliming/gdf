@@ -1,16 +1,19 @@
 #include "gdf.h"
-#include "Base/ProgramTime.h"
+#include "Base/Clock.h"
 #include "Base/Window.h"
 #include "Git.h"
 #include "Log/Logger.h"
 #include <chrono>
+
 namespace gdf
 {
+ProgramClock programClock;
+
 DEFINE_LOG_CATEGORY(gdfLog)
 
 void Initialize()
 {
-    ProgramTime::programStartTime = std::chrono::steady_clock::now();
+    ProgramClock::SetProgramStartTime();
     glfwInit();
     Logger::Create();
     GDF_LOG(gdfLog, LogLevel::Info, "gdf Initialize");
