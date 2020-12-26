@@ -2,59 +2,39 @@
 #include "Base/Common.h"
 #include "gdf_export.h"
 #include <chrono>
+#include <iostream>
+
 namespace gdf
 {
 
 #ifndef _WIN32
 
 template <typename ClockType, typename Duration>
-struct Clock {
+struct Clock 
+{
     using rep = typename Duration::rep;
     using period = typename Duration::period;
     using duration = Duration;
     using time_point = std::chrono::time_point<Clock, duration>;
-    void Update() noexcept
-    {
-        lastClockTime = currentClockTime;
-        currentClockTime = ClockType::now();
-    }
-
-    void Reset() noexcept
-    {
-        currentClockTime = ClockType::now();
-        lastClockTime = currentClockTime;
-    }
-
-    rep Elapsed() noexcept
-    {
-        return time_point(currentClockTime - lastClockTime).time_since_epoch().count();
-    }
-
-    rep CurrentTime() const noexcept
-    {
-        return time_point(currentClockTime.time_since_epoch()).time_since_epoch().count();
-    }
-
-private:
-    typename ClockType::time_point lastClockTime;
-    typename ClockType::time_point currentClockTime;
 
 public:
     static void SetProgramStartTime() noexcept;
-    static constexpr bool is_steady = ClockType::is_steady;
     static time_point now() noexcept;
+    static constexpr bool is_steady = ClockType::is_steady;
     static typename ClockType::time_point programStartTime;
 };
 
 template <typename ClockType, typename Duration>
 void Clock<ClockType, Duration>::SetProgramStartTime() noexcept
 {
+    std::cout << &programStartTime << std::endl;
     programStartTime = ClockType::now();
 }
 
 template <typename ClockType, typename Duration>
 typename Clock<ClockType, Duration>::time_point Clock<ClockType, Duration>::now() noexcept
 {
+    std::cout << &programStartTime << std::endl;
     return time_point(ClockType::now() - programStartTime);
 }
 
@@ -65,6 +45,20 @@ using ProgramClock =
     Clock<std::chrono::steady_clock, std::chrono::duration<double, std::ratio<1, 1>>>;
 
 #else
+struct GDF_EXPORT ProgramClock {
+    using rep = double;
+    using period = std::ratio<1, 1>;
+    using duration = std::chrono::duration<double, std::ratio<1, 1>>;
+    using time_point = std::chrono::time_point<ProgramClock, duration>;
 
+public:
+    static void SetProgramStartTime() noexcept;
+    static time_point now() noexcept;
+    static constexpr bool is_steady = std::chrono::steady_clock::is_steady;
+    static typename std::chrono::steady_clock::time_point programStartTime;
+
+};
 #endif
+
+
 } // namespace gdf

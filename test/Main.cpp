@@ -1,4 +1,5 @@
 #include "Base/Clock.h"
+#include "Base/Timer.h"
 #include "Base/Exception.h"
 #include "Base/StringTool.h"
 #include "Base/Window.h"
@@ -36,7 +37,7 @@ int main(int argc, char **argv)
             window.Create("test", 800, 600);
             gfx.Initialize();
             GDF_LOG(General, LogLevel::Info, "Entering main loop");
-            ProgramClock pc;
+            Timer pc;
             pc.Reset();
             while (!window.ShouldClose()) {
                 window.PollEvents();
