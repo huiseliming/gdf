@@ -1,5 +1,5 @@
-#include "Base/Exception.h"
 #include "Base/Clock.h"
+#include "Base/Exception.h"
 #include "Base/StringTool.h"
 #include "Base/Window.h"
 #include "DeveloperTool/DeveloperConsole.h"
@@ -29,10 +29,6 @@ int main(int argc, char **argv)
             DeveloperConsole developerConsole;
             Logger::instance().RegisterSink(&cerrSink);
             Logger::instance().RegisterSink(&coutSink);
-            GDF_LOG(General,
-                    LogLevel::Info,
-                    "Exiting main loop in {}",
-                    ProgramClock::ProgramStartTime().time_since_epoch().count());
             developerConsole.RegisterCommand(
                 "PrintTest", [](std::string_view) { GDF_LOG(General, LogLevel::Info, "Test"); });
             Window window;
@@ -40,11 +36,15 @@ int main(int argc, char **argv)
             window.Create("test", 800, 600);
             gfx.Initialize();
             GDF_LOG(General, LogLevel::Info, "Entering main loop");
+            ProgramClock pc;
+            pc.Reset();
             while (!window.ShouldClose()) {
                 window.PollEvents();
-                std::this_thread::yield();
                 // developerConsole.RunCommand("Prinest");
+                pc.Update();
             }
+            GDF_LOG(General, LogLevel::Info, "Last tick elapsed: {}", pc.Elapsed());
+            GDF_LOG(General, LogLevel::Info, "CurrentTime: {}", pc.CurrentTime());
             GDF_LOG(General, LogLevel::Info, "Exiting main loop");
             gfx.Cleanup();
             GDF_LOG(General,
