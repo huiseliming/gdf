@@ -53,6 +53,11 @@ struct TimeManager {
 
     void Reset() noexcept
     {
+        elapsed_ = OutputDataType(0);
+        currentTime_ = OutputDataType(0);
+        realElapsed_ = OutputDataType(0);
+        realCurrentTime_ = OutputDataType(0);
+
         actualStartTimePoint_ = ClockType::now();
         currentActualTimePoint_ = actualStartTimePoint_;
         previousActualTimePoint_ = currentActualTimePoint_;

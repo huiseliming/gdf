@@ -25,13 +25,21 @@ public:
     void preProcessing();
     void postProcessing();
 
-    void CreateWindowSurface(const VkInstance instance, VkSurfaceKHR *surface);
+    VkResult GetVkSurfaceKHR(const VkInstance instance, VkSurfaceKHR *surface);
 
     GLFWwindow *pGLFWWindow()
     {
         return pGLFWWindow_;
     }
 
+    int width()
+    {
+        return width_;
+    }
+    int height()
+    {
+        return height_;
+    }
     Mouse &mouse()
     {
         return mouse_;
@@ -41,9 +49,12 @@ public:
     {
         return keyboard_;
     }
+    bool resized()
+    {
+        return resized_;
+    }
 
-    static bool GetRequiredInstanceExtensions(
-        std::vector<std::string> &glfwRequiredInstanceExtensions);
+    static bool GetRequiredInstanceExtensions(std::vector<const char *> &glfwRequiredInstanceExtensions);
 
 private:
     // Mouse Callback

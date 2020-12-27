@@ -1,6 +1,6 @@
 #include "Renderer/Graphics.h"
-#include "Base/Exception.h"
 #include "Base/Window.h"
+#include "Renderer/Swapchain.h"
 #include "Git.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -15,13 +15,18 @@
 
 namespace gdf
 {
-GDF_DEFINE_EXPORT_LOG_CATEGORY(GraphicsMsg);
+GDF_DEFINE_EXPORT_LOG_CATEGORY(GraphicsLog);
 
-bool Graphics::Initialize()
+bool Graphics::Initialize(bool enableValidationLayer)
 {
-    std::vector<std::string> glfwRequiredInstanceExtensions;
-    if (!Window::GetRequiredInstanceExtensions(glfwRequiredInstanceExtensions))
+    enableValidationLayer_ = enableValidationLayer;
+    std::vector<const char *> instanceExtensions;
+    if (!Window::GetRequiredInstanceExtensions(instanceExtensions))
         return false;
+    if (enableValidationLayer_)
+        instanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+    std::vector<const char *> deviceExtensions;
+    deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     // Instance
     VkApplicationInfo appinfo{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
                               .pApplicationName = APPLICATION_NAME,
@@ -34,10 +39,29 @@ bool Graphics::Initialize()
         .pApplicationInfo = &appinfo,
         .enabledLayerCount = 0,
         .ppEnabledLayerNames = nullptr,
-        .enabledExtensionCount = 0,
-        .ppEnabledExtensionNames = nullptr,
+        .enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size()),
+        .ppEnabledExtensionNames = instanceExtensions.data(),
     };
+
     VK_ASSERT_SUCCESSED(vkCreateInstance(&instanceCI, nullptr, &instance_));
+
+    //Setup DebugReportCallback
+    if (enableValidationLayer_) {
+        VkDebugReportCallbackCreateInfoEXT DebugReportCallbackCI{
+        .sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT,
+        .flags = 
+            VK_DEBUG_REPORT_DEBUG_BIT_EXT 
+            | VK_DEBUG_REPORT_ERROR_BIT_EXT 
+            | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT 
+            | VK_DEBUG_REPORT_WARNING_BIT_EXT 
+            //| VK_DEBUG_REPORT_INFORMATION_BIT_EXT
+            ,
+        .pfnCallback = Graphics::DebugReportCallbackEXT,
+        };
+        auto fpCreateDebugReportCallbackEXT = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetInstanceProcAddr(instance_, "vkCreateDebugReportCallbackEXT"));
+        fpCreateDebugReportCallbackEXT(instance_, &DebugReportCallbackCI, nullptr, &fpDebugReportCallbackEXT_);
+    }
+    
     // Physical Device
     uint32_t physicalDeviceCount;
     VK_ASSERT_SUCCESSED(vkEnumeratePhysicalDevices(instance_, &physicalDeviceCount, nullptr));
@@ -79,14 +103,14 @@ bool Graphics::Initialize()
                                 .pQueueCreateInfos = queuesCI.data(),
                                 .enabledLayerCount = 0,
                                 .ppEnabledLayerNames = nullptr,
-                                .enabledExtensionCount = 0,
-                                .ppEnabledExtensionNames = nullptr,
+                                .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
+                                .ppEnabledExtensionNames = deviceExtensions.data(),
                                 .pEnabledFeatures = &physicalDeviceFeatures_};
     VK_ASSERT_SUCCESSED(vkCreateDevice(physicalDevice_, &deviceCI, nullptr, &device_));
     //
-    queueFamilies.resize(queueFamilyCount);
+    queueFamilies_.resize(queueFamilyCount);
     for (uint32_t i = 0; i < queueFamilyCount; i++)
-        queueFamilies[i].Attach(
+        queueFamilies_[i].Attach(
             device_, queueFamilyProperties[i].queueFlags, i, queueFamilyProperties[i].queueCount);
 
     return true;
@@ -94,10 +118,20 @@ bool Graphics::Initialize()
 
 void Graphics::Cleanup()
 {
+    swapchain_.reset();
     vkDestroyDevice(device_, nullptr);
     device_ = VK_NULL_HANDLE;
+    if (enableValidationLayer_) {
+        auto vkDestroyDebugReportCallbackEXT = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(instance_, "vkDestroyDebugReportCallbackEXT"));
+        vkDestroyDebugReportCallbackEXT(instance_, fpDebugReportCallbackEXT_, nullptr);
+    }
     vkDestroyInstance(instance_, nullptr);
     instance_ = VK_NULL_HANDLE;
+}
+
+void Graphics::SetSwapchain(std::unique_ptr<Swapchain>&& swapchain)
+{
+    swapchain_ = std::move(swapchain);
 }
 
 bool Graphics::IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice)
@@ -105,5 +139,29 @@ bool Graphics::IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice)
     VkPhysicalDeviceProperties properties;
     vkGetPhysicalDeviceProperties(physicalDevice, &properties);
     return true;
+}
+VkBool32 Graphics::DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
+                                          VkDebugReportObjectTypeEXT objectType,
+                                          uint64_t object,
+                                          size_t location,
+                                          int32_t messageCode,
+                                          const char *pLayerPrefix,
+                                          const char *pMessage,
+                                          void *pUserData)
+{
+    if ((flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) != 0) {
+        GDF_LOG(GraphicsLog, LogLevel::Error, "[{}] code {} : {}", pLayerPrefix, messageCode, pMessage);
+    }
+    if ((flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) != 0 || (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) != 0) {
+        GDF_LOG(GraphicsLog, LogLevel::Warning, "[{}] code {} : {}", pLayerPrefix, messageCode, pMessage);
+    }
+    if ((flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT) != 0) {
+        GDF_LOG(GraphicsLog, LogLevel::Info, "[{}] code {} : {}", pLayerPrefix, messageCode, pMessage);
+    }
+    if ((flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT) != 0) {
+        GDF_LOG(GraphicsLog, LogLevel::Debug, "[{}] code {} : {}", pLayerPrefix, messageCode, pMessage);
+    }
+
+    return VK_FALSE;
 }
 } // namespace gdf

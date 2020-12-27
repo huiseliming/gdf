@@ -1,5 +1,4 @@
 #include "Base/Window.h"
-#include "Base/Exception.h"
 #include "Base/StringTool.h"
 namespace gdf
 {
@@ -57,13 +56,12 @@ bool Window::ShouldClose()
     return glfwWindowShouldClose(pGLFWWindow_);
 }
 
-void Window::CreateWindowSurface(const VkInstance instance, VkSurfaceKHR *surface)
+VkResult Window::GetVkSurfaceKHR(const VkInstance instance, VkSurfaceKHR *surface)
 {
-    if (glfwCreateWindowSurface(instance, pGLFWWindow_, nullptr, surface))
-        THROW_EXCEPT("Failed to create window surface");
+    return glfwCreateWindowSurface(instance, pGLFWWindow_, nullptr, surface);
 }
 
-bool Window::GetRequiredInstanceExtensions(std::vector<std::string> &glfwRequiredInstanceExtensions)
+bool Window::GetRequiredInstanceExtensions(std::vector<const char*> &glfwRequiredInstanceExtensions)
 {
     if (!glfwVulkanSupported())
         return false;
@@ -145,6 +143,8 @@ void Window::WindowSizeCallback(GLFWwindow *window, int width, int height)
 {
     Window *pWindow = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
     pWindow->resized_ = true;
+    pWindow->width_ = width;
+    pWindow->height_ = height;
 }
 
 void Window::FramebufferResizeCallback(GLFWwindow *window, int width, int height)

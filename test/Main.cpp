@@ -7,6 +7,7 @@
 #include "Log/Logger.h"
 #include "Log/StdSink.h"
 #include "Renderer/Graphics.h"
+#include "Renderer/Swapchain.h"
 #include "gdf.h"
 #include <chrono>
 #include <fmt/core.h>
@@ -35,13 +36,16 @@ int main(int argc, char **argv)
             developerConsole.RegisterCommand("PrintTest", [](std::string_view) { GDF_LOG(General, LogLevel::Info, "Test"); });
             window.Create("test", 800, 600);
             gfx.Initialize();
+            gfx.SetSwapchain(std::make_unique<Swapchain>(window, gfx));
             tm.Reset();
             tm.dilation(0.01);
             GDF_LOG(General, LogLevel::Info, "Entering main loop at ProgramTime: {}", ProgramClock::now().time_since_epoch().count());
             while (!window.ShouldClose()) {
                 window.PollEvents();
-                // developerConsole.RunCommand("Prinest");
                 tm.Update();
+                if (window.resized()) {
+                    gfx.pWindowData()->FramebufferResize();
+                }
                 // GDF_LOG(General, LogLevel::Info, "RealCurrentTime: {}", tm.RealCurrentTime());
                 // GDF_LOG(General, LogLevel::Info, "CurrentTime: {}", tm.CurrentTime());
                 // GDF_LOG(General, LogLevel::Info, "TimeOffset: {}", (double(tm.RealCurrentTime()) / double(tm.CurrentTime())));

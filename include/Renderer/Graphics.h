@@ -1,16 +1,23 @@
 #pragma once
 #include "Base/NonCopyable.h"
+#include "Log/Logger.h"
 #include "VulkanApi.h"
 #include <vector>
-#include "Log/Logger.h"
+
+#ifdef GDF_DEBUG
+#define GDF_ENABLE_VALIDATION_LAYER true
+#else
+#define GDF_ENABLE_VALIDATION_LAYER false
+#endif // GDF_DEBUG
+
 
 namespace gdf
 {
 
- GDF_DECLARE_EXPORT_LOG_CATEGORY(GraphicsMsg, LogLevel::Info, LogLevel::All);
-
+GDF_DECLARE_EXPORT_LOG_CATEGORY(GraphicsLog, LogLevel::Info, LogLevel::All);
 
 class Graphics;
+struct Swapchain;
 
 struct GDF_EXPORT QueueFamily {
     VkQueueFlags flag;
@@ -20,10 +27,7 @@ struct GDF_EXPORT QueueFamily {
     friend class Graphics;
 
 private:
-    void Attach(VkDevice device,
-                VkQueueFlags queueFlags,
-                uint32_t queueFamilyIndex,
-                uint32_t queueNum)
+    void Attach(VkDevice device, VkQueueFlags queueFlags, uint32_t queueFamilyIndex, uint32_t queueNum)
     {
         this->flag = queueFlags;
         this->family = queueFamilyIndex;
@@ -36,9 +40,11 @@ private:
 class GDF_EXPORT Graphics : public NonCopyable
 {
 public:
-    bool Initialize();
+    bool Initialize(bool enableValidationLayer = GDF_ENABLE_VALIDATION_LAYER);
 
     void Cleanup();
+
+    void SetSwapchain(std::unique_ptr<Swapchain>&& swapchain);
 
     bool IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice);
 
@@ -57,12 +63,30 @@ public:
         return device_;
     }
 
+    Swapchain *pWindowData()
+    {
+        return swapchain_.get();
+    }
+
+    static VkBool32 DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
+                                    VkDebugReportObjectTypeEXT objectType,
+                                    uint64_t object,
+                                    size_t location,
+                                    int32_t messageCode,
+                                    const char *pLayerPrefix,
+                                    const char *pMessage,
+                                    void *pUserData);
+
 private:
     VkPhysicalDeviceFeatures physicalDeviceFeatures_ = {};
     VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
 
     VkInstance instance_ = VK_NULL_HANDLE;
     VkDevice device_ = VK_NULL_HANDLE;
-    std::vector<QueueFamily> queueFamilies;
+    std::vector<QueueFamily> queueFamilies_;
+
+    std::unique_ptr<Swapchain> swapchain_;
+    VkDebugReportCallbackEXT fpDebugReportCallbackEXT_ = VK_NULL_HANDLE;
+    bool enableValidationLayer_;
 };
 } // namespace gdf
