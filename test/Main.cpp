@@ -1,7 +1,7 @@
 #include "Base/Clock.h"
-#include "Base/Timer.h"
 #include "Base/Exception.h"
 #include "Base/StringTool.h"
+#include "Base/Timer.h"
 #include "Base/Window.h"
 #include "DeveloperTool/DeveloperConsole.h"
 #include "Log/Logger.h"
