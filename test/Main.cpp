@@ -19,12 +19,11 @@
 #include <vulkan/vulkan_core.h>
 using namespace gdf;
 
-DECLARE_LOG_CATEGORY(General, LogLevel::All, LogLevel::Info)
-DEFINE_LOG_CATEGORY(General)
+GDF_DECLARE_LOG_CATEGORY(General, LogLevel::All, LogLevel::Info)
+GDF_DEFINE_LOG_CATEGORY(General)
 
 int main(int argc, char **argv)
 {
-    std::chrono::seconds;
     try {
         gdf::Initialize();
         try {
@@ -38,7 +37,7 @@ int main(int argc, char **argv)
             gfx.Initialize();
             tm.Reset();
             tm.dilation(0.01);
-            GDF_LOG(General, LogLevel::Info, "Entering main loop at ProgramTime: {}");
+            GDF_LOG(General, LogLevel::Info, "Entering main loop at ProgramTime: {}", ProgramClock::now().time_since_epoch().count());
             while (!window.ShouldClose()) {
                 window.PollEvents();
                 // developerConsole.RunCommand("Prinest");

@@ -7,8 +7,8 @@
 
 using namespace gdf;
 
-DECLARE_LOG_CATEGORY(TestCategory, LogLevel::All, LogLevel::All)
-DEFINE_LOG_CATEGORY(TestCategory)
+GDF_DECLARE_LOG_CATEGORY(TestCategory, LogLevel::All, LogLevel::All)
+GDF_DEFINE_LOG_CATEGORY(TestCategory)
 
 TEST_CASE("LogCategory - Define", "[gdf][LogCategory]")
 {
@@ -42,8 +42,8 @@ private:
     std::string lastLog_;
 };
 
-DECLARE_LOG_CATEGORY(FatalCategory, LogLevel::All, LogLevel::Fatal)
-DEFINE_LOG_CATEGORY(FatalCategory)
+GDF_DECLARE_LOG_CATEGORY(FatalCategory, LogLevel::All, LogLevel::Fatal)
+GDF_DEFINE_LOG_CATEGORY(FatalCategory)
 
 TEST_CASE("LogCategory - Fatal compilation level", "[gdf][LogCategory]")
 {
@@ -57,8 +57,8 @@ TEST_CASE("LogCategory - Fatal compilation level", "[gdf][LogCategory]")
     gdf::Logger::instance().DeregisterSink(&testSink);
     REQUIRE(testSink.lastLog() == "[FatalCategory][Fatal] Fatal");
 }
-DECLARE_LOG_CATEGORY(ErrorCategory, LogLevel::All, LogLevel::Error)
-DEFINE_LOG_CATEGORY(ErrorCategory)
+GDF_DECLARE_LOG_CATEGORY(ErrorCategory, LogLevel::All, LogLevel::Error)
+GDF_DEFINE_LOG_CATEGORY(ErrorCategory)
 
 TEST_CASE("LogCategory - Error compilation level", "[gdf][LogCategory]")
 {
@@ -72,8 +72,8 @@ TEST_CASE("LogCategory - Error compilation level", "[gdf][LogCategory]")
     gdf::Logger::instance().DeregisterSink(&testSink);
     REQUIRE(testSink.lastLog() == "[ErrorCategory][Error] Error");
 }
-DECLARE_LOG_CATEGORY(WarningCategory, LogLevel::All, LogLevel::Warning)
-DEFINE_LOG_CATEGORY(WarningCategory)
+GDF_DECLARE_LOG_CATEGORY(WarningCategory, LogLevel::All, LogLevel::Warning)
+GDF_DEFINE_LOG_CATEGORY(WarningCategory)
 
 TEST_CASE("LogCategory - Warning compilation level", "[gdf][LogCategory]")
 {
@@ -87,8 +87,8 @@ TEST_CASE("LogCategory - Warning compilation level", "[gdf][LogCategory]")
     gdf::Logger::instance().DeregisterSink(&testSink);
     REQUIRE(testSink.lastLog() == "[WarningCategory][Warning] Warning");
 }
-DECLARE_LOG_CATEGORY(InfoCategory, LogLevel::All, LogLevel::Info)
-DEFINE_LOG_CATEGORY(InfoCategory)
+GDF_DECLARE_LOG_CATEGORY(InfoCategory, LogLevel::All, LogLevel::Info)
+GDF_DEFINE_LOG_CATEGORY(InfoCategory)
 
 TEST_CASE("LogCategory - Info compilation level", "[gdf][LogCategory]")
 {
@@ -102,8 +102,8 @@ TEST_CASE("LogCategory - Info compilation level", "[gdf][LogCategory]")
     gdf::Logger::instance().DeregisterSink(&testSink);
     REQUIRE(testSink.lastLog() == "[InfoCategory][Info] Info");
 }
-DECLARE_LOG_CATEGORY(VerboseCategory, LogLevel::All, LogLevel::Verbose)
-DEFINE_LOG_CATEGORY(VerboseCategory)
+GDF_DECLARE_LOG_CATEGORY(VerboseCategory, LogLevel::All, LogLevel::Verbose)
+GDF_DEFINE_LOG_CATEGORY(VerboseCategory)
 
 TEST_CASE("LogCategory - Verbose compilation level", "[gdf][LogCategory]")
 {
@@ -118,8 +118,8 @@ TEST_CASE("LogCategory - Verbose compilation level", "[gdf][LogCategory]")
     REQUIRE(testSink.lastLog() == "[VerboseCategory][Verbose] Verbose");
 }
 
-DECLARE_LOG_CATEGORY(RuntimeCategory, LogLevel::All, LogLevel::All)
-DEFINE_LOG_CATEGORY(RuntimeCategory)
+GDF_DECLARE_LOG_CATEGORY(RuntimeCategory, LogLevel::All, LogLevel::All)
+GDF_DEFINE_LOG_CATEGORY(RuntimeCategory)
 
 TEST_CASE("LogCategory - Runtime log levels", "[gdf][LogCategory]")
 {

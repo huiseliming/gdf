@@ -4,9 +4,9 @@
 namespace gdf
 {
 #ifdef GDF_DEBUG
-DECLARE_LOG_CATEGORY(gdfLog, LogLevel::All, LogLevel::Debug)
+GDF_DECLARE_LOG_CATEGORY(gdfLog, LogLevel::All, LogLevel::Debug)
 #else
-DECLARE_LOG_CATEGORY(gdfLog, LogLevel::All, LogLevel::Info)
+GDF_DECLARE_LOG_CATEGORY(gdfLog, LogLevel::All, LogLevel::Info)
 #endif
 
 // call in main thread

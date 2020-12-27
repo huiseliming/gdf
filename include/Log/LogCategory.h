@@ -19,7 +19,7 @@ protected:
     }
 };
 
-#define DECLARE_INTERNAL_LOG_CATEGORY(CATEGORY_NAME, RUNTIME_DEFAULT_LEVLE, COMPILER_LEVEL)        \
+#define GDF_DECLARE_INTERNAL_LOG_CATEGORY(CATEGORY_NAME, RUNTIME_DEFAULT_LEVLE, COMPILER_LEVEL)        \
     class GDF_EXPORT CATEGORY_NAME : public ::gdf::LogCategory                                     \
     {                                                                                              \
     public:                                                                                        \
@@ -28,7 +28,7 @@ protected:
                       LogLevel runtimeLevel = (RUNTIME_DEFAULT_LEVLE));                            \
         static CATEGORY_NAME &instance();                                                          \
     };
-#define DEFINE_INTERNAL_LOG_CATEGORY(CATEGORY_NAME)                                                \
+#define GDF_DEFINE_INTERNAL_LOG_CATEGORY(CATEGORY_NAME)                                                \
     CATEGORY_NAME &CATEGORY_NAME::instance()                                                       \
     {                                                                                              \
         static CATEGORY_NAME logCategory;                                                          \
@@ -39,7 +39,7 @@ protected:
     {                                                                                              \
     }
 
-#define DECLARE_LOG_CATEGORY(CATEGORY_NAME, RUNTIME_DEFAULT_LEVLE, COMPILER_LEVEL)                 \
+#define GDF_DECLARE_LOG_CATEGORY(CATEGORY_NAME, RUNTIME_DEFAULT_LEVLE, COMPILER_LEVEL)                 \
     class CATEGORY_NAME : public ::gdf::LogCategory                                                \
     {                                                                                              \
     public:                                                                                        \
@@ -48,6 +48,6 @@ protected:
                       LogLevel runtimeLevel = (RUNTIME_DEFAULT_LEVLE));                            \
         static CATEGORY_NAME &instance();                                                          \
     };
-#define DEFINE_LOG_CATEGORY(CATEGORY_NAME) DEFINE_INTERNAL_LOG_CATEGORY(CATEGORY_NAME)
+#define GDF_DEFINE_LOG_CATEGORY(CATEGORY_NAME) GDF_DEFINE_INTERNAL_LOG_CATEGORY(CATEGORY_NAME)
 
 } // namespace gdf

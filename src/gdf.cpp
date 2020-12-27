@@ -9,7 +9,7 @@ namespace gdf
 {
 ProgramClock programClock;
 
-DEFINE_LOG_CATEGORY(gdfLog)
+GDF_DEFINE_LOG_CATEGORY(gdfLog)
 
 void Initialize()
 {

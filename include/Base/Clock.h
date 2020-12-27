@@ -27,14 +27,12 @@ public:
 template <typename ClockType, typename Duration>
 void Clock<ClockType, Duration>::SetProgramStartTime() noexcept
 {
-    std::cout << &programStartTime << std::endl;
     programStartTime = ClockType::now();
 }
 
 template <typename ClockType, typename Duration>
 typename Clock<ClockType, Duration>::time_point Clock<ClockType, Duration>::now() noexcept
 {
-    std::cout << &programStartTime << std::endl;
     return time_point(ClockType::now() - programStartTime);
 }
 
