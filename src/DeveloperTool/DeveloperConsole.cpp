@@ -5,7 +5,7 @@
 namespace gdf
 {
 
-GDF_DEFINE_INTERNAL_LOG_CATEGORY(ConsoleCommand)
+GDF_DEFINE_EXPORT_LOG_CATEGORY(ConsoleCommand)
 
 DeveloperConsole::DeveloperConsole(size_t maxEntries) : maxEntries_(maxEntries)
 {

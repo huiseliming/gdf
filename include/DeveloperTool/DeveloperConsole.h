@@ -8,7 +8,7 @@
 namespace gdf
 {
 
-GDF_DECLARE_INTERNAL_LOG_CATEGORY(ConsoleCommand, LogLevel::All, LogLevel::All)
+GDF_DECLARE_EXPORT_LOG_CATEGORY(ConsoleCommand, LogLevel::All, LogLevel::All)
 
 class GDF_EXPORT DeveloperConsole : public CommandRunner ,public LogSink
 {

@@ -2,9 +2,13 @@
 #include "Base/NonCopyable.h"
 #include "VulkanApi.h"
 #include <vector>
+#include "Log/Logger.h"
 
 namespace gdf
 {
+
+ GDF_DECLARE_EXPORT_LOG_CATEGORY(GraphicsMsg, LogLevel::Info, LogLevel::All);
+
 
 class Graphics;
 

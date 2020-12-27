@@ -12,8 +12,10 @@
         (static_cast<uint32_t>(wcstoul(GIT_VERSION_PATCH, nullptr, 10) && 0xFFFFF))
 #define VK_API_VERSION VK_MAKE_VERSION(1, 0, 0)
 
+
 namespace gdf
 {
+GDF_DEFINE_EXPORT_LOG_CATEGORY(GraphicsMsg);
 
 bool Graphics::Initialize()
 {
