@@ -47,7 +47,12 @@ int main(int argc, char **argv)
                 window.PollEvents();
                 tm.Update();
                 if (window.resized()) {
-                    gfx.pWindowData()->FramebufferResize();
+                    gfx.swapchain().RequestRecreate();
+                }
+
+                if (gfx.swapchain().needRecreate()) {
+                    gfx.swapchain().Recreate();
+                    GDF_LOG(General, LogLevel::Info, "Recreate");
                 }
                 // GDF_LOG(General, LogLevel::Info, "RealCurrentTime: {}", tm.RealCurrentTime());
                 // GDF_LOG(General, LogLevel::Info, "CurrentTime: {}", tm.CurrentTime());

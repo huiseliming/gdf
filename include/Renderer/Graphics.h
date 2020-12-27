@@ -62,9 +62,9 @@ public:
         return device_;
     }
 
-    Swapchain *pWindowData()
+    Swapchain &swapchain()
     {
-        return swapchain_.get();
+        return *swapchain_;
     }
 
     static VkBool32 DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
