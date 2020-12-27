@@ -54,10 +54,28 @@ int main(int argc, char **argv)
                     gfx.swapchain().Recreate();
                     GDF_LOG(General, LogLevel::Info, "Recreate");
                 }
-                // GDF_LOG(General, LogLevel::Info, "RealCurrentTime: {}", tm.RealCurrentTime());
-                // GDF_LOG(General, LogLevel::Info, "CurrentTime: {}", tm.CurrentTime());
-                // GDF_LOG(General, LogLevel::Info, "TimeOffset: {}", (double(tm.RealCurrentTime()) /
-                // double(tm.CurrentTime())));
+                //vkWaitForFences(gfx.device(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+                uint32_t imageIndex;
+                auto result = gfx.swapchain().AcquireNextImage(imageIndex);
+                if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+                    gfx.swapchain().Recreate();
+                    continue;
+                } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+                    THROW_EXCEPT("failed to acquire swap chain image!");
+                }
+
+                //TODO rendering
+
+
+                // presentation
+                
+                result = gfx.swapchain().Present();
+                //if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+                //    framebufferResized = false;
+                //    recreateSwapChain();
+                //} else if (result != VK_SUCCESS) {
+                //    throw std::runtime_error("failed to present swap chain image!");
+                //}
             }
             GDF_LOG(General,
                     LogLevel::Info,
@@ -67,7 +85,7 @@ int main(int argc, char **argv)
             window.Destroy();
             Logger::instance().DeregisterSink(&coutSink);
         } catch (const std::exception &e) {
-            GDF_LOG(General, LogLevel::Fatal, "Fatal exception: ", e.what());
+            GDF_LOG(General, LogLevel::Fatal, "Fatal exception: {}", e.what());
         } catch (...) {
             GDF_LOG(General, LogLevel::Fatal, "Fatal undefined exception!");
         }

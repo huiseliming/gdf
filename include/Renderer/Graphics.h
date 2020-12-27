@@ -62,10 +62,24 @@ public:
         return device_;
     }
 
+    VkQueue graphicsQueue()
+    {
+        // TODO : find and return graphics queue
+        return queueFamilies_[0].queue[0];
+    }
+
+    VkQueue presentQueue()
+    {
+        // TODO : find and return present queue
+        return queueFamilies_[0].queue[0];
+    }
+
     Swapchain &swapchain()
     {
         return *swapchain_;
     }
+
+
 
     static VkBool32 DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
                                            VkDebugReportObjectTypeEXT objectType,

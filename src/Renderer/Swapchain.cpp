@@ -31,15 +31,18 @@ Swapchain::Swapchain(Window &wnd, Graphics &gfx, VkSurfaceFormatKHR surfaceForma
     SetMinImageCount(minImageCount);
     CreateSwapchain();
     CreateSwapchainImageViews();
+    CreateSyncObjects();
 }
 
 Swapchain::~Swapchain()
 {
+    DestroySyncObjects();
+    DestroyFramebuffer();
     DestroySwapchainImageViews();
     DestroySwapchain();
-    if (swapchain_ != VK_NULL_HANDLE) {
+    if (surface_ != VK_NULL_HANDLE) {
         vkDestroySurfaceKHR(gfx_.instance(), surface_, nullptr);
-        swapchain_ = VK_NULL_HANDLE;
+        surface_ = VK_NULL_HANDLE;
     }
 }
 
@@ -55,15 +58,14 @@ void Swapchain::CreateSwapchain(VkSurfaceFormatKHR surfaceFormat,
         SetMinImageCount(3U);
 
     VkSwapchainKHR newSwapchain{VK_NULL_HANDLE};
-    VkExtent2D imageExtent;
     if (surfaceCapabilities.currentExtent.width == UINT32_MAX) {
-        imageExtent =
+        extent =
             VkExtent2D{std::min(std::max(static_cast<uint32_t>(wnd_.width()), surfaceCapabilities.minImageExtent.width),
                                 surfaceCapabilities.maxImageExtent.width),
                        std::min(std::max(static_cast<uint32_t>(wnd_.height()), surfaceCapabilities.minImageExtent.height),
                                 surfaceCapabilities.maxImageExtent.height)};
     } else {
-        imageExtent = surfaceCapabilities.currentExtent;
+        extent = surfaceCapabilities.currentExtent;
     }
     VkSurfaceTransformFlagBitsKHR preTranform{};
     if ((surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) != 0) {
@@ -74,10 +76,10 @@ void Swapchain::CreateSwapchain(VkSurfaceFormatKHR surfaceFormat,
     VkSwapchainCreateInfoKHR swapchainCI{
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .surface = surface_,
-        .minImageCount = std::min(std::max(minImageCount_, surfaceCapabilities.minImageCount), surfaceCapabilities.maxImageCount),
+        .minImageCount = minImageCount_,
         .imageFormat = surfaceFormat_.format,
         .imageColorSpace = surfaceFormat_.colorSpace,
-        .imageExtent = imageExtent,
+        .imageExtent = extent,
         .imageArrayLayers = 1,
         .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
         .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
@@ -99,7 +101,7 @@ void Swapchain::CreateSwapchain(VkSurfaceFormatKHR surfaceFormat,
 void Swapchain::DestroySwapchain()
 {
     if (swapchain_ != VK_NULL_HANDLE) {
-        vkDestroySurfaceKHR(gfx_.instance(), surface_, nullptr);
+        vkDestroySwapchainKHR(gfx_.device(), swapchain_, nullptr);
         swapchain_ = VK_NULL_HANDLE;
     }
 }
@@ -144,6 +146,52 @@ void Swapchain::DestroySwapchainImageViews()
     imageViews_.clear();
 }
 
+void Swapchain::CreateFramebuffer(VkRenderPass renderPass)
+{
+    framebuffers.resize(imageViews_.size());
+    for (size_t i = 0; i < framebuffers.size(); i++) {
+        VkImageView attachments[] = {imageViews_[i]};
+        VkFramebufferCreateInfo framebufferInfo{};
+        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.renderPass = renderPass;
+        framebufferInfo.attachmentCount = 1;
+        framebufferInfo.pAttachments = attachments;
+        framebufferInfo.width = extent.width;
+        framebufferInfo.height = extent.height;
+        framebufferInfo.layers = 1;
+        VK_ASSERT_SUCCESSED(vkCreateFramebuffer(gfx_.device(), &framebufferInfo, nullptr, &framebuffers[i]))
+    }
+}
+
+void Swapchain::DestroyFramebuffer()
+{
+    for (auto framebuffer : framebuffers) 
+        vkDestroyFramebuffer(gfx_.device(), framebuffer, nullptr);
+    framebuffers.clear();
+}
+
+void Swapchain::CreateSyncObjects()
+{
+    VkSemaphoreCreateInfo semaphoreCI{.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+    VkFenceCreateInfo fenceCI{.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
+    for (size_t i = 0; i < imageViews_.size(); i++) {
+        VK_ASSERT_SUCCESSED(vkCreateSemaphore(gfx_.device(), &semaphoreCI, nullptr, &imageAvailableSemaphores_[i]));
+        VK_ASSERT_SUCCESSED(vkCreateFence(gfx_.device(), &fenceCI, nullptr, &fences_[i]));
+    }
+}
+
+void Swapchain::DestroySyncObjects()
+{
+    for (auto semaphore : imageAvailableSemaphores_)
+        if (semaphore != VK_NULL_HANDLE) 
+            vkDestroySemaphore(gfx_.device(), semaphore, nullptr);
+    for (auto fence : fences_)
+        if (fence != VK_NULL_HANDLE) 
+            vkDestroyFence(gfx_.device(), fence, nullptr);
+    imageAvailableSemaphores_.clear();
+    fences_.clear();
+}
+
  void Swapchain::RequestRecreate()
 {
      needRecreate_ = true;
@@ -156,10 +204,31 @@ void Swapchain::DestroySwapchainImageViews()
 
 void Swapchain::Recreate()
 {
+    DestroyFramebuffer();
     DestroySwapchainImageViews();
     CreateSwapchain();
     CreateSwapchainImageViews();
     needRecreate_ = false;
+}
+
+VkResult Swapchain::AcquireNextImage(uint32_t &imageIndex)
+{
+    return vkAcquireNextImageKHR(gfx_.device(), swapchain_, 0, imageAvailableSemaphores_[0], fences_[0], &imageIndex);
+}
+
+VkResult Swapchain::Present()
+{
+    VkSemaphore waitSemaphores[] = {imageAvailableSemaphores_[0]};
+    VkSwapchainKHR swapchains[] = {swapchain_};
+    VkPresentInfoKHR presentInfo{
+        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = waitSemaphores,
+        .swapchainCount = 1,
+        .pSwapchains = swapchains,
+        .pImageIndices = &currentImageIndex,
+    };
+    return vkQueuePresentKHR(gfx_.presentQueue(), &presentInfo);
 }
 
 

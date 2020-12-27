@@ -19,11 +19,18 @@ GDF_DEFINE_EXPORT_LOG_CATEGORY(GraphicsLog);
 bool Graphics::Initialize(bool enableValidationLayer)
 {
     enableValidationLayer_ = enableValidationLayer;
+    // instance extensions 
     std::vector<const char *> instanceExtensions;
     if (!Window::GetRequiredInstanceExtensions(instanceExtensions))
         return false;
-    if (enableValidationLayer_)
+    // instance layers
+    std::vector<const char *> instanceLayers;
+    if (enableValidationLayer_) {
         instanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+        instanceLayers.emplace_back("VK_LAYER_KHRONOS_validation");
+    }
+
+    // device extensions 
     std::vector<const char *> deviceExtensions;
     deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     // Instance
@@ -36,8 +43,8 @@ bool Graphics::Initialize(bool enableValidationLayer)
     VkInstanceCreateInfo instanceCI{
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
         .pApplicationInfo = &appinfo,
-        .enabledLayerCount = 0,
-        .ppEnabledLayerNames = nullptr,
+        .enabledLayerCount = static_cast<uint32_t>(instanceLayers.size()),
+        .ppEnabledLayerNames = instanceLayers.data(),
         .enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size()),
         .ppEnabledExtensionNames = instanceExtensions.data(),
     };

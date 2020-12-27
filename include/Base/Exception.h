@@ -21,7 +21,7 @@ public:
     const char *what() const noexcept override
     {
         std::ostringstream oss;
-        oss << "[Type       ] " << GetType() << "\n"
+        oss << "\n[Type       ] " << GetType() << "\n"
             << "[Description] " << message_ << "\n"
             << GetOriginString();
         whatBuffer_ = oss.str();
@@ -47,6 +47,5 @@ private:
 
 protected:
     mutable std::string whatBuffer_;
-    ;
 };
 } // namespace gdf

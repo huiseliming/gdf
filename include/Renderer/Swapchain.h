@@ -26,11 +26,20 @@ public:
     void CreateSwapchainImageViews();
     void DestroySwapchainImageViews();
 
-    void RequestRecreate();
+    void CreateFramebuffer(VkRenderPass renderPass);
+    void DestroyFramebuffer();
 
+    void CreateSyncObjects();
+    void DestroySyncObjects();
+
+    void RequestRecreate();
     bool needRecreate();
-    
     void Recreate();
+
+    VkResult AcquireNextImage(uint32_t &imageIndex);
+    VkResult Present();
+
+
 
     bool SetSurfaceFormat(VkSurfaceFormatKHR surfaceFormat);
     bool SetPresentMode(VkPresentModeKHR presentMode);
@@ -56,17 +65,21 @@ private:
     std::vector<VkSurfaceFormatKHR> supportedSurfaceFormats;
     std::vector<VkPresentModeKHR> supportedPresentModes;
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    VkExtent2D extent;
 
     VkSurfaceFormatKHR surfaceFormat_;
     VkPresentModeKHR presentMode_;
     uint32_t minImageCount_;
 
-    VkSurfaceKHR surface_ = VK_NULL_HANDLE;
-    VkSwapchainKHR swapchain_ = VK_NULL_HANDLE;
+    VkSurfaceKHR surface_{VK_NULL_HANDLE};
+    VkSwapchainKHR swapchain_{VK_NULL_HANDLE};
+    std::vector<VkSemaphore> imageAvailableSemaphores_;
+    std::vector<VkFence> fences_;
 
-    uint32_t currentIndex{UINT32_MAX};
+    uint32_t currentFrameIndex{UINT32_MAX};
+    uint32_t currentImageIndex{UINT32_MAX};
     std::vector<VkImageView> imageViews_;
-
+    std::vector<VkFramebuffer> framebuffers;
 
 
     bool needRecreate_;
