@@ -24,35 +24,32 @@ DEFINE_LOG_CATEGORY(General)
 
 int main(int argc, char **argv)
 {
+    std::chrono::seconds;
     try {
         gdf::Initialize();
         try {
             DeveloperConsole developerConsole;
-            Logger::instance().RegisterSink(&cerrSink);
             Logger::instance().RegisterSink(&coutSink);
-            developerConsole.RegisterCommand(
-                "PrintTest", [](std::string_view) { GDF_LOG(General, LogLevel::Info, "Test"); });
+            TimeManager tm;
             Window window;
             Graphics gfx;
+            developerConsole.RegisterCommand("PrintTest", [](std::string_view) { GDF_LOG(General, LogLevel::Info, "Test"); });
             window.Create("test", 800, 600);
             gfx.Initialize();
-            GDF_LOG(General, LogLevel::Info, "Entering main loop");
-            Timer pc;
-            pc.Reset();
+            tm.Reset();
+            tm.dilation(0.01);
+            GDF_LOG(General, LogLevel::Info, "Entering main loop at ProgramTime: {}");
             while (!window.ShouldClose()) {
                 window.PollEvents();
                 // developerConsole.RunCommand("Prinest");
-                pc.Update();
+                tm.Update();
+                // GDF_LOG(General, LogLevel::Info, "RealCurrentTime: {}", tm.RealCurrentTime());
+                // GDF_LOG(General, LogLevel::Info, "CurrentTime: {}", tm.CurrentTime());
+                // GDF_LOG(General, LogLevel::Info, "TimeOffset: {}", (double(tm.RealCurrentTime()) / double(tm.CurrentTime())));
             }
-            GDF_LOG(General, LogLevel::Info, "Last tick elapsed: {}", pc.Elapsed());
-            GDF_LOG(General, LogLevel::Info, "CurrentTime: {}", pc.CurrentTime());
-            GDF_LOG(General, LogLevel::Info, "Exiting main loop");
+            GDF_LOG(General, LogLevel::Info, "Exiting main loop at ProgramTime: {}", ProgramClock::now().time_since_epoch().count());
             gfx.Cleanup();
-            GDF_LOG(General,
-                    LogLevel::Info,
-                    "Exiting main loop in {}",
-                    ProgramClock::now().time_since_epoch().count());
-            Logger::instance().DeregisterSink(&cerrSink);
+            window.Destroy();
             Logger::instance().DeregisterSink(&coutSink);
         } catch (const std::exception &e) {
             GDF_LOG(General, LogLevel::Fatal, "Fatal exception: ", e.what());
