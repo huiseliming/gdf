@@ -7,9 +7,7 @@ class GDF_EXPORT LogSink
 {
 public:
     virtual ~LogSink() = default;
-    virtual void Log(const LogCategory &category,
-                     const LogLevel level,
-                     const std::string_view message) = 0;
+    virtual void Log(const LogCategory &category, const LogLevel level, const std::string_view message) = 0;
     virtual void Exception() = 0;
 };
 

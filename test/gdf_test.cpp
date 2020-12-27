@@ -22,12 +22,9 @@ TEST_CASE("LogCategory - Define", "[gdf][LogCategory]")
 class TestSink : public LogSink
 {
 public:
-    virtual void Log(const LogCategory &category,
-                     const LogLevel level,
-                     const std::string_view message)
+    virtual void Log(const LogCategory &category, const LogLevel level, const std::string_view message)
     {
-        lastLog_ =
-            fmt::format("[{:s}][{:s}] {:s}", category.displayName_, std::to_string(level), message);
+        lastLog_ = fmt::format("[{:s}][{:s}] {:s}", category.displayName_, std::to_string(level), message);
     }
     void Exception()
     {

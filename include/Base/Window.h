@@ -14,9 +14,7 @@ class GDF_EXPORT Window : public NonCopyable
 public:
     Window();
     virtual ~Window();
-    void Create(const std::string &applicationName = "Application",
-                const int width = 800,
-                const int height = 600);
+    void Create(const std::string &applicationName = "Application", const int width = 800, const int height = 600);
     void Destroy();
 
     void PollEvents();

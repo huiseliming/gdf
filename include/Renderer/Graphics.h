@@ -10,7 +10,6 @@
 #define GDF_ENABLE_VALIDATION_LAYER false
 #endif // GDF_DEBUG
 
-
 namespace gdf
 {
 
@@ -44,7 +43,7 @@ public:
 
     void Cleanup();
 
-    void SetSwapchain(std::unique_ptr<Swapchain>&& swapchain);
+    void SetSwapchain(std::unique_ptr<Swapchain> &&swapchain);
 
     bool IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice);
 
@@ -69,13 +68,13 @@ public:
     }
 
     static VkBool32 DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
-                                    VkDebugReportObjectTypeEXT objectType,
-                                    uint64_t object,
-                                    size_t location,
-                                    int32_t messageCode,
-                                    const char *pLayerPrefix,
-                                    const char *pMessage,
-                                    void *pUserData);
+                                           VkDebugReportObjectTypeEXT objectType,
+                                           uint64_t object,
+                                           size_t location,
+                                           int32_t messageCode,
+                                           const char *pLayerPrefix,
+                                           const char *pMessage,
+                                           void *pUserData);
 
 private:
     VkPhysicalDeviceFeatures physicalDeviceFeatures_ = {};

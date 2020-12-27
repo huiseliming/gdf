@@ -30,7 +30,7 @@ void Logger::Log(const LogCategory &category, const LogLevel level, const std::s
     for (auto sink : sinks) {
         sink->Log(category, level, message);
     }
-    if (level == LogLevel::Fatal) [[unlikely]]{
+    if (level == LogLevel::Fatal) [[unlikely]] {
         for (auto &sink : sinks) {
             sink->Exception();
         }
@@ -45,18 +45,18 @@ Logger::~Logger()
 bool Logger::RegisterSink(LogSink *pSink)
 {
     std::scoped_lock<std::mutex> lock{sync};
-    for(auto sink : sinks)
-        if(sink == pSink)
+    for (auto sink : sinks)
+        if (sink == pSink)
             return false;
-    sinks.push_back(pSink); 
+    sinks.push_back(pSink);
     return true;
 }
 
 bool Logger::DeregisterSink(LogSink *pSink)
 {
     std::scoped_lock<std::mutex> lock{sync};
-    for(auto it = sinks.begin(); it != sinks.end(); it++){
-        if(*it == pSink){
+    for (auto it = sinks.begin(); it != sinks.end(); it++) {
+        if (*it == pSink) {
             sinks.erase(it);
             return true;
         }

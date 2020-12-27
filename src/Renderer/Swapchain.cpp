@@ -11,17 +11,21 @@ Swapchain::Swapchain(Window &wnd, Graphics &gfx) : wnd_(wnd), gfx_(gfx)
     VK_ASSERT_SUCCESSED(wnd_.GetVkSurfaceKHR(gfx_.instance(), &surface_));
     {
         uint32_t surfaceFormatCount;
-        VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfaceFormatsKHR(gfx_.physicalDevice(), surface_, &surfaceFormatCount, nullptr));
+        VK_ASSERT_SUCCESSED(
+            vkGetPhysicalDeviceSurfaceFormatsKHR(gfx_.physicalDevice(), surface_, &surfaceFormatCount, nullptr));
         std::vector<VkSurfaceFormatKHR> surfaceFormats(surfaceFormatCount);
 
-        VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfaceFormatsKHR(gfx_.physicalDevice(), surface_, &surfaceFormatCount, surfaceFormats.data()));
+        VK_ASSERT_SUCCESSED(
+            vkGetPhysicalDeviceSurfaceFormatsKHR(gfx_.physicalDevice(), surface_, &surfaceFormatCount, surfaceFormats.data()));
         surfaceFormat = surfaceFormats[0];
     }
     {
         uint32_t presentModeCount;
-        VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfacePresentModesKHR(gfx_.physicalDevice(), surface_, &presentModeCount, nullptr));
+        VK_ASSERT_SUCCESSED(
+            vkGetPhysicalDeviceSurfacePresentModesKHR(gfx_.physicalDevice(), surface_, &presentModeCount, nullptr));
         std::vector<VkPresentModeKHR> presentModes(presentModeCount);
-        VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfacePresentModesKHR(gfx_.physicalDevice(), surface_, &presentModeCount, presentModes.data()));
+        VK_ASSERT_SUCCESSED(
+            vkGetPhysicalDeviceSurfacePresentModesKHR(gfx_.physicalDevice(), surface_, &presentModeCount, presentModes.data()));
         presentMode = presentModes[0];
     }
     CreateSwapchain();
@@ -53,14 +57,16 @@ void Swapchain::CreateSwapchain()
     VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gfx_.physicalDevice(), surface_, &surfaceCapabilities));
     VkExtent2D imageExtent;
     if (surfaceCapabilities.currentExtent.width == UINT32_MAX) {
-        imageExtent = VkExtent2D{
-            std::min(std::max(static_cast<uint32_t>(wnd_.width()), surfaceCapabilities.minImageExtent.width), surfaceCapabilities.maxImageExtent.width),
-            std::min(std::max(static_cast<uint32_t>(wnd_.height()), surfaceCapabilities.minImageExtent.height), surfaceCapabilities.maxImageExtent.height)};
+        imageExtent =
+            VkExtent2D{std::min(std::max(static_cast<uint32_t>(wnd_.width()), surfaceCapabilities.minImageExtent.width),
+                                surfaceCapabilities.maxImageExtent.width),
+                       std::min(std::max(static_cast<uint32_t>(wnd_.height()), surfaceCapabilities.minImageExtent.height),
+                                surfaceCapabilities.maxImageExtent.height)};
     } else {
         imageExtent = surfaceCapabilities.currentExtent;
     }
     VkSurfaceTransformFlagBitsKHR preTranform{};
-    if (surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR != 0) {
+    if ((surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) != 0) {
         preTranform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
     } else {
         preTranform = surfaceCapabilities.currentTransform;
@@ -102,25 +108,23 @@ void Swapchain::CreateSwapchainImageViews()
     VK_ASSERT_SUCCESSED(vkGetSwapchainImagesKHR(gfx_.device(), swapchain_, &imageCount, nullptr));
     std::vector<VkImage> images(imageCount);
     VK_ASSERT_SUCCESSED(vkGetSwapchainImagesKHR(gfx_.device(), swapchain_, &imageCount, images.data()));
-    VkImageViewCreateInfo ImageViewCI
-    {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .viewType = VK_IMAGE_VIEW_TYPE_2D,
-        .format = surfaceFormat.format,
-        .components = {
-            VK_COMPONENT_SWIZZLE_R,
-            VK_COMPONENT_SWIZZLE_G,
-            VK_COMPONENT_SWIZZLE_B,
-            VK_COMPONENT_SWIZZLE_A,
-        },
-        .subresourceRange = {
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .baseMipLevel =0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = 1,
-        }
-    };
+    VkImageViewCreateInfo ImageViewCI{.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                                      .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                                      .format = surfaceFormat.format,
+                                      .components =
+                                          {
+                                              VK_COMPONENT_SWIZZLE_R,
+                                              VK_COMPONENT_SWIZZLE_G,
+                                              VK_COMPONENT_SWIZZLE_B,
+                                              VK_COMPONENT_SWIZZLE_A,
+                                          },
+                                      .subresourceRange = {
+                                          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                          .baseMipLevel = 0,
+                                          .levelCount = 1,
+                                          .baseArrayLayer = 0,
+                                          .layerCount = 1,
+                                      }};
     assert(imageViews_.empty());
     imageViews_.resize(imageCount);
     for (size_t i = 0; i < imageCount; i++) {
@@ -136,4 +140,4 @@ void Swapchain::DestroySwapchainImageViews()
     imageViews_.clear();
 }
 
-} // namespace gdfs
+} // namespace gdf

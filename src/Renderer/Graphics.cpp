@@ -1,17 +1,16 @@
 #include "Renderer/Graphics.h"
 #include "Base/Window.h"
-#include "Renderer/Swapchain.h"
 #include "Git.h"
+#include "Renderer/Swapchain.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <vector>
 
-#define GIT_UINT32_VERSION                                                                         \
-    (static_cast<uint32_t>(wcstoul(GIT_VERSION_MAJOR, nullptr, 10) && 0xF) << 28) ||               \
-        (static_cast<uint32_t>(wcstoul(GIT_VERSION_MINOR, nullptr, 10) && 0xFF) << 20) ||          \
+#define GIT_UINT32_VERSION                                                                                                     \
+    (static_cast<uint32_t>(wcstoul(GIT_VERSION_MAJOR, nullptr, 10) && 0xF) << 28) ||                                           \
+        (static_cast<uint32_t>(wcstoul(GIT_VERSION_MINOR, nullptr, 10) && 0xFF) << 20) ||                                      \
         (static_cast<uint32_t>(wcstoul(GIT_VERSION_PATCH, nullptr, 10) && 0xFFFFF))
 #define VK_API_VERSION VK_MAKE_VERSION(1, 0, 0)
-
 
 namespace gdf
 {
@@ -45,29 +44,26 @@ bool Graphics::Initialize(bool enableValidationLayer)
 
     VK_ASSERT_SUCCESSED(vkCreateInstance(&instanceCI, nullptr, &instance_));
 
-    //Setup DebugReportCallback
+    // Setup DebugReportCallback
     if (enableValidationLayer_) {
         VkDebugReportCallbackCreateInfoEXT DebugReportCallbackCI{
-        .sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT,
-        .flags = 
-            VK_DEBUG_REPORT_DEBUG_BIT_EXT 
-            | VK_DEBUG_REPORT_ERROR_BIT_EXT 
-            | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT 
-            | VK_DEBUG_REPORT_WARNING_BIT_EXT 
+            .sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT,
+            .flags = VK_DEBUG_REPORT_DEBUG_BIT_EXT | VK_DEBUG_REPORT_ERROR_BIT_EXT |
+                     VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT
             //| VK_DEBUG_REPORT_INFORMATION_BIT_EXT
             ,
-        .pfnCallback = Graphics::DebugReportCallbackEXT,
+            .pfnCallback = Graphics::DebugReportCallbackEXT,
         };
-        auto fpCreateDebugReportCallbackEXT = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetInstanceProcAddr(instance_, "vkCreateDebugReportCallbackEXT"));
+        auto fpCreateDebugReportCallbackEXT = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(
+            vkGetInstanceProcAddr(instance_, "vkCreateDebugReportCallbackEXT"));
         fpCreateDebugReportCallbackEXT(instance_, &DebugReportCallbackCI, nullptr, &fpDebugReportCallbackEXT_);
     }
-    
+
     // Physical Device
     uint32_t physicalDeviceCount;
     VK_ASSERT_SUCCESSED(vkEnumeratePhysicalDevices(instance_, &physicalDeviceCount, nullptr));
     std::vector<VkPhysicalDevice> physicalDevices(physicalDeviceCount, VK_NULL_HANDLE);
-    VK_ASSERT_SUCCESSED(
-        vkEnumeratePhysicalDevices(instance_, &physicalDeviceCount, physicalDevices.data()));
+    VK_ASSERT_SUCCESSED(vkEnumeratePhysicalDevices(instance_, &physicalDeviceCount, physicalDevices.data()));
 
     std::vector<VkPhysicalDevice> availablePhysicalDevices;
     for (auto physicalDevice : physicalDevices) {
@@ -80,8 +76,7 @@ bool Graphics::Initialize(bool enableValidationLayer)
     uint32_t queueFamilyCount;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueFamilyCount, nullptr);
     std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(
-        physicalDevice_, &queueFamilyCount, queueFamilyProperties.data());
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueFamilyCount, queueFamilyProperties.data());
     std::vector<VkDeviceQueueCreateInfo> queuesCI;
     uint32_t maxQueueCount = 0;
     for (uint32_t i = 0; i < queueFamilyCount; ++i) {
@@ -110,8 +105,7 @@ bool Graphics::Initialize(bool enableValidationLayer)
     //
     queueFamilies_.resize(queueFamilyCount);
     for (uint32_t i = 0; i < queueFamilyCount; i++)
-        queueFamilies_[i].Attach(
-            device_, queueFamilyProperties[i].queueFlags, i, queueFamilyProperties[i].queueCount);
+        queueFamilies_[i].Attach(device_, queueFamilyProperties[i].queueFlags, i, queueFamilyProperties[i].queueCount);
 
     return true;
 }
@@ -122,14 +116,15 @@ void Graphics::Cleanup()
     vkDestroyDevice(device_, nullptr);
     device_ = VK_NULL_HANDLE;
     if (enableValidationLayer_) {
-        auto vkDestroyDebugReportCallbackEXT = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(instance_, "vkDestroyDebugReportCallbackEXT"));
+        auto vkDestroyDebugReportCallbackEXT = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(
+            vkGetInstanceProcAddr(instance_, "vkDestroyDebugReportCallbackEXT"));
         vkDestroyDebugReportCallbackEXT(instance_, fpDebugReportCallbackEXT_, nullptr);
     }
     vkDestroyInstance(instance_, nullptr);
     instance_ = VK_NULL_HANDLE;
 }
 
-void Graphics::SetSwapchain(std::unique_ptr<Swapchain>&& swapchain)
+void Graphics::SetSwapchain(std::unique_ptr<Swapchain> &&swapchain)
 {
     swapchain_ = std::move(swapchain);
 }

@@ -24,19 +24,22 @@ struct TimeManager {
         // calc dilated time
         if (dilation_ == 1.f) {
             dilatedElapsedTime_ = actualElapsedTime_;
-            //previousDilatedTimePoint_ = currentDilatedTimePoint_;
-            //currentDilatedTimePoint_ += dilatedElapsedTime_;
+            // previousDilatedTimePoint_ = currentDilatedTimePoint_;
+            // currentDilatedTimePoint_ += dilatedElapsedTime_;
         } else if (dilation_ == 0.f) {
             dilatedElapsedTime_ = duration(0);
         } else {
             // if modified dilation, start time dilation form previous time point
             if (modifiedDilation_) {
-                dilatedStartActualTimePoint_ = previousActualTimePoint_; 
-                previousDilatedFromStart = std::chrono::duration_cast<duration>((previousActualTimePoint_ - dilatedStartActualTimePoint_) * dilation_);
-                currentDilatedFromStart = std::chrono::duration_cast<duration>((currentActualTimePoint_ - dilatedStartActualTimePoint_) * dilation_);
+                dilatedStartActualTimePoint_ = previousActualTimePoint_;
+                previousDilatedFromStart =
+                    std::chrono::duration_cast<duration>((previousActualTimePoint_ - dilatedStartActualTimePoint_) * dilation_);
+                currentDilatedFromStart =
+                    std::chrono::duration_cast<duration>((currentActualTimePoint_ - dilatedStartActualTimePoint_) * dilation_);
             } else {
                 previousDilatedFromStart = currentDilatedFromStart;
-                currentDilatedFromStart = std::chrono::duration_cast<duration>((currentActualTimePoint_ - dilatedStartActualTimePoint_) * dilation_);
+                currentDilatedFromStart =
+                    std::chrono::duration_cast<duration>((currentActualTimePoint_ - dilatedStartActualTimePoint_) * dilation_);
             }
             dilatedElapsedTime_ = currentDilatedFromStart - previousDilatedFromStart;
         }
@@ -44,10 +47,18 @@ struct TimeManager {
         currentTimePoint_ += dilatedElapsedTime_;
         modifiedDilation_ = false;
 #ifdef GDF_TIMEMANAGER_PRESTORE_DATA
-        elapsed_ = std::chrono::duration_cast<std::chrono::duration<OutputDataType,Ratio>>( currentTimePoint_ - previousTimePoint_) .count();
-        currentTime_ = std::chrono::duration_cast<std::chrono::duration<OutputDataType,Ratio>>( currentTimePoint_ - startTimePoint_) .count();
-        realElapsed_ = std::chrono::duration_cast<std::chrono::duration<OutputDataType,Ratio>>( currentActualTimePoint_ - previousActualTimePoint_) .count();
-        realCurrentTime_ = std::chrono::duration_cast<std::chrono::duration<OutputDataType,Ratio>>( currentActualTimePoint_ - actualStartTimePoint_) .count();
+        elapsed_ =
+            std::chrono::duration_cast<std::chrono::duration<OutputDataType, Ratio>>(currentTimePoint_ - previousTimePoint_)
+                .count();
+        currentTime_ =
+            std::chrono::duration_cast<std::chrono::duration<OutputDataType, Ratio>>(currentTimePoint_ - startTimePoint_)
+                .count();
+        realElapsed_ = std::chrono::duration_cast<std::chrono::duration<OutputDataType, Ratio>>(currentActualTimePoint_ -
+                                                                                                previousActualTimePoint_)
+                           .count();
+        realCurrentTime_ = std::chrono::duration_cast<std::chrono::duration<OutputDataType, Ratio>>(currentActualTimePoint_ -
+                                                                                                    actualStartTimePoint_)
+                               .count();
 #endif // GDF_TIMEMANAGER_PRESTORE_DATA
     }
 
@@ -64,8 +75,8 @@ struct TimeManager {
         actualElapsedTime_ = duration(0);
 
         dilatedStartActualTimePoint_ = actualStartTimePoint_;
-        //previousDilatedTimePoint_ = previousActualTimePoint_;
-        //currentDilatedTimePoint_ = currentActualTimePoint_;
+        // previousDilatedTimePoint_ = previousActualTimePoint_;
+        // currentDilatedTimePoint_ = currentActualTimePoint_;
         dilatedElapsedTime_ = duration(0);
         modifiedDilation_ = false;
         dilation_ = 1.f;
@@ -81,7 +92,8 @@ struct TimeManager {
 #ifdef GDF_TIMEMANAGER_PRESTORE_DATA
         return elapsed_;
 #else
-        return std::chrono::duration_cast<std::chrono::duration<OutputDataType,Ratio>>( currentTimePoint_ - previousTimePoint_) .count();
+        return std::chrono::duration_cast<std::chrono::duration<OutputDataType, Ratio>>(currentTimePoint_ - previousTimePoint_)
+            .count();
 #endif // GDF_TIMEMANAGER_PRESTORE_DATA
     }
 
@@ -90,7 +102,8 @@ struct TimeManager {
 #ifdef GDF_TIMEMANAGER_PRESTORE_DATA
         return currentTime_;
 #else
-        return std::chrono::duration_cast<std::chrono::duration<OutputDataType,Ratio>>( currentTimePoint_ - startTimePoint_) .count();
+        return std::chrono::duration_cast<std::chrono::duration<OutputDataType, Ratio>>(currentTimePoint_ - startTimePoint_)
+            .count();
 #endif // GDF_TIMEMANAGER_PRESTORE_DATA
     }
 
@@ -99,7 +112,9 @@ struct TimeManager {
 #ifdef GDF_TIMEMANAGER_PRESTORE_DATA
         return realElapsed_;
 #else
-        return std::chrono::duration_cast<std::chrono::duration<OutputDataType,Ratio>>( currentActualTimePoint_ - previousActualTimePoint_) .count();
+        return std::chrono::duration_cast<std::chrono::duration<OutputDataType, Ratio>>(currentActualTimePoint_ -
+                                                                                        previousActualTimePoint_)
+            .count();
 #endif // GDF_TIMEMANAGER_PRESTORE_DATA
     }
 
@@ -108,17 +123,19 @@ struct TimeManager {
 #ifdef GDF_TIMEMANAGER_PRESTORE_DATA
         return realCurrentTime_;
 #else
-        return std::chrono::duration_cast<std::chrono::duration<OutputDataType,Ratio>>( currentActualTimePoint_ - actualStartTimePoint_) .count();
+        return std::chrono::duration_cast<std::chrono::duration<OutputDataType, Ratio>>(currentActualTimePoint_ -
+                                                                                        actualStartTimePoint_)
+            .count();
 #endif // GDF_TIMEMANAGER_PRESTORE_DATA
     }
     OutputDataType RealCurrentTimePoint()
     {
-        return std::chrono::duration_cast<std::chrono::duration<OutputDataType,Ratio>>(  currentActualTimePoint_).count();
+        return std::chrono::duration_cast<std::chrono::duration<OutputDataType, Ratio>>(currentActualTimePoint_).count();
     }
 
     OutputDataType RealPreviousTimePoint()
     {
-        return std::chrono::duration_cast<std::chrono::duration<OutputDataType,Ratio>>( actualStartTimePoint_) .count();
+        return std::chrono::duration_cast<std::chrono::duration<OutputDataType, Ratio>>(actualStartTimePoint_).count();
     }
 
     float dilation()
@@ -133,19 +150,18 @@ struct TimeManager {
     }
 
 private:
-    typename ClockType::time_point dilatedStartActualTimePoint_; 
+    typename ClockType::time_point dilatedStartActualTimePoint_;
     duration previousDilatedFromStart;
     duration currentDilatedFromStart;
     duration dilatedElapsedTime_;
     bool modifiedDilation_;
     float dilation_;
 
-    typename ClockType::time_point actualStartTimePoint_; 
+    typename ClockType::time_point actualStartTimePoint_;
     typename ClockType::time_point previousActualTimePoint_;
     typename ClockType::time_point currentActualTimePoint_;
     duration actualElapsedTime_;
 
-        
     typename ClockType::time_point startTimePoint_;
     typename ClockType::time_point previousTimePoint_;
     typename ClockType::time_point currentTimePoint_;

@@ -21,9 +21,7 @@ bool DeveloperConsole::RunCommand(std::string_view commandCall)
     return true;
 }
 
-void DeveloperConsole::Log(const LogCategory &category,
-                           const LogLevel level,
-                           const std::string_view message)
+void DeveloperConsole::Log(const LogCategory &category, const LogLevel level, const std::string_view message)
 {
     std::scoped_lock<std::mutex> lock(sync_);
     entries_.emplace_back(Entry{const_cast<LogCategory &>(category), level, message});

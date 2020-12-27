@@ -39,7 +39,10 @@ int main(int argc, char **argv)
             gfx.SetSwapchain(std::make_unique<Swapchain>(window, gfx));
             tm.Reset();
             tm.dilation(0.01);
-            GDF_LOG(General, LogLevel::Info, "Entering main loop at ProgramTime: {}", ProgramClock::now().time_since_epoch().count());
+            GDF_LOG(General,
+                    LogLevel::Info,
+                    "Entering main loop at ProgramTime: {}",
+                    ProgramClock::now().time_since_epoch().count());
             while (!window.ShouldClose()) {
                 window.PollEvents();
                 tm.Update();
@@ -48,9 +51,13 @@ int main(int argc, char **argv)
                 }
                 // GDF_LOG(General, LogLevel::Info, "RealCurrentTime: {}", tm.RealCurrentTime());
                 // GDF_LOG(General, LogLevel::Info, "CurrentTime: {}", tm.CurrentTime());
-                // GDF_LOG(General, LogLevel::Info, "TimeOffset: {}", (double(tm.RealCurrentTime()) / double(tm.CurrentTime())));
+                // GDF_LOG(General, LogLevel::Info, "TimeOffset: {}", (double(tm.RealCurrentTime()) /
+                // double(tm.CurrentTime())));
             }
-            GDF_LOG(General, LogLevel::Info, "Exiting main loop at ProgramTime: {}", ProgramClock::now().time_since_epoch().count());
+            GDF_LOG(General,
+                    LogLevel::Info,
+                    "Exiting main loop at ProgramTime: {}",
+                    ProgramClock::now().time_since_epoch().count());
             gfx.Cleanup();
             window.Destroy();
             Logger::instance().DeregisterSink(&coutSink);

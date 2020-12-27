@@ -10,8 +10,7 @@ namespace gdf
 #ifndef _WIN32
 
 template <typename ClockType, typename Duration>
-struct Clock 
-{
+struct Clock {
     using rep = typename Duration::rep;
     using period = typename Duration::period;
     using duration = Duration;
@@ -39,8 +38,7 @@ typename Clock<ClockType, Duration>::time_point Clock<ClockType, Duration>::now(
 template <typename ClockType, typename Duration>
 typename ClockType::time_point Clock<ClockType, Duration>::programStartTime;
 
-using ProgramClock =
-    Clock<std::chrono::steady_clock, std::chrono::duration<double, std::ratio<1, 1>>>;
+using ProgramClock = Clock<std::chrono::steady_clock, std::chrono::duration<double, std::ratio<1, 1>>>;
 
 #else
 struct GDF_EXPORT ProgramClock {
@@ -54,9 +52,7 @@ public:
     static time_point now() noexcept;
     static constexpr bool is_steady = std::chrono::steady_clock::is_steady;
     static typename std::chrono::steady_clock::time_point programStartTime;
-
 };
 #endif
-
 
 } // namespace gdf

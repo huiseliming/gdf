@@ -61,7 +61,7 @@ VkResult Window::GetVkSurfaceKHR(const VkInstance instance, VkSurfaceKHR *surfac
     return glfwCreateWindowSurface(instance, pGLFWWindow_, nullptr, surface);
 }
 
-bool Window::GetRequiredInstanceExtensions(std::vector<const char*> &glfwRequiredInstanceExtensions)
+bool Window::GetRequiredInstanceExtensions(std::vector<const char *> &glfwRequiredInstanceExtensions)
 {
     if (!glfwVulkanSupported())
         return false;

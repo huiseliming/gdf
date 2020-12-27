@@ -21,8 +21,7 @@ int main(int argc, char **argv)
             // std::cout << "MousePostion:" << window.mouse().position.x << "," <<
             // window.mouse().position.y << "\n";
             if (window.mouse().offset.x != 0 || window.mouse().offset.y != 0) {
-                std::cout << "MouseOffset:" << window.mouse().offset.x << ","
-                          << window.mouse().offset.y << "\n";
+                std::cout << "MouseOffset:" << window.mouse().offset.x << "," << window.mouse().offset.y << "\n";
             }
 
             for (auto pressedButton : window.mouse().pressedButtons)

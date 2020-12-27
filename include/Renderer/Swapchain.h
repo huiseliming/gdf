@@ -1,6 +1,6 @@
 #pragma once
-#include "VulkanApi.h"
 #include "Base/NonCopyable.h"
+#include "VulkanApi.h"
 #include <vector>
 namespace gdf
 {
@@ -30,7 +30,7 @@ private:
 
     VkSurfaceKHR surface_ = VK_NULL_HANDLE;
     VkSwapchainKHR swapchain_ = VK_NULL_HANDLE;
-    
+
     uint32_t currentIndex{UINT32_MAX};
     std::vector<VkImageView> imageViews_;
 };
