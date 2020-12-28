@@ -19,21 +19,6 @@ GDF_DECLARE_EXPORT_LOG_CATEGORY(GraphicsLog, LogLevel::Info, LogLevel::All);
 class Graphics;
 struct Swapchain;
 
-struct GDF_EXPORT QueueFamily {
-    uint32_t familyIndex;
-    std::vector<VkQueue> queue;
-
-    friend class Graphics;
-private:
-    void Attach(VkDevice device, uint32_t queueFamilyIndex, uint32_t queueNum)
-    {
-        this->familyIndex = queueFamilyIndex;
-        queue.resize(queueNum);
-        for (uint32_t i = 0; i < queueNum; i++)
-            vkGetDeviceQueue(device, queueFamilyIndex, i, &queue[i]);
-    }
-};
-
 class GDF_EXPORT Graphics : public NonCopyable
 {
 public:
@@ -92,7 +77,7 @@ public:
 
     VkCommandPool commandPool()
     {
-        return commandPool_;
+        return commandPools_[queueFamilyIndices_.graphics];
     }
 
     static VkBool32 DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
@@ -106,15 +91,23 @@ public:
     friend class Swapchain;
 
 private:
-    VkPhysicalDeviceFeatures physicalDeviceFeatures_ = {};
-    VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
 
-    VkInstance instance_ = VK_NULL_HANDLE;
-    VkDevice device_ = VK_NULL_HANDLE;
-    std::unique_ptr<Swapchain> swapchain_;
-    VkCommandPool commandPool_;
+    struct QueueFamily {
+        uint32_t familyIndex;
+        std::vector<VkQueue> queue;
 
-    std::vector<QueueFamily> queueFamilies_;
+        friend class Graphics;
+
+    private:
+        void Attach(VkDevice device, uint32_t queueFamilyIndex, uint32_t queueNum)
+        {
+            this->familyIndex = queueFamilyIndex;
+            queue.resize(queueNum);
+            for (uint32_t i = 0; i < queueNum; i++)
+                vkGetDeviceQueue(device, queueFamilyIndex, i, &queue[i]);
+        }
+    };
+
     struct QueueFamilyIndices {
         uint32_t graphics;
         uint32_t compute;
@@ -142,6 +135,16 @@ private:
         bool DetectPresentQueueFamilyIndices(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
         uint32_t GetQueueFamilyIndex(std::vector<VkQueueFamilyProperties> &queueFamilyProperties, VkQueueFlagBits queueFlags);
     } queueFamilyIndices_;
+
+    VkPhysicalDeviceFeatures physicalDeviceFeatures_ = {};
+    VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
+
+    VkInstance instance_ = VK_NULL_HANDLE;
+    VkDevice device_ = VK_NULL_HANDLE;
+    std::unique_ptr<Swapchain> swapchain_;
+
+    std::vector <VkCommandPool> commandPools_;
+    std::vector<QueueFamily> queueFamilies_;
 
     VkDebugReportCallbackEXT fpDebugReportCallbackEXT_ = VK_NULL_HANDLE;
     bool enableValidationLayer_;

@@ -115,21 +115,25 @@ bool Graphics::Initialize(bool enableValidationLayer)
     VK_ASSERT_SUCCESSED(vkCreateDevice(physicalDevice_, &deviceCI, nullptr, &device_));
     // 
     queueFamilies_.resize(queueFamilyCount);
-    for (uint32_t i = 0; i < queueFamilyCount; i++)
+    commandPools_.resize(queueFamilyCount);
+    for (uint32_t i = 0; i < queueFamilyCount; i++) {
         queueFamilies_[i].Attach(device_, i, queueFamilyProperties[i].queueCount);
-
-    //CommandPool
-    VkCommandPoolCreateInfo poolInfo{};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = queueFamilyIndices_.graphics;
-    VK_ASSERT_SUCCESSED(vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPool_))
+        // CommandPool
+        VkCommandPoolCreateInfo poolInfo{
+            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            .queueFamilyIndex = i,
+        };
+        VK_ASSERT_SUCCESSED(vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPools_[i]))
+    }
     return true;
 }
 
 void Graphics::Cleanup()
 {
     swapchain_.reset();
-    vkDestroyCommandPool(device_,commandPool_, nullptr);
+    for (auto commandPool : commandPools_) 
+        vkDestroyCommandPool(device_, commandPool, nullptr);
+    commandPools_.clear();
     vkDestroyDevice(device_, nullptr);
     device_ = VK_NULL_HANDLE;
     if (enableValidationLayer_) {
@@ -149,8 +153,11 @@ void Graphics::SetSwapchain(std::unique_ptr<Swapchain> &&swapchain)
 bool Graphics::IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice)
 {
     VkPhysicalDeviceProperties properties;
+    //find discrete GPU
     vkGetPhysicalDeviceProperties(physicalDevice, &properties);
-    return true;
+    if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+        return true;
+    return false;
 }
 
 // helpful function
