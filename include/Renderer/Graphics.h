@@ -3,6 +3,7 @@
 #include "Log/Logger.h"
 #include "VulkanApi.h"
 #include <vector>
+#include <optional>
 
 #ifdef GDF_DEBUG
 #define GDF_ENABLE_VALIDATION_LAYER true
@@ -19,17 +20,14 @@ class Graphics;
 struct Swapchain;
 
 struct GDF_EXPORT QueueFamily {
-    VkQueueFlags flag;
-    uint32_t family;
+    uint32_t familyIndex;
     std::vector<VkQueue> queue;
 
     friend class Graphics;
-
 private:
-    void Attach(VkDevice device, VkQueueFlags queueFlags, uint32_t queueFamilyIndex, uint32_t queueNum)
+    void Attach(VkDevice device, uint32_t queueFamilyIndex, uint32_t queueNum)
     {
-        this->flag = queueFlags;
-        this->family = queueFamilyIndex;
+        this->familyIndex = queueFamilyIndex;
         queue.resize(queueNum);
         for (uint32_t i = 0; i < queueNum; i++)
             vkGetDeviceQueue(device, queueFamilyIndex, i, &queue[i]);
@@ -64,14 +62,22 @@ public:
 
     VkQueue graphicsQueue()
     {
-        // TODO : find and return graphics queue
-        return queueFamilies_[0].queue[0];
+        return queueFamilies_[queueFamilyIndices.graphics].queue[0];
+    }
+
+    VkQueue computeQueue()
+    {
+        return queueFamilies_[queueFamilyIndices.compute].queue[0];
+    }
+
+    VkQueue transferQueue()
+    {
+        return queueFamilies_[queueFamilyIndices.transfer].queue[0];
     }
 
     VkQueue presentQueue()
     {
-        // TODO : find and return present queue
-        return queueFamilies_[0].queue[0];
+        return queueFamilies_[queueFamilyIndices.present].queue[0];
     }
 
     Swapchain &swapchain()
@@ -89,6 +95,7 @@ public:
                                            const char *pLayerPrefix,
                                            const char *pMessage,
                                            void *pUserData);
+    friend class Swapchain;
 
 private:
     VkPhysicalDeviceFeatures physicalDeviceFeatures_ = {};
@@ -96,9 +103,37 @@ private:
 
     VkInstance instance_ = VK_NULL_HANDLE;
     VkDevice device_ = VK_NULL_HANDLE;
-    std::vector<QueueFamily> queueFamilies_;
-
     std::unique_ptr<Swapchain> swapchain_;
+
+    std::vector<QueueFamily> queueFamilies_;
+    struct QueueFamilyIndices {
+        uint32_t graphics;
+        uint32_t compute;
+        uint32_t transfer;
+        uint32_t present;
+        std::vector<VkQueueFamilyProperties> queueFamilyProperties;
+        bool HasGraphics()
+        {
+            return graphics != UINT32_MAX;
+        }
+        bool HasCompute()
+        {
+            return compute != UINT32_MAX;
+        }
+        bool HasTransfer()
+        {
+            return transfer != UINT32_MAX;
+        }
+        bool HasPresent()
+        {
+            return present != UINT32_MAX;
+        }
+
+        void DetectQueueFamilyIndices(std::vector<VkQueueFamilyProperties> &queueFamilyProperties);
+        bool DetectPresentQueueFamilyIndices(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
+        uint32_t GetQueueFamilyIndex(std::vector<VkQueueFamilyProperties> &queueFamilyProperties, VkQueueFlagBits queueFlags);
+    } queueFamilyIndices;
+
     VkDebugReportCallbackEXT fpDebugReportCallbackEXT_ = VK_NULL_HANDLE;
     bool enableValidationLayer_;
 };

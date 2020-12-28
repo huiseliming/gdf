@@ -55,21 +55,43 @@ int main(int argc, char **argv)
                     GDF_LOG(General, LogLevel::Info, "Recreate");
                 }
                 //vkWaitForFences(gfx.device(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+
                 uint32_t imageIndex;
                 auto result = gfx.swapchain().AcquireNextImage(imageIndex);
                 if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-                    gfx.swapchain().Recreate();
                     continue;
-                } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-                    THROW_EXCEPT("failed to acquire swap chain image!");
                 }
+
 
                 //TODO rendering
 
+                
+                VkSubmitInfo submitInfo{};
+                submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+                VkSemaphore waitSemaphores[] = {gfx.swapchain().GetCurrentFrameImageAvailableSemaphore()};
+                VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+                submitInfo.waitSemaphoreCount = 1;
+                submitInfo.pWaitSemaphores = waitSemaphores;
+                submitInfo.pWaitDstStageMask = waitStages;
+
+                submitInfo.commandBufferCount = 0;// 1;
+                submitInfo.pCommandBuffers = nullptr;//&commandBuffers[imageIndex];
+
+                VkSemaphore signalSemaphores[] = {gfx.swapchain().GetCurrentFrameRenderFinishedSemaphore()};
+                submitInfo.signalSemaphoreCount = 1;
+                submitInfo.pSignalSemaphores = signalSemaphores;
+
+                vkResetFences(gfx.device(), 1, gfx.swapchain().GetCurrentFrameInFlightFencePointer());
+
+                if (vkQueueSubmit(gfx.graphicsQueue(), 1, &submitInfo, gfx.swapchain().GetCurrentFrameInFlightFence()) !=
+                    VK_SUCCESS) {
+                    throw std::runtime_error("failed to submit draw command buffer!");
+                }
 
                 // presentation
                 
-                result = gfx.swapchain().Present();
+                result = gfx.swapchain().Present(imageIndex);
                 //if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
                 //    framebufferResized = false;
                 //    recreateSwapChain();

@@ -37,9 +37,12 @@ public:
     void Recreate();
 
     VkResult AcquireNextImage(uint32_t &imageIndex);
-    VkResult Present();
+    VkResult Present(uint32_t &imageIndex);
 
-
+    VkSemaphore GetCurrentFrameRenderFinishedSemaphore();
+    VkSemaphore GetCurrentFrameImageAvailableSemaphore();
+    VkFence GetCurrentFrameInFlightFence();
+    VkFence *GetCurrentFrameInFlightFencePointer();
 
     bool SetSurfaceFormat(VkSurfaceFormatKHR surfaceFormat);
     bool SetPresentMode(VkPresentModeKHR presentMode);
@@ -58,10 +61,12 @@ public:
         return minImageCount_;
     }
 
-private:
+
+//private:
     Window &wnd_;
     Graphics &gfx_;
 
+    constexpr static uint32_t MAX_FRAMES_IN_FLIGHT = 2;
     std::vector<VkSurfaceFormatKHR> supportedSurfaceFormats;
     std::vector<VkPresentModeKHR> supportedPresentModes;
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
@@ -73,14 +78,14 @@ private:
 
     VkSurfaceKHR surface_{VK_NULL_HANDLE};
     VkSwapchainKHR swapchain_{VK_NULL_HANDLE};
+    std::vector<VkSemaphore> renderFinishedSemaphores;
     std::vector<VkSemaphore> imageAvailableSemaphores_;
-    std::vector<VkFence> fences_;
+    std::vector<VkFence> inFlightFences;
+    std::vector<VkFence> imagesInFlight;
 
-    uint32_t currentFrameIndex{UINT32_MAX};
-    uint32_t currentImageIndex{UINT32_MAX};
+    uint32_t currentFrame{0};
     std::vector<VkImageView> imageViews_;
     std::vector<VkFramebuffer> framebuffers;
-
 
     bool needRecreate_;
 };

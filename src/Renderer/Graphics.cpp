@@ -84,6 +84,9 @@ bool Graphics::Initialize(bool enableValidationLayer)
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueFamilyCount, nullptr);
     std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueFamilyCount, queueFamilyProperties.data());
+
+    queueFamilyIndices.DetectQueueFamilyIndices(queueFamilyProperties);
+
     std::vector<VkDeviceQueueCreateInfo> queuesCI;
     uint32_t maxQueueCount = 0;
     for (uint32_t i = 0; i < queueFamilyCount; ++i) {
@@ -94,6 +97,7 @@ bool Graphics::Initialize(bool enableValidationLayer)
         });
         maxQueueCount = std::max(maxQueueCount, queueFamilyProperties[i].queueCount);
     }
+
     std::vector<float> queuePriorities(maxQueueCount, 0.0f);
     for (uint32_t i = 0; i < queueFamilyCount; ++i) {
         queuesCI[i].pQueuePriorities = queuePriorities.data();
@@ -112,8 +116,7 @@ bool Graphics::Initialize(bool enableValidationLayer)
     //
     queueFamilies_.resize(queueFamilyCount);
     for (uint32_t i = 0; i < queueFamilyCount; i++)
-        queueFamilies_[i].Attach(device_, queueFamilyProperties[i].queueFlags, i, queueFamilyProperties[i].queueCount);
-
+        queueFamilies_[i].Attach(device_, i, queueFamilyProperties[i].queueCount);
     return true;
 }
 
@@ -142,6 +145,7 @@ bool Graphics::IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice)
     vkGetPhysicalDeviceProperties(physicalDevice, &properties);
     return true;
 }
+
 VkBool32 Graphics::DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
                                           VkDebugReportObjectTypeEXT objectType,
                                           uint64_t object,
@@ -165,5 +169,68 @@ VkBool32 Graphics::DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
     }
 
     return VK_FALSE;
+}
+
+void Graphics::QueueFamilyIndices::DetectQueueFamilyIndices(std::vector<VkQueueFamilyProperties> &queueFamilyProperties)
+{
+    this->queueFamilyProperties = queueFamilyProperties;
+    graphics = GetQueueFamilyIndex(queueFamilyProperties, VK_QUEUE_GRAPHICS_BIT);
+    compute = GetQueueFamilyIndex(queueFamilyProperties, VK_QUEUE_COMPUTE_BIT);
+    transfer = GetQueueFamilyIndex(queueFamilyProperties, VK_QUEUE_TRANSFER_BIT);
+}
+
+bool Graphics::QueueFamilyIndices::DetectPresentQueueFamilyIndices(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface)
+{
+    VkBool32 supported = VK_FALSE;
+    // if graphics queue support present, use it
+    vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, graphics, surface, &supported);
+    // else detect support queue
+    if (supported == VK_FALSE) {
+        for (size_t i = 0; i < queueFamilyProperties.size(); i++) {
+            vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &supported);
+            if (supported == VK_TRUE) {
+                present = i;
+                return supported;
+            }
+        }
+        return supported;
+    }
+    present = graphics;
+    return supported;
+}
+uint32_t Graphics::QueueFamilyIndices::GetQueueFamilyIndex(
+    std::vector<VkQueueFamilyProperties> &queueFamilyProperties, VkQueueFlagBits queueFlags)
+{
+    // Dedicated queue for compute
+    // Try to find a queue family index that supports compute but not graphics
+    if (queueFlags & VK_QUEUE_COMPUTE_BIT) {
+        for (uint32_t i = 0; i < static_cast<uint32_t>(queueFamilyProperties.size()); i++) {
+            if ((queueFamilyProperties[i].queueFlags & queueFlags) &&
+                ((queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0)) {
+                return i;
+            }
+        }
+    }
+
+    // Dedicated queue for transfer
+    // Try to find a queue family index that supports transfer but not graphics and compute
+    if (queueFlags & VK_QUEUE_TRANSFER_BIT) {
+        for (uint32_t i = 0; i < static_cast<uint32_t>(queueFamilyProperties.size()); i++) {
+            if ((queueFamilyProperties[i].queueFlags & queueFlags) &&
+                ((queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) &&
+                ((queueFamilyProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) == 0)) {
+                return i;
+            }
+        }
+    }
+
+    // For other queue types or if no separate compute queue is present, return the first one to support the requested
+    // flags
+    for (uint32_t i = 0; i < static_cast<uint32_t>(queueFamilyProperties.size()); i++) {
+        if (queueFamilyProperties[i].queueFlags & queueFlags) {
+            return i;
+        }
+    }
+    return UINT32_MAX;
 }
 } // namespace gdf

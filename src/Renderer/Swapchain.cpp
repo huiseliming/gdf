@@ -10,7 +10,8 @@ Swapchain::Swapchain(Window &wnd, Graphics &gfx, VkSurfaceFormatKHR surfaceForma
     : wnd_(wnd), gfx_(gfx), needRecreate_(false)
 {
     VK_ASSERT_SUCCESSED(wnd_.GetVkSurfaceKHR(gfx_.instance(), &surface_));
-
+    if (!gfx.queueFamilyIndices.DetectPresentQueueFamilyIndices(gfx_.physicalDevice_, surface_)) 
+        THROW_EXCEPT("Cant find present queue family indices!");
     VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gfx_.physicalDevice(), surface_, &surfaceCapabilities));
 
     uint32_t surfaceFormatCount;
@@ -23,12 +24,11 @@ Swapchain::Swapchain(Window &wnd, Graphics &gfx, VkSurfaceFormatKHR surfaceForma
     supportedPresentModes.resize(presentModeCount);
     VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfacePresentModesKHR(gfx_.physicalDevice(), surface_, &presentModeCount, supportedPresentModes.data()));
     presentMode_ = supportedPresentModes[0];
-
+    minImageCount_ = 3;
     SetSurfaceFormat(surfaceFormat);
     SetPresentMode(presentMode);
-    if (minImageCount == UINT32_MAX)
-        SetMinImageCount(3U);
-    SetMinImageCount(minImageCount);
+    if (minImageCount != UINT32_MAX)
+        SetMinImageCount(minImageCount);
     CreateSwapchain();
     CreateSwapchainImageViews();
     CreateSyncObjects();
@@ -172,11 +172,18 @@ void Swapchain::DestroyFramebuffer()
 
 void Swapchain::CreateSyncObjects()
 {
+    renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    imageAvailableSemaphores_.resize(MAX_FRAMES_IN_FLIGHT);
+    inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+    imagesInFlight.resize(imageViews_.size(), VK_NULL_HANDLE);
+
     VkSemaphoreCreateInfo semaphoreCI{.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-    VkFenceCreateInfo fenceCI{.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
-    for (size_t i = 0; i < imageViews_.size(); i++) {
+    VkFenceCreateInfo fenceCI{.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, .flags = VK_FENCE_CREATE_SIGNALED_BIT};
+
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        VK_ASSERT_SUCCESSED(vkCreateSemaphore(gfx_.device(), &semaphoreCI, nullptr, &renderFinishedSemaphores[i]));
         VK_ASSERT_SUCCESSED(vkCreateSemaphore(gfx_.device(), &semaphoreCI, nullptr, &imageAvailableSemaphores_[i]));
-        VK_ASSERT_SUCCESSED(vkCreateFence(gfx_.device(), &fenceCI, nullptr, &fences_[i]));
+        VK_ASSERT_SUCCESSED(vkCreateFence(gfx_.device(), &fenceCI, nullptr, &inFlightFences[i]));
     }
 }
 
@@ -185,11 +192,11 @@ void Swapchain::DestroySyncObjects()
     for (auto semaphore : imageAvailableSemaphores_)
         if (semaphore != VK_NULL_HANDLE) 
             vkDestroySemaphore(gfx_.device(), semaphore, nullptr);
-    for (auto fence : fences_)
+    for (auto fence : inFlightFences)
         if (fence != VK_NULL_HANDLE) 
             vkDestroyFence(gfx_.device(), fence, nullptr);
     imageAvailableSemaphores_.clear();
-    fences_.clear();
+    inFlightFences.clear();
 }
 
  void Swapchain::RequestRecreate()
@@ -213,12 +220,48 @@ void Swapchain::Recreate()
 
 VkResult Swapchain::AcquireNextImage(uint32_t &imageIndex)
 {
-    return vkAcquireNextImageKHR(gfx_.device(), swapchain_, 0, imageAvailableSemaphores_[0], fences_[0], &imageIndex);
+    vkWaitForFences(gfx_.device(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+    
+    auto result = vkAcquireNextImageKHR(gfx_.device(), swapchain_, UINT64_MAX, imageAvailableSemaphores_[currentFrame], VK_NULL_HANDLE, &imageIndex);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        Recreate();
+        return result;
+    } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        THROW_EXCEPT("failed to acquire swap chain image!");
+    }
+
+    if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
+        vkWaitForFences(gfx_.device(), 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
+    }
+    imagesInFlight[imageIndex] = inFlightFences[currentFrame];
+
+
+
 }
 
-VkResult Swapchain::Present()
+VkSemaphore Swapchain::GetCurrentFrameRenderFinishedSemaphore()
 {
-    VkSemaphore waitSemaphores[] = {imageAvailableSemaphores_[0]};
+    return renderFinishedSemaphores[currentFrame];
+}
+
+VkSemaphore Swapchain::GetCurrentFrameImageAvailableSemaphore()
+{
+    return imageAvailableSemaphores_[currentFrame];
+}
+
+VkFence Swapchain::GetCurrentFrameInFlightFence()
+{
+    return inFlightFences[currentFrame];
+}
+
+VkFence *Swapchain::GetCurrentFrameInFlightFencePointer()
+{
+    return &inFlightFences[currentFrame];
+}
+
+VkResult Swapchain::Present(uint32_t &imageIndex)
+{
+    VkSemaphore waitSemaphores[] = {imageAvailableSemaphores_[currentFrame]};
     VkSwapchainKHR swapchains[] = {swapchain_};
     VkPresentInfoKHR presentInfo{
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -226,9 +269,18 @@ VkResult Swapchain::Present()
         .pWaitSemaphores = waitSemaphores,
         .swapchainCount = 1,
         .pSwapchains = swapchains,
-        .pImageIndices = &currentImageIndex,
+        .pImageIndices = &imageIndex,
     };
-    return vkQueuePresentKHR(gfx_.presentQueue(), &presentInfo);
+    auto result = vkQueuePresentKHR(gfx_.presentQueue(), &presentInfo);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        Recreate();
+    } else if (result != VK_SUCCESS) {
+        THROW_EXCEPT("failed to present swap chain image!");
+    }
+
+    currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    return result;
+
 }
 
 
@@ -264,8 +316,11 @@ bool Swapchain::SetPresentMode(VkPresentModeKHR presentMode)
 bool Swapchain::SetMinImageCount(uint32_t  minImageCount)
 {
     auto temp = std::min(std::max(minImageCount, surfaceCapabilities.minImageCount), surfaceCapabilities.maxImageCount);
-    if (minImageCount == temp) {
+    if (minImageCount_ != temp) {
         minImageCount_ = temp;
+        if (temp != minImageCount) {
+            return false;
+        }
         return true;
     }
     return false;
