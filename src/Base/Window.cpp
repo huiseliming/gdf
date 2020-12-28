@@ -1,5 +1,6 @@
 #include "Base/Window.h"
 #include "Base/StringTool.h"
+
 namespace gdf
 {
 
@@ -33,7 +34,7 @@ void Window::Create(const std::string &applicationName, const int width, const i
     glfwSetCharCallback(pGLFWWindow_, Window::CharCallback);
     // window callback
     glfwSetWindowSizeCallback(pGLFWWindow_, Window::WindowSizeCallback);
-    // glfwSetFramebufferSizeCallback(pGLFWWindow_, Window::FramebufferResizeCallback);
+    glfwSetFramebufferSizeCallback(pGLFWWindow_, Window::FramebufferResizeCallback);
 }
 
 void Window::Destroy()
@@ -149,7 +150,8 @@ void Window::WindowSizeCallback(GLFWwindow *window, int width, int height)
 
 void Window::FramebufferResizeCallback(GLFWwindow *window, int width, int height)
 {
-    // auto application_ptr = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-    // application_ptr->get_render_engine_ptr()->Resize();
+    Window *pWindow = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
+    pWindow->width_ = width;
+    pWindow->height_ = height;
 }
 } // namespace gdf

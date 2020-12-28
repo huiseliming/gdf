@@ -85,7 +85,7 @@ bool Graphics::Initialize(bool enableValidationLayer)
     std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueFamilyCount, queueFamilyProperties.data());
 
-    queueFamilyIndices.DetectQueueFamilyIndices(queueFamilyProperties);
+    queueFamilyIndices_.DetectQueueFamilyIndices(queueFamilyProperties);
 
     std::vector<VkDeviceQueueCreateInfo> queuesCI;
     uint32_t maxQueueCount = 0;
@@ -121,7 +121,7 @@ bool Graphics::Initialize(bool enableValidationLayer)
     //CommandPool
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = queueFamilyIndices.graphics;
+    poolInfo.queueFamilyIndex = queueFamilyIndices_.graphics;
     VK_ASSERT_SUCCESSED(vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPool_))
     return true;
 }

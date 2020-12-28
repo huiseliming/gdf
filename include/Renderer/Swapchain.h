@@ -78,14 +78,14 @@ public:
     }
 
 
-//private:
+private:
     //reuse data
     VkSurfaceFormatKHR surfaceFormat_;
     VkPresentModeKHR presentMode_;
     uint32_t minImageCount_;
-    std::vector<VkSurfaceFormatKHR> supportedSurfaceFormats;
-    std::vector<VkPresentModeKHR> supportedPresentModes;
-    VkExtent2D extent;
+    std::vector<VkSurfaceFormatKHR> supportedSurfaceFormats_;
+    std::vector<VkPresentModeKHR> supportedPresentModes_;
+    VkExtent2D extent_;
 
     //const define
     constexpr static uint32_t MAX_FRAMES_IN_FLIGHT = 2;
@@ -97,18 +97,18 @@ public:
     VkSwapchainKHR swapchain_{VK_NULL_HANDLE};
     std::vector<VkImageView> imageViews_;
     VkRenderPass renderPass_;
-    VkPipeline graphicsPipeline;
-    VkPipelineLayout pipelineLayout;
-    std::vector<VkFramebuffer> framebuffers;
-    std::vector<VkCommandBuffer> commandBuffers;
+    VkPipeline graphicsPipeline_;
+    VkPipelineLayout pipelineLayout_;
+    std::vector<VkFramebuffer> framebuffers_;
+    std::vector<VkCommandBuffer> commandBuffers_;
 
-    std::vector<VkSemaphore> renderFinishedSemaphores;
+    std::vector<VkSemaphore> renderFinishedSemaphores_;
     std::vector<VkSemaphore> imageAvailableSemaphores_;
-    std::vector<VkFence> inFlightFences;
+    std::vector<VkFence> inFlightFences_;
     std::vector<VkFence> imagesInFlight_;
     // state mark
-    uint32_t SwapchainImageCount;
-    uint32_t currentFrame{0};
+    uint32_t SwapchainImageCount_;
+    uint32_t currentFrame_{0};
     bool needRecreate_;
 };
 

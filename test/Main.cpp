@@ -49,49 +49,7 @@ int main(int argc, char **argv)
                 if (window.resized()) {
                     gfx.swapchain().RequestRecreate();
                 }
-
-                if (gfx.swapchain().needRecreate()) {
-                    gfx.swapchain().Recreate();
-                    GDF_LOG(General, LogLevel::Info, "Recreate");
-                }
-                //vkWaitForFences(gfx.device(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-
-                // get new image to rendering
-                vkWaitForFences(gfx.device(), 1, gfx.swapchain().GetCurrentFrameInFlightFencePointer(), VK_TRUE, UINT64_MAX);
-
-                uint32_t imageIndex;
-                VK_ASSERT_SUCCESSED(gfx.swapchain().AcquireNextImage(imageIndex));
-                if (gfx.swapchain().imageInFlight()[imageIndex] != VK_NULL_HANDLE) {
-                    vkWaitForFences(gfx.device(), 1, &gfx.swapchain().imageInFlight()[imageIndex], VK_TRUE, UINT64_MAX);
-                }
-                gfx.swapchain().imageInFlight()[imageIndex] = gfx.swapchain().GetCurrentFrameInFlightFence();
-
-                if (!gfx.swapchain().needRecreate()) {
-                    // TODO rendering
-
-                    VkSubmitInfo submitInfo{};
-                    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-                    VkSemaphore waitSemaphores[] = {gfx.swapchain().GetCurrentFrameImageAvailableSemaphore()};
-                    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-                    submitInfo.waitSemaphoreCount = 1;
-                    submitInfo.pWaitSemaphores = waitSemaphores;
-                    submitInfo.pWaitDstStageMask = waitStages;
-
-                    submitInfo.commandBufferCount = 1;
-                    submitInfo.pCommandBuffers = &gfx.swapchain().commandBuffers[imageIndex];
-
-                    VkSemaphore signalSemaphores[] = {gfx.swapchain().GetCurrentFrameRenderFinishedSemaphore()};
-                    submitInfo.signalSemaphoreCount = 1;
-                    submitInfo.pSignalSemaphores = signalSemaphores;
-
-                    vkResetFences(gfx.device(), 1, gfx.swapchain().GetCurrentFrameInFlightFencePointer());
-
-                    VK_ASSERT_SUCCESSED(vkQueueSubmit(gfx.graphicsQueue(), 1, &submitInfo, gfx.swapchain().GetCurrentFrameInFlightFence()));
-
-                    // presentation
-                    VK_ASSERT_SUCCESSED(gfx.swapchain().Present(imageIndex, std::size(signalSemaphores), signalSemaphores));
-                }
+                gfx.swapchain().DrawFrame();
             }
             gfx.DeviceWaitIdle();
             GDF_LOG(General,

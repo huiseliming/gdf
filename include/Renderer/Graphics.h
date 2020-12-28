@@ -67,22 +67,22 @@ public:
 
     VkQueue graphicsQueue()
     {
-        return queueFamilies_[queueFamilyIndices.graphics].queue[0];
+        return queueFamilies_[queueFamilyIndices_.graphics].queue[0];
     }
 
     VkQueue computeQueue()
     {
-        return queueFamilies_[queueFamilyIndices.compute].queue[0];
+        return queueFamilies_[queueFamilyIndices_.compute].queue[0];
     }
 
     VkQueue transferQueue()
     {
-        return queueFamilies_[queueFamilyIndices.transfer].queue[0];
+        return queueFamilies_[queueFamilyIndices_.transfer].queue[0];
     }
 
     VkQueue presentQueue()
     {
-        return queueFamilies_[queueFamilyIndices.present].queue[0];
+        return queueFamilies_[queueFamilyIndices_.present].queue[0];
     }
 
     Swapchain &swapchain()
@@ -141,7 +141,7 @@ private:
         void DetectQueueFamilyIndices(std::vector<VkQueueFamilyProperties> &queueFamilyProperties);
         bool DetectPresentQueueFamilyIndices(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
         uint32_t GetQueueFamilyIndex(std::vector<VkQueueFamilyProperties> &queueFamilyProperties, VkQueueFlagBits queueFlags);
-    } queueFamilyIndices;
+    } queueFamilyIndices_;
 
     VkDebugReportCallbackEXT fpDebugReportCallbackEXT_ = VK_NULL_HANDLE;
     bool enableValidationLayer_;
