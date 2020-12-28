@@ -37,12 +37,15 @@ public:
     void Recreate();
 
     VkResult AcquireNextImage(uint32_t &imageIndex);
-    VkResult Present(uint32_t &imageIndex);
+
+    VkResult Present(uint32_t &imageIndex, std::vector<VkSemaphore> waitSemaphores);
+    VkResult Present(uint32_t &imageIndex, uint32_t waitSemaphoreCount, VkSemaphore *waitSemaphore);
 
     VkSemaphore GetCurrentFrameRenderFinishedSemaphore();
     VkSemaphore GetCurrentFrameImageAvailableSemaphore();
     VkFence GetCurrentFrameInFlightFence();
     VkFence *GetCurrentFrameInFlightFencePointer();
+    std::vector<VkFence> &imageInFlight();
 
     bool SetSurfaceFormat(VkSurfaceFormatKHR surfaceFormat);
     bool SetPresentMode(VkPresentModeKHR presentMode);
@@ -81,7 +84,7 @@ public:
     std::vector<VkSemaphore> renderFinishedSemaphores;
     std::vector<VkSemaphore> imageAvailableSemaphores_;
     std::vector<VkFence> inFlightFences;
-    std::vector<VkFence> imagesInFlight;
+    std::vector<VkFence> imagesInFlight_;
 
     uint32_t currentFrame{0};
     std::vector<VkImageView> imageViews_;
