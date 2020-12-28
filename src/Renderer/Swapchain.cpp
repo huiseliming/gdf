@@ -234,9 +234,6 @@ VkResult Swapchain::AcquireNextImage(uint32_t &imageIndex)
         vkWaitForFences(gfx_.device(), 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
     }
     imagesInFlight[imageIndex] = inFlightFences[currentFrame];
-
-
-
 }
 
 VkSemaphore Swapchain::GetCurrentFrameRenderFinishedSemaphore()
@@ -261,7 +258,7 @@ VkFence *Swapchain::GetCurrentFrameInFlightFencePointer()
 
 VkResult Swapchain::Present(uint32_t &imageIndex)
 {
-    VkSemaphore waitSemaphores[] = {imageAvailableSemaphores_[currentFrame]};
+    VkSemaphore waitSemaphores[] = {renderFinishedSemaphores[currentFrame]};
     VkSwapchainKHR swapchains[] = {swapchain_};
     VkPresentInfoKHR presentInfo{
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
