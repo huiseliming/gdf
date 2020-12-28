@@ -45,6 +45,11 @@ public:
 
     bool IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice);
 
+    //helpful function
+    VkShaderModule CreateShaderModule(const std::vector<char> &code);
+
+    void DeviceWaitIdle();
+
     VkInstance instance()
     {
         return instance_;
@@ -85,7 +90,10 @@ public:
         return *swapchain_;
     }
 
-
+    VkCommandPool commandPool()
+    {
+        return commandPool_;
+    }
 
     static VkBool32 DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
                                            VkDebugReportObjectTypeEXT objectType,
@@ -104,6 +112,7 @@ private:
     VkInstance instance_ = VK_NULL_HANDLE;
     VkDevice device_ = VK_NULL_HANDLE;
     std::unique_ptr<Swapchain> swapchain_;
+    VkCommandPool commandPool_;
 
     std::vector<QueueFamily> queueFamilies_;
     struct QueueFamilyIndices {

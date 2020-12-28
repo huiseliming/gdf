@@ -78,8 +78,8 @@ int main(int argc, char **argv)
                     submitInfo.pWaitSemaphores = waitSemaphores;
                     submitInfo.pWaitDstStageMask = waitStages;
 
-                    submitInfo.commandBufferCount = 0;    // 1;
-                    submitInfo.pCommandBuffers = nullptr; //&commandBuffers[imageIndex];
+                    submitInfo.commandBufferCount = 1;
+                    submitInfo.pCommandBuffers = &gfx.swapchain().commandBuffers[imageIndex];
 
                     VkSemaphore signalSemaphores[] = {gfx.swapchain().GetCurrentFrameRenderFinishedSemaphore()};
                     submitInfo.signalSemaphoreCount = 1;
@@ -93,6 +93,7 @@ int main(int argc, char **argv)
                     VK_ASSERT_SUCCESSED(gfx.swapchain().Present(imageIndex, std::size(signalSemaphores), signalSemaphores));
                 }
             }
+            gfx.DeviceWaitIdle();
             GDF_LOG(General,
                     LogLevel::Info,
                     "Exiting main loop at ProgramTime: {}",

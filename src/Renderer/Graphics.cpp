@@ -113,16 +113,23 @@ bool Graphics::Initialize(bool enableValidationLayer)
                                 .ppEnabledExtensionNames = deviceExtensions.data(),
                                 .pEnabledFeatures = &physicalDeviceFeatures_};
     VK_ASSERT_SUCCESSED(vkCreateDevice(physicalDevice_, &deviceCI, nullptr, &device_));
-    //
+    // 
     queueFamilies_.resize(queueFamilyCount);
     for (uint32_t i = 0; i < queueFamilyCount; i++)
         queueFamilies_[i].Attach(device_, i, queueFamilyProperties[i].queueCount);
+
+    //CommandPool
+    VkCommandPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = queueFamilyIndices.graphics;
+    VK_ASSERT_SUCCESSED(vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPool_))
     return true;
 }
 
 void Graphics::Cleanup()
 {
     swapchain_.reset();
+    vkDestroyCommandPool(device_,commandPool_, nullptr);
     vkDestroyDevice(device_, nullptr);
     device_ = VK_NULL_HANDLE;
     if (enableValidationLayer_) {
@@ -144,6 +151,24 @@ bool Graphics::IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice)
     VkPhysicalDeviceProperties properties;
     vkGetPhysicalDeviceProperties(physicalDevice, &properties);
     return true;
+}
+
+// helpful function
+VkShaderModule Graphics::CreateShaderModule(const std::vector<char> &code)
+{
+    VkShaderModuleCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize = code.size();
+    createInfo.pCode = reinterpret_cast<const uint32_t *>(code.data());
+
+    VkShaderModule shaderModule;
+    VK_ASSERT_SUCCESSED(vkCreateShaderModule(device_, &createInfo, nullptr, &shaderModule))
+    return shaderModule;
+}
+
+void Graphics::DeviceWaitIdle()
+{
+    VK_ASSERT_SUCCESSED(vkDeviceWaitIdle(device_));
 }
 
 VkBool32 Graphics::DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,

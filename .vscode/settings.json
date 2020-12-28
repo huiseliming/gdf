@@ -3,5 +3,5 @@
         "--compile-commands-dir=${workspaceFolder}/out/build"
     ],
     "editor.formatOnSave": true,
-    "clang-format.executable": "/Users/daimingze/Documents/clang+llvm-11.0.0-x86_64-apple-darwin/bin/clang-format"
+    "clang-format.executable": "/Users/daimingze/Documents/clang+llvm-11.0.0-x86_64-apple-darwin/bin/clang-format",
 }

@@ -23,11 +23,20 @@ public:
                          uint32_t minImageCount= UINT32_MAX );
     void DestroySwapchain();
 
-    void CreateSwapchainImageViews();
-    void DestroySwapchainImageViews();
+    void CreateImageViews();
+    void DestroyImageViews();
 
-    void CreateFramebuffer(VkRenderPass renderPass);
+    void CreateRenderPass();
+    void DestroyRenderPass();
+
+    void CreateGraphicsPipeline();
+    void DestroyGraphicsPipeline();
+
+    void CreateFramebuffer();
     void DestroyFramebuffer();
+
+    void CreateCommandBuffers();
+    void DestroyCommandBuffers();
 
     void CreateSyncObjects();
     void DestroySyncObjects();
@@ -36,7 +45,11 @@ public:
     bool needRecreate();
     void Recreate();
 
+    void DrawFrame();
+
     VkResult AcquireNextImage(uint32_t &imageIndex);
+
+    void FrameRendering();
 
     VkResult Present(uint32_t &imageIndex, std::vector<VkSemaphore> waitSemaphores);
     VkResult Present(uint32_t &imageIndex, uint32_t waitSemaphoreCount, VkSemaphore *waitSemaphore);
@@ -66,30 +79,36 @@ public:
 
 
 //private:
-    Window &wnd_;
-    Graphics &gfx_;
-
-    constexpr static uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-    std::vector<VkSurfaceFormatKHR> supportedSurfaceFormats;
-    std::vector<VkPresentModeKHR> supportedPresentModes;
-    VkSurfaceCapabilitiesKHR surfaceCapabilities;
-    VkExtent2D extent;
-
+    //reuse data
     VkSurfaceFormatKHR surfaceFormat_;
     VkPresentModeKHR presentMode_;
     uint32_t minImageCount_;
+    std::vector<VkSurfaceFormatKHR> supportedSurfaceFormats;
+    std::vector<VkPresentModeKHR> supportedPresentModes;
+    VkExtent2D extent;
 
+    //const define
+    constexpr static uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+    
+    Window &wnd_;
+    Graphics &gfx_;
+    // vk object
     VkSurfaceKHR surface_{VK_NULL_HANDLE};
     VkSwapchainKHR swapchain_{VK_NULL_HANDLE};
+    std::vector<VkImageView> imageViews_;
+    VkRenderPass renderPass_;
+    VkPipeline graphicsPipeline;
+    VkPipelineLayout pipelineLayout;
+    std::vector<VkFramebuffer> framebuffers;
+    std::vector<VkCommandBuffer> commandBuffers;
+
     std::vector<VkSemaphore> renderFinishedSemaphores;
     std::vector<VkSemaphore> imageAvailableSemaphores_;
     std::vector<VkFence> inFlightFences;
     std::vector<VkFence> imagesInFlight_;
-
+    // state mark
+    uint32_t SwapchainImageCount;
     uint32_t currentFrame{0};
-    std::vector<VkImageView> imageViews_;
-    std::vector<VkFramebuffer> framebuffers;
-
     bool needRecreate_;
 };
 
