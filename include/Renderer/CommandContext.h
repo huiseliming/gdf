@@ -37,7 +37,6 @@ private:
     std::vector<VkSemaphore> signalSemaphores_;
     VkPipelineStageFlags waitDstStageMask_;
     VkFence fence_;
-    
 };
 
 } // namespace gdf

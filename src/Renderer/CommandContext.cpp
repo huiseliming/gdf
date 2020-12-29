@@ -1,4 +1,4 @@
-#include "Renderer/CommandBuffer.h"
+#include "Renderer/CommandContext.h"
 #include "Renderer/CommandQueue.h"
 namespace gdf
 {
@@ -11,7 +11,7 @@ CommandBuffer::CommandBuffer(VkDevice device,
 
 CommandBuffer::~CommandBuffer()
 {
-
+    vkFreeCommandBuffers(device_, commandQueue_.commandPool(),1,&commandBuffer_);
 }
 
 void CommandBuffer::AddWaitSemaphore(VkSemaphore semaphore)

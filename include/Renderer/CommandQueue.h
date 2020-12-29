@@ -2,7 +2,7 @@
 #include <vector>
 #include "Renderer/VulkanObject.h"
 #include <map>
-#include "Renderer/CommandBuffer.h"
+#include "Renderer/CommandContext.h"
 
 namespace gdf
 {
