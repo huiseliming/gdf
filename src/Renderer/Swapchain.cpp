@@ -11,7 +11,7 @@ Swapchain::Swapchain(Window &wnd, Graphics &gfx, VkSurfaceFormatKHR surfaceForma
     : wnd_(wnd), gfx_(gfx), needRecreate_(false)
 {
     VK_ASSERT_SUCCESSED(wnd_.GetVkSurfaceKHR(gfx_.instance(), &surface_));
-    if (!gfx.queueFamilyIndices_.DetectPresentQueueFamilyIndices(gfx_.physicalDevice_, surface_)) 
+    if (!gfx.GetSupportPresentQueue(surface_, presentQueue_)) 
         THROW_EXCEPT("Cant find present queue family indices!");
 
     uint32_t surfaceFormatCount;
@@ -350,7 +350,7 @@ void Swapchain::CreateCommandBuffers()
 
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = gfx_.commandPool();
+    allocInfo.commandPool = gfx_.graphicsCommandQueue().commandPool();
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = (uint32_t)commandBuffers_.size();
 
@@ -393,7 +393,10 @@ void Swapchain::CreateCommandBuffers()
 
 void Swapchain::DestroyCommandBuffers()
 {
-    vkFreeCommandBuffers(gfx_.device(), gfx_.commandPool(), static_cast<uint32_t>(commandBuffers_.size()), commandBuffers_.data());
+    vkFreeCommandBuffers(gfx_.device(),
+                         gfx_.graphicsCommandQueue().commandPool(),
+                         static_cast<uint32_t>(commandBuffers_.size()),
+                         commandBuffers_.data());
 }
 
 void Swapchain::CreateSyncObjects()
@@ -496,7 +499,8 @@ void Swapchain::DrawFrame()
 
     vkResetFences(gfx_.device(), 1, &inFlightFences_[currentFrame_]);
 
-    VK_ASSERT_SUCCESSED(vkQueueSubmit(gfx_.graphicsQueue(), 1, &submitInfo, inFlightFences_[currentFrame_]));
+    VK_ASSERT_SUCCESSED(
+        vkQueueSubmit(gfx_.graphicsCommandQueue().queue(), 1, &submitInfo, inFlightFences_[currentFrame_]));
 
     // presentation
     VkSwapchainKHR swapchains[] = {swapchain_};
@@ -508,25 +512,13 @@ void Swapchain::DrawFrame()
         .pSwapchains = swapchains,
         .pImageIndices = &imageIndex,
     };
-    vkQueuePresentKHR(gfx_.presentQueue(), &presentInfo);
+    vkQueuePresentKHR(presentQueue_, &presentInfo);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
         RequestRecreate();
     }
     currentFrame_ = (currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-VkResult Swapchain::AcquireNextImage(uint32_t &imageIndex)
-{
-    auto result = vkAcquireNextImageKHR(gfx_.device(), swapchain_, UINT64_MAX, imageAvailableSemaphores_[currentFrame_], VK_NULL_HANDLE, &imageIndex);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        assert(false);
-        RequestRecreate();
-    } else if (result == VK_SUBOPTIMAL_KHR) {
-        assert(false);
-        return VK_SUCCESS;
-    }
-    return result;
-}
 
 VkSemaphore Swapchain::GetCurrentFrameRenderFinishedSemaphore()
 {
@@ -552,33 +544,6 @@ std::vector<VkFence> &Swapchain::imageInFlight()
 {
     return imagesInFlight_;
 }
-
-VkResult Swapchain::Present(uint32_t &imageIndex, std::vector<VkSemaphore> waitSemaphores)
-{
-    return Present(imageIndex, static_cast<uint32_t>(waitSemaphores.size()), waitSemaphores.data());
-}
-
-VkResult Swapchain::Present(uint32_t &imageIndex, uint32_t waitSemaphoreCount, VkSemaphore *waitSemaphores)
-{
-    VkSwapchainKHR swapchains[] = {swapchain_};
-    VkPresentInfoKHR presentInfo{
-        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-        .waitSemaphoreCount = waitSemaphoreCount,
-        .pWaitSemaphores = waitSemaphores,
-        .swapchainCount = 1,
-        .pSwapchains = swapchains,
-        .pImageIndices = &imageIndex,
-    };
-    auto result = vkQueuePresentKHR(gfx_.presentQueue(), &presentInfo);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-        assert(false);
-        RequestRecreate();
-        return result;
-    }
-    currentFrame_ = (currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;
-    return result;
-}
-
 
 bool Swapchain::SetSurfaceFormat(VkSurfaceFormatKHR surfaceFormat)
 {

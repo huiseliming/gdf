@@ -114,26 +114,16 @@ bool Graphics::Initialize(bool enableValidationLayer)
                                 .pEnabledFeatures = &physicalDeviceFeatures_};
     VK_ASSERT_SUCCESSED(vkCreateDevice(physicalDevice_, &deviceCI, nullptr, &device_));
     // 
-    queueFamilies_.resize(queueFamilyCount);
-    commandPools_.resize(queueFamilyCount);
-    for (uint32_t i = 0; i < queueFamilyCount; i++) {
-        queueFamilies_[i].Attach(device_, i, queueFamilyProperties[i].queueCount);
-        // CommandPool
-        VkCommandPoolCreateInfo poolInfo{
-            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-            .queueFamilyIndex = i,
-        };
-        VK_ASSERT_SUCCESSED(vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPools_[i]))
-    }
+    graphicsCommandQueue_ = std::make_unique<CommandQueue>(
+        device_, queueFamilyIndices_.graphics, queueFamilyProperties[queueFamilyIndices_.graphics].queueCount);
+
     return true;
 }
 
 void Graphics::Cleanup()
 {
     swapchain_.reset();
-    for (auto commandPool : commandPools_) 
-        vkDestroyCommandPool(device_, commandPool, nullptr);
-    commandPools_.clear();
+    graphicsCommandQueue_.reset();
     vkDestroyDevice(device_, nullptr);
     device_ = VK_NULL_HANDLE;
     if (enableValidationLayer_) {
@@ -158,6 +148,28 @@ bool Graphics::IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice)
     if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
         return true;
     return false;
+}
+
+bool Graphics::GetSupportPresentQueue(VkSurfaceKHR surface, VkQueue &queue)
+{
+    VkBool32 supported = VK_FALSE;
+    // if graphics queue support present, use it
+    vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice_, queueFamilyIndices_.graphics, surface, &supported);
+    // else detect support queue
+    if (supported == VK_FALSE) {
+        for (size_t i = 0; i < queueFamilyIndices_.queueFamilyProperties.size(); i++) {
+            vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice_, i, surface, &supported);
+            if (supported == VK_TRUE) {
+                if (i != queueFamilyIndices_.graphics) {
+                    vkGetDeviceQueue(device_, i, 0, &queue);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+    queue = graphicsCommandQueue_->queue();
+    return true;
 }
 
 // helpful function
@@ -211,25 +223,6 @@ void Graphics::QueueFamilyIndices::DetectQueueFamilyIndices(std::vector<VkQueueF
     transfer = GetQueueFamilyIndex(queueFamilyProperties, VK_QUEUE_TRANSFER_BIT);
 }
 
-bool Graphics::QueueFamilyIndices::DetectPresentQueueFamilyIndices(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface)
-{
-    VkBool32 supported = VK_FALSE;
-    // if graphics queue support present, use it
-    vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, graphics, surface, &supported);
-    // else detect support queue
-    if (supported == VK_FALSE) {
-        for (size_t i = 0; i < queueFamilyProperties.size(); i++) {
-            vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &supported);
-            if (supported == VK_TRUE) {
-                present = i;
-                return supported;
-            }
-        }
-        return supported;
-    }
-    present = graphics;
-    return supported;
-}
 uint32_t Graphics::QueueFamilyIndices::GetQueueFamilyIndex(
     std::vector<VkQueueFamilyProperties> &queueFamilyProperties, VkQueueFlagBits queueFlags)
 {

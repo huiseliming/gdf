@@ -47,13 +47,6 @@ public:
 
     void DrawFrame();
 
-    VkResult AcquireNextImage(uint32_t &imageIndex);
-
-    void FrameRendering();
-
-    VkResult Present(uint32_t &imageIndex, std::vector<VkSemaphore> waitSemaphores);
-    VkResult Present(uint32_t &imageIndex, uint32_t waitSemaphoreCount, VkSemaphore *waitSemaphore);
-
     VkSemaphore GetCurrentFrameRenderFinishedSemaphore();
     VkSemaphore GetCurrentFrameImageAvailableSemaphore();
     VkFence GetCurrentFrameInFlightFence();
@@ -109,6 +102,7 @@ private:
     // state mark
     uint32_t SwapchainImageCount_;
     uint32_t currentFrame_{0};
+    VkQueue presentQueue_;
     bool needRecreate_;
 };
 

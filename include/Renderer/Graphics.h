@@ -4,6 +4,7 @@
 #include "VulkanApi.h"
 #include <vector>
 #include <optional>
+#include "Renderer/CommandQueue.h"
 
 #ifdef GDF_DEBUG
 #define GDF_ENABLE_VALIDATION_LAYER true
@@ -31,6 +32,7 @@ public:
     bool IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice);
 
     //helpful function
+    bool GetSupportPresentQueue(VkSurfaceKHR surface, VkQueue &queue);
     VkShaderModule CreateShaderModule(const std::vector<char> &code);
 
     void DeviceWaitIdle();
@@ -50,34 +52,14 @@ public:
         return device_;
     }
 
-    VkQueue graphicsQueue()
+    CommandQueue& graphicsCommandQueue()
     {
-        return queueFamilies_[queueFamilyIndices_.graphics].queue[0];
-    }
-
-    VkQueue computeQueue()
-    {
-        return queueFamilies_[queueFamilyIndices_.compute].queue[0];
-    }
-
-    VkQueue transferQueue()
-    {
-        return queueFamilies_[queueFamilyIndices_.transfer].queue[0];
-    }
-
-    VkQueue presentQueue()
-    {
-        return queueFamilies_[queueFamilyIndices_.present].queue[0];
+        return *graphicsCommandQueue_;
     }
 
     Swapchain &swapchain()
     {
         return *swapchain_;
-    }
-
-    VkCommandPool commandPool()
-    {
-        return commandPools_[queueFamilyIndices_.graphics];
     }
 
     static VkBool32 DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
@@ -92,21 +74,21 @@ public:
 
 private:
 
-    struct QueueFamily {
-        uint32_t familyIndex;
-        std::vector<VkQueue> queue;
+    //struct QueueFamily {
+    //    uint32_t familyIndex;
+    //    std::vector<VkQueue> queue;
 
-        friend class Graphics;
+    //    friend class Graphics;
 
-    private:
-        void Attach(VkDevice device, uint32_t queueFamilyIndex, uint32_t queueNum)
-        {
-            this->familyIndex = queueFamilyIndex;
-            queue.resize(queueNum);
-            for (uint32_t i = 0; i < queueNum; i++)
-                vkGetDeviceQueue(device, queueFamilyIndex, i, &queue[i]);
-        }
-    };
+    //private:
+    //    void Attach(VkDevice device, uint32_t queueFamilyIndex, uint32_t queueNum)
+    //    {
+    //        this->familyIndex = queueFamilyIndex;
+    //        queue.resize(queueNum);
+    //        for (uint32_t i = 0; i < queueNum; i++)
+    //            vkGetDeviceQueue(device, queueFamilyIndex, i, &queue[i]);
+    //    }
+    //};
 
     struct QueueFamilyIndices {
         uint32_t graphics;
@@ -132,7 +114,6 @@ private:
         }
 
         void DetectQueueFamilyIndices(std::vector<VkQueueFamilyProperties> &queueFamilyProperties);
-        bool DetectPresentQueueFamilyIndices(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
         uint32_t GetQueueFamilyIndex(std::vector<VkQueueFamilyProperties> &queueFamilyProperties, VkQueueFlagBits queueFlags);
     } queueFamilyIndices_;
 
@@ -142,9 +123,9 @@ private:
     VkInstance instance_ = VK_NULL_HANDLE;
     VkDevice device_ = VK_NULL_HANDLE;
     std::unique_ptr<Swapchain> swapchain_;
+    //std::vector<QueueFamily> queueFamilies_;
 
-    std::vector <VkCommandPool> commandPools_;
-    std::vector<QueueFamily> queueFamilies_;
+    std::unique_ptr<CommandQueue> graphicsCommandQueue_;
 
     VkDebugReportCallbackEXT fpDebugReportCallbackEXT_ = VK_NULL_HANDLE;
     bool enableValidationLayer_;
