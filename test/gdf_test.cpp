@@ -12,19 +12,19 @@ GDF_DEFINE_LOG_CATEGORY(TestCategory)
 
 TEST_CASE("LogCategory - Define", "[gdf][LogCategory]")
 {
-    auto &testCategory = TestCategory::instance();
-    REQUIRE(testCategory.displayName_ == "TestCategory");
-    REQUIRE(testCategory.runtimeLevel_ == LogLevel::All);
-    testCategory.runtimeLevel_ = LogLevel::Error;
-    REQUIRE(testCategory.runtimeLevel_ == LogLevel::Error);
+    auto testCategory = TestCategory::instance();
+    REQUIRE(testCategory->displayName_ == "TestCategory");
+    REQUIRE(testCategory->runtimeLevel_ == LogLevel::All);
+    testCategory->runtimeLevel_ = LogLevel::Error;
+    REQUIRE(testCategory->runtimeLevel_ == LogLevel::Error);
 }
 
 class TestSink : public LogSink
 {
 public:
-    virtual void Log(const LogCategory &category, const LogLevel level, const std::string_view message)
+    virtual void Log(const LogCategory *category, const LogLevel level, const std::string_view message)
     {
-        lastLog_ = fmt::format("[{:s}][{:s}] {:s}", category.displayName_, std::to_string(level), message);
+        lastLog_ = fmt::format("[{:s}][{:s}] {:s}", category->displayName_, std::to_string(level), message);
     }
     void Exception()
     {
@@ -124,7 +124,7 @@ TEST_CASE("LogCategory - Runtime log levels", "[gdf][LogCategory]")
     gdf::Logger::instance().RegisterSink(&testSink);
     SECTION("Verbose")
     {
-        RuntimeCategory::instance().runtimeLevel_ = LogLevel::Verbose;
+        RuntimeCategory::instance()->runtimeLevel_ = LogLevel::Verbose;
         GDF_LOG(RuntimeCategory, LogLevel::Fatal, "Fatal");
         GDF_LOG(RuntimeCategory, LogLevel::Error, "Error");
         GDF_LOG(RuntimeCategory, LogLevel::Warning, "Warning");
@@ -134,7 +134,7 @@ TEST_CASE("LogCategory - Runtime log levels", "[gdf][LogCategory]")
     }
     SECTION("Info")
     {
-        RuntimeCategory::instance().runtimeLevel_ = LogLevel::Info;
+        RuntimeCategory::instance()->runtimeLevel_ = LogLevel::Info;
         GDF_LOG(RuntimeCategory, LogLevel::Fatal, "Fatal");
         GDF_LOG(RuntimeCategory, LogLevel::Error, "Error");
         GDF_LOG(RuntimeCategory, LogLevel::Warning, "Warning");
@@ -144,7 +144,7 @@ TEST_CASE("LogCategory - Runtime log levels", "[gdf][LogCategory]")
     }
     SECTION("Warning")
     {
-        RuntimeCategory::instance().runtimeLevel_ = LogLevel::Warning;
+        RuntimeCategory::instance()->runtimeLevel_ = LogLevel::Warning;
         GDF_LOG(RuntimeCategory, LogLevel::Fatal, "Fatal");
         GDF_LOG(RuntimeCategory, LogLevel::Error, "Error");
         GDF_LOG(RuntimeCategory, LogLevel::Warning, "Warning");
@@ -154,7 +154,7 @@ TEST_CASE("LogCategory - Runtime log levels", "[gdf][LogCategory]")
     }
     SECTION("Error")
     {
-        RuntimeCategory::instance().runtimeLevel_ = LogLevel::Error;
+        RuntimeCategory::instance()->runtimeLevel_ = LogLevel::Error;
         GDF_LOG(RuntimeCategory, LogLevel::Fatal, "Fatal");
         GDF_LOG(RuntimeCategory, LogLevel::Error, "Error");
         GDF_LOG(RuntimeCategory, LogLevel::Warning, "Warning");
@@ -164,7 +164,7 @@ TEST_CASE("LogCategory - Runtime log levels", "[gdf][LogCategory]")
     }
     SECTION("Fatal")
     {
-        RuntimeCategory::instance().runtimeLevel_ = LogLevel::Fatal;
+        RuntimeCategory::instance()->runtimeLevel_ = LogLevel::Fatal;
         GDF_LOG(RuntimeCategory, LogLevel::Fatal, "Fatal");
         GDF_LOG(RuntimeCategory, LogLevel::Error, "Error");
         GDF_LOG(RuntimeCategory, LogLevel::Warning, "Warning");

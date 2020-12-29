@@ -2,6 +2,8 @@
 #include "Base/NonCopyable.h"
 #include "VulkanApi.h"
 #include <vector>
+#include "Renderer/RenderPass.h"
+
 namespace gdf
 {
 
@@ -89,7 +91,7 @@ private:
     VkSurfaceKHR surface_{VK_NULL_HANDLE};
     VkSwapchainKHR swapchain_{VK_NULL_HANDLE};
     std::vector<VkImageView> imageViews_;
-    VkRenderPass renderPass_;
+    RenderPass renderPass_;
     VkPipeline graphicsPipeline_;
     VkPipelineLayout pipelineLayout_;
     std::vector<VkFramebuffer> framebuffers_;

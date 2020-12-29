@@ -2,39 +2,49 @@
 #include "Renderer/CommandQueue.h"
 namespace gdf
 {
-CommandBuffer::CommandBuffer(VkDevice device,
-                             CommandQueue &commandQueue, 
+CommandContext::CommandContext(VkDevice device,
+                             CommandQueue *commandQueue, 
                              VkCommandBuffer commandBuffer)
-    : VulkanObject(device), commandQueue_(commandQueue), commandBuffer_(commandBuffer)
+    : VulkanObject(device), pCommandQueue_(commandQueue), commandBuffer_(commandBuffer)
 {
 }
 
-CommandBuffer::~CommandBuffer()
+CommandContext::CommandContext(CommandContext &&rhs) : VulkanObject(std::forward<CommandContext>(rhs))
 {
-    vkFreeCommandBuffers(device_, commandQueue_.commandPool(),1,&commandBuffer_);
+
 }
 
-void CommandBuffer::AddWaitSemaphore(VkSemaphore semaphore)
+CommandContext& CommandContext::operator = (CommandContext && rhs)
+{
+    return *this;
+}
+
+CommandContext::~CommandContext()
+{
+    vkFreeCommandBuffers(device_, pCommandQueue_->commandPool(),1,&commandBuffer_);
+}
+
+void CommandContext::AddWaitSemaphore(VkSemaphore semaphore)
 {
     waitSemaphores_.push_back(semaphore);
 }
 
-void CommandBuffer::AddSignalSemaphore(VkSemaphore semaphore)
+void CommandContext::AddSignalSemaphore(VkSemaphore semaphore)
 {
     signalSemaphores_.push_back(semaphore);
 }
 
-void CommandBuffer::SetWaitDstStageMask(VkPipelineStageFlags pepilineStage)
+void CommandContext::SetWaitDstStageMask(VkPipelineStageFlags pepilineStage)
 {
     waitDstStageMask_ = pepilineStage;
 }
 
-void CommandBuffer::SetFence(VkFence fence)
+void CommandContext::SetFence(VkFence fence)
 {
     fence_ = fence;
 }
 
-void CommandBuffer::Submit()
+void CommandContext::Submit()
 {
     VkSubmitInfo submitInfo{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -47,7 +57,7 @@ void CommandBuffer::Submit()
         .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores_.size()),
         .pSignalSemaphores = signalSemaphores_.data(),
     };
-    vkQueueSubmit(commandQueue_.queue(), 1, &submitInfo, fence_);
+    vkQueueSubmit(pCommandQueue_->queue(), 1, &submitInfo, fence_);
 }
 
 } // namespace gdf

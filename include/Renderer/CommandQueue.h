@@ -7,7 +7,7 @@
 namespace gdf
 {
 
-class CommandBuffer;
+class CommandContext;
 
 class GDF_EXPORT CommandQueue : public VulkanObject
 {
@@ -18,7 +18,7 @@ public:
     ~CommandQueue();
 
 
-    std::unique_ptr<CommandBuffer> RequestCommandBuffer(uint32_t commandBufferCount, VkCommandBufferLevel commandBufferLevel)
+    std::unique_ptr<CommandContext> CommandBegin(uint32_t commandBufferCount, VkCommandBufferLevel commandBufferLevel)
     {
         VkCommandBufferAllocateInfo commandBufferAI{};
         commandBufferAI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -27,8 +27,10 @@ public:
         commandBufferAI.commandBufferCount = commandBufferCount;
         VkCommandBuffer commandbuffer;
         VK_ASSERT_SUCCESSED(vkAllocateCommandBuffers(device_, &commandBufferAI, &commandbuffer));
-        return std::make_unique<CommandBuffer>(device_, *this, commandbuffer);
+        return std::make_unique<CommandContext>(device_, this, commandbuffer);
     }
+
+
 
     bool WaitFence(VkFence &fence, std::uint64_t timeout);
     void WaitIdle() ;

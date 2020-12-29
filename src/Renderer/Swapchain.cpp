@@ -1,28 +1,31 @@
 #include "Renderer/Swapchain.h"
+#include "Base/File.h"
 #include "Base/Window.h"
 #include "Renderer/Graphics.h"
 #include <cmath>
-#include "Base/File.h"
 
 namespace gdf
 {
 
-Swapchain::Swapchain(Window &wnd, Graphics &gfx, VkSurfaceFormatKHR surfaceFormat, VkPresentModeKHR presentMode, uint32_t minImageCount)
-    : wnd_(wnd), gfx_(gfx), needRecreate_(false)
+Swapchain::Swapchain(
+    Window &wnd, Graphics &gfx, VkSurfaceFormatKHR surfaceFormat, VkPresentModeKHR presentMode, uint32_t minImageCount)
+    : wnd_(wnd), gfx_(gfx), needRecreate_(false), renderPass_(gfx_.device())
 {
     VK_ASSERT_SUCCESSED(wnd_.GetVkSurfaceKHR(gfx_.instance(), &surface_));
-    if (!gfx.GetSupportPresentQueue(surface_, presentQueue_)) 
+    if (!gfx.GetSupportPresentQueue(surface_, presentQueue_))
         THROW_EXCEPT("Cant find present queue family indices!");
 
     uint32_t surfaceFormatCount;
     VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfaceFormatsKHR(gfx_.physicalDevice(), surface_, &surfaceFormatCount, nullptr));
     supportedSurfaceFormats_.resize(surfaceFormatCount);
-    VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfaceFormatsKHR(gfx_.physicalDevice(), surface_, &surfaceFormatCount, supportedSurfaceFormats_.data()));
+    VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfaceFormatsKHR(
+        gfx_.physicalDevice(), surface_, &surfaceFormatCount, supportedSurfaceFormats_.data()));
     surfaceFormat_ = supportedSurfaceFormats_[0];
     uint32_t presentModeCount;
     VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfacePresentModesKHR(gfx_.physicalDevice(), surface_, &presentModeCount, nullptr));
     supportedPresentModes_.resize(presentModeCount);
-    VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfacePresentModesKHR(gfx_.physicalDevice(), surface_, &presentModeCount, supportedPresentModes_.data()));
+    VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfacePresentModesKHR(
+        gfx_.physicalDevice(), surface_, &presentModeCount, supportedPresentModes_.data()));
     presentMode_ = supportedPresentModes_[0];
     minImageCount_ = 3;
     SetSurfaceFormat(surfaceFormat);
@@ -53,15 +56,13 @@ Swapchain::~Swapchain()
     }
 }
 
-void Swapchain::CreateSwapchain(VkSurfaceFormatKHR surfaceFormat,
-                                VkPresentModeKHR presentMode,
-                                uint32_t minImageCount)
+void Swapchain::CreateSwapchain(VkSurfaceFormatKHR surfaceFormat, VkPresentModeKHR presentMode, uint32_t minImageCount)
 {
-    if (surfaceFormat.format != UINT32_MAX) 
+    if (surfaceFormat.format != UINT32_MAX)
         SetSurfaceFormat(surfaceFormat_);
-    if (presentMode != UINT32_MAX) 
+    if (presentMode != UINT32_MAX)
         SetPresentMode(presentMode_);
-    if (minImageCount != UINT32_MAX) 
+    if (minImageCount != UINT32_MAX)
         SetMinImageCount(3U);
 
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
@@ -69,11 +70,10 @@ void Swapchain::CreateSwapchain(VkSurfaceFormatKHR surfaceFormat,
 
     VkSwapchainKHR newSwapchain{VK_NULL_HANDLE};
     if (surfaceCapabilities.currentExtent.width == UINT32_MAX) {
-        extent_ =
-            VkExtent2D{std::min(std::max(static_cast<uint32_t>(wnd_.width()), surfaceCapabilities.minImageExtent.width),
-                                surfaceCapabilities.maxImageExtent.width),
-                       std::min(std::max(static_cast<uint32_t>(wnd_.height()), surfaceCapabilities.minImageExtent.height),
-                                surfaceCapabilities.maxImageExtent.height)};
+        extent_ = VkExtent2D{std::min(std::max(static_cast<uint32_t>(wnd_.width()), surfaceCapabilities.minImageExtent.width),
+                                      surfaceCapabilities.maxImageExtent.width),
+                             std::min(std::max(static_cast<uint32_t>(wnd_.height()), surfaceCapabilities.minImageExtent.height),
+                                      surfaceCapabilities.maxImageExtent.height)};
     } else {
         extent_ = surfaceCapabilities.currentExtent;
     }
@@ -125,20 +125,19 @@ void Swapchain::CreateImageViews()
                                       .viewType = VK_IMAGE_VIEW_TYPE_2D,
                                       .format = surfaceFormat_.format,
                                       .components =
-                                        {
-                                            VK_COMPONENT_SWIZZLE_R,
-                                            VK_COMPONENT_SWIZZLE_G,
-                                            VK_COMPONENT_SWIZZLE_B,
-                                            VK_COMPONENT_SWIZZLE_A,
-                                        },
-                                      .subresourceRange = 
-                                        {
-                                            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                                            .baseMipLevel = 0,
-                                            .levelCount = 1,
-                                            .baseArrayLayer = 0,
-                                            .layerCount = 1,
-                                        }};
+                                          {
+                                              VK_COMPONENT_SWIZZLE_R,
+                                              VK_COMPONENT_SWIZZLE_G,
+                                              VK_COMPONENT_SWIZZLE_B,
+                                              VK_COMPONENT_SWIZZLE_A,
+                                          },
+                                      .subresourceRange = {
+                                          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                          .baseMipLevel = 0,
+                                          .levelCount = 1,
+                                          .baseArrayLayer = 0,
+                                          .layerCount = 1,
+                                      }};
     assert(imageViews_.empty());
     imageViews_.resize(SwapchainImageCount_, VK_NULL_HANDLE);
     for (size_t i = 0; i < SwapchainImageCount_; i++) {
@@ -157,48 +156,36 @@ void Swapchain::DestroyImageViews()
 
 void Swapchain::CreateRenderPass()
 {
-    VkAttachmentDescription colorAttachment{};
-    colorAttachment.format = surfaceFormat_.format;
-    colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
+    renderPass_.AddAttachmentDescription(VkAttachmentDescription{.format = surfaceFormat_.format,
+                                                                 .samples = VK_SAMPLE_COUNT_1_BIT,
+                                                                 .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                                 .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                                                                 .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                                                                 .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                                                                 .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                                                                 .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR});
     VkAttachmentReference colorAttachmentRef{};
     colorAttachmentRef.attachment = 0;
     colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-    VkSubpassDescription subpass{};
-    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.colorAttachmentCount = 1;
-    subpass.pColorAttachments = &colorAttachmentRef;
-
-    VkSubpassDependency dependency{};
-    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependency.dstSubpass = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.srcAccessMask = 0;
-    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-    VkRenderPassCreateInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount = 1;
-    renderPassInfo.pAttachments = &colorAttachment;
-    renderPassInfo.subpassCount = 1;
-    renderPassInfo.pSubpasses = &subpass;
-    renderPassInfo.dependencyCount = 1;
-    renderPassInfo.pDependencies = &dependency;
-
-    VK_ASSERT_SUCCESSED(vkCreateRenderPass(gfx_.device(), &renderPassInfo, nullptr, &renderPass_))
+    renderPass_.AddSubpassDescription(VkSubpassDescription{
+        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &colorAttachmentRef,
+    });
+    renderPass_.AddSubpassDependency(VkSubpassDependency{
+        .srcSubpass = VK_SUBPASS_EXTERNAL,
+        .dstSubpass = 0,
+        .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        .srcAccessMask = 0,
+        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+    });
+    renderPass_.Get();
 }
 
 void Swapchain::DestroyRenderPass()
 {
-    vkDestroyRenderPass(gfx_.device(), renderPass_, nullptr);
+    vkDestroyRenderPass(gfx_.device(), renderPass_.Get(), nullptr);
 }
 void Swapchain::CreateGraphicsPipeline()
 {
@@ -302,7 +289,7 @@ void Swapchain::CreateGraphicsPipeline()
     pipelineInfo.pMultisampleState = &multisampling;
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.layout = pipelineLayout_;
-    pipelineInfo.renderPass = renderPass_;
+    pipelineInfo.renderPass = renderPass_.Get();
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
@@ -327,7 +314,7 @@ void Swapchain::CreateFramebuffer()
         VkImageView attachments[] = {imageViews_[i]};
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = renderPass_;
+        framebufferInfo.renderPass = renderPass_.Get();
         framebufferInfo.attachmentCount = 1;
         framebufferInfo.pAttachments = attachments;
         framebufferInfo.width = extent_.width;
@@ -339,7 +326,7 @@ void Swapchain::CreateFramebuffer()
 
 void Swapchain::DestroyFramebuffer()
 {
-    for (auto framebuffer : framebuffers_) 
+    for (auto framebuffer : framebuffers_)
         vkDestroyFramebuffer(gfx_.device(), framebuffer, nullptr);
     framebuffers_.clear();
 }
@@ -368,7 +355,7 @@ void Swapchain::CreateCommandBuffers()
 
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = renderPass_;
+        renderPassInfo.renderPass = renderPass_.Get();
         renderPassInfo.framebuffer = framebuffers_[i];
         renderPassInfo.renderArea.offset = {0, 0};
         renderPassInfo.renderArea.extent = extent_;
@@ -431,12 +418,12 @@ void Swapchain::DestroySyncObjects()
     inFlightFences_.clear();
 }
 
- void Swapchain::RequestRecreate()
+void Swapchain::RequestRecreate()
 {
-     needRecreate_ = true;
- }
+    needRecreate_ = true;
+}
 
- bool Swapchain::needRecreate()
+bool Swapchain::needRecreate()
 {
     return needRecreate_;
 }
@@ -467,7 +454,8 @@ void Swapchain::DrawFrame()
     vkWaitForFences(gfx_.device(), 1, &inFlightFences_[currentFrame_], VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
-    auto result = vkAcquireNextImageKHR(gfx_.device(), swapchain_, UINT64_MAX, imageAvailableSemaphores_[currentFrame_], VK_NULL_HANDLE, &imageIndex);
+    auto result = vkAcquireNextImageKHR(
+        gfx_.device(), swapchain_, UINT64_MAX, imageAvailableSemaphores_[currentFrame_], VK_NULL_HANDLE, &imageIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         Recreate();
         return;
@@ -499,8 +487,7 @@ void Swapchain::DrawFrame()
 
     vkResetFences(gfx_.device(), 1, &inFlightFences_[currentFrame_]);
 
-    VK_ASSERT_SUCCESSED(
-        vkQueueSubmit(gfx_.graphicsCommandQueue().queue(), 1, &submitInfo, inFlightFences_[currentFrame_]));
+    VK_ASSERT_SUCCESSED(vkQueueSubmit(gfx_.graphicsCommandQueue().queue(), 1, &submitInfo, inFlightFences_[currentFrame_]));
 
     // presentation
     VkSwapchainKHR swapchains[] = {swapchain_};
@@ -518,7 +505,6 @@ void Swapchain::DrawFrame()
     }
     currentFrame_ = (currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;
 }
-
 
 VkSemaphore Swapchain::GetCurrentFrameRenderFinishedSemaphore()
 {
@@ -574,7 +560,7 @@ bool Swapchain::SetPresentMode(VkPresentModeKHR presentMode)
     return false;
 }
 
-bool Swapchain::SetMinImageCount(uint32_t  minImageCount)
+bool Swapchain::SetMinImageCount(uint32_t minImageCount)
 {
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gfx_.physicalDevice(), surface_, &surfaceCapabilities));

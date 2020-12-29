@@ -18,7 +18,7 @@ public:
     bool RunCommand(std::string_view commandCall);
 
     // Interface class LogSink implement
-    virtual void Log(const LogCategory &category, const LogLevel level, const std::string_view message);
+    virtual void Log(const LogCategory *category, const LogLevel level, const std::string_view message);
     virtual void Exception();
 
     size_t maxEntries()
@@ -32,7 +32,7 @@ public:
 
 private:
     struct Entry {
-        LogCategory &category;
+        const LogCategory *category;
         LogLevel level;
         std::string_view message;
     };

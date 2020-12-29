@@ -7,7 +7,7 @@ namespace gdf
 class GDF_EXPORT CerrSink : public LogSink
 {
 public:
-    virtual void Log(const LogCategory &category, const LogLevel level, const std::string_view message);
+    virtual void Log(const LogCategory *category, const LogLevel level, const std::string_view message);
 
     virtual void Exception();
 };
@@ -15,7 +15,7 @@ public:
 class GDF_EXPORT CoutSink : public LogSink
 {
 public:
-    virtual void Log(const LogCategory &category, const LogLevel level, const std::string_view message);
+    virtual void Log(const LogCategory *category, const LogLevel level, const std::string_view message);
 
     virtual void Exception();
 };

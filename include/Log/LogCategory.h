@@ -24,13 +24,13 @@ protected:
     public:                                                                                                                    \
         static constexpr LogLevel compilerLevel = (COMPILER_LEVEL);                                                            \
         CATEGORY_NAME(std::string_view displayName = #CATEGORY_NAME, LogLevel runtimeLevel = (RUNTIME_DEFAULT_LEVLE));         \
-        static CATEGORY_NAME &instance();                                                                                      \
+        static CATEGORY_NAME *instance();                                                                                      \
     };
 #define GDF_DEFINE_EXPORT_LOG_CATEGORY(CATEGORY_NAME)                                                                          \
-    CATEGORY_NAME &CATEGORY_NAME::instance()                                                                                   \
+    CATEGORY_NAME *CATEGORY_NAME::instance()                                                                                   \
     {                                                                                                                          \
         static CATEGORY_NAME logCategory;                                                                                      \
-        return logCategory;                                                                                                    \
+        return &logCategory;                                                                                                    \
     }                                                                                                                          \
     CATEGORY_NAME::CATEGORY_NAME(std::string_view displayName, LogLevel runtimeLevel) : LogCategory(displayName, runtimeLevel) \
     {                                                                                                                          \
@@ -42,7 +42,7 @@ protected:
     public:                                                                                                                    \
         static constexpr LogLevel compilerLevel = (COMPILER_LEVEL);                                                            \
         CATEGORY_NAME(std::string_view displayName = #CATEGORY_NAME, LogLevel runtimeLevel = (RUNTIME_DEFAULT_LEVLE));         \
-        static CATEGORY_NAME &instance();                                                                                      \
+        static CATEGORY_NAME *instance();                                                                                      \
     };
 #define GDF_DEFINE_LOG_CATEGORY(CATEGORY_NAME) GDF_DEFINE_EXPORT_LOG_CATEGORY(CATEGORY_NAME)
 

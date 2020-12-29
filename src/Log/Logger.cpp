@@ -24,7 +24,7 @@ std::string to_string(gdf::LogLevel level)
 namespace gdf
 {
 
-void Logger::Log(const LogCategory &category, const LogLevel level, const std::string_view message)
+void Logger::Log(const LogCategory *category, const LogLevel level, const std::string_view message)
 {
     std::scoped_lock<std::mutex> lock{sync};
     for (auto sink : sinks) {

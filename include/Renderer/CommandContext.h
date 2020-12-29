@@ -13,23 +13,25 @@ enum class CommandBufferState {
     kPending,
 };
 
-class CommandBuffer : public VulkanObject
+class CommandContext : public VulkanObject
 {
 public:
-    CommandBuffer(VkDevice device, CommandQueue &commandQueue, VkCommandBuffer commandBuffer);
-    CommandBuffer(CommandBuffer &&rhs) = delete;
-    CommandBuffer &operator=(CommandBuffer &&rhs) = delete;
-    ~CommandBuffer();
+    CommandContext(VkDevice device, CommandQueue *commandQueue, VkCommandBuffer commandBuffer);
+    CommandContext(CommandContext &&rhs);
+    CommandContext &operator=(CommandContext &&rhs);
+    ~CommandContext();
+
+
+
 
     void AddWaitSemaphore(VkSemaphore semaphore);
     void AddSignalSemaphore(VkSemaphore semaphore);
     void SetWaitDstStageMask(VkPipelineStageFlags pepilineStage);
     void SetFence(VkFence fence);
-
     void Submit();
 
 private:
-    CommandQueue &commandQueue_;
+    CommandQueue *pCommandQueue_;
     VkCommandBuffer commandBuffer_;
 
     //submit data
