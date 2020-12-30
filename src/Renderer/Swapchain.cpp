@@ -125,19 +125,20 @@ void Swapchain::CreateImageViews()
                                       .viewType = VK_IMAGE_VIEW_TYPE_2D,
                                       .format = surfaceFormat_.format,
                                       .components =
-                                          {
-                                              VK_COMPONENT_SWIZZLE_R,
-                                              VK_COMPONENT_SWIZZLE_G,
-                                              VK_COMPONENT_SWIZZLE_B,
-                                              VK_COMPONENT_SWIZZLE_A,
-                                          },
-                                      .subresourceRange = {
-                                          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                                          .baseMipLevel = 0,
-                                          .levelCount = 1,
-                                          .baseArrayLayer = 0,
-                                          .layerCount = 1,
-                                      }};
+                                        {
+                                            VK_COMPONENT_SWIZZLE_R,
+                                            VK_COMPONENT_SWIZZLE_G,
+                                            VK_COMPONENT_SWIZZLE_B,
+                                            VK_COMPONENT_SWIZZLE_A,
+                                        },
+                                      .subresourceRange = 
+                                        {
+                                              .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                              .baseMipLevel = 0,
+                                              .levelCount = 1,
+                                              .baseArrayLayer = 0,
+                                              .layerCount = 1,
+                                        }};
     assert(imageViews_.empty());
     imageViews_.resize(SwapchainImageCount_, VK_NULL_HANDLE);
     for (size_t i = 0; i < SwapchainImageCount_; i++) {
@@ -166,8 +167,8 @@ void Swapchain::CreateRenderPass()
                                                                  .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR});
     renderPass_.AddSubpassDescriptionHelper(SubpassDescriptionHelper{
         .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .colorAttachments = {{0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}},
-    });
+        .colorAttachments = {{0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}}
+        });
     renderPass_.AddSubpassDependency(VkSubpassDependency{
         .srcSubpass = VK_SUBPASS_EXTERNAL,
         .dstSubpass = 0,
@@ -176,13 +177,13 @@ void Swapchain::CreateRenderPass()
         .srcAccessMask = 0,
         .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
     });
-    renderPass_.Get();
 }
 
 void Swapchain::DestroyRenderPass()
 {
-    vkDestroyRenderPass(gfx_.device(), renderPass_.Get(), nullptr);
+    renderPass_.Reset();
 }
+
 void Swapchain::CreateGraphicsPipeline()
 {
     auto vertShaderCode = File::ReadBytes("../shaders/test.vert.spv");

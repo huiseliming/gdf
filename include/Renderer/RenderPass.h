@@ -6,9 +6,8 @@
 namespace gdf
 {
 
-struct SubpassDescriptionHelper //: public NonCopyable
+struct SubpassDescriptionHelper
 {
-
     VkSubpassDescriptionFlags flags{};
     VkPipelineBindPoint pipelineBindPoint{};
     std::vector<VkAttachmentReference> inputAttachments;
@@ -16,35 +15,6 @@ struct SubpassDescriptionHelper //: public NonCopyable
     VkAttachmentReference resolveAttachments{UINT32_MAX, VK_IMAGE_LAYOUT_UNDEFINED};
     VkAttachmentReference depthStencilAttachment{UINT32_MAX, VK_IMAGE_LAYOUT_UNDEFINED};
     std::vector<uint32_t> preserveAttachments;
-
-    //SubpassDescriptionHelper(SubpassDescriptionHelper &&rhs)
-    //{
-    //    flags = rhs.flags;
-    //    rhs.flags = {};
-    //    pipelineBindPoint = rhs.pipelineBindPoint;
-    //    rhs.pipelineBindPoint = {};
-    //    inputAttachments = std::move(rhs.inputAttachments);
-    //    colorAttachments = std::move(rhs.colorAttachments);
-    //    resolveAttachments = rhs.resolveAttachments;
-    //    rhs.resolveAttachments = {UINT32_MAX, VK_IMAGE_LAYOUT_UNDEFINED};
-    //    depthStencilAttachment = rhs.depthStencilAttachment;
-    //    rhs.depthStencilAttachment = {UINT32_MAX, VK_IMAGE_LAYOUT_UNDEFINED};
-    //}
-    //SubpassDescriptionHelper &operator=(SubpassDescriptionHelper &&rhs)
-    //{
-    //    if (std::addressof(rhs) != this)
-    //        return *this;
-    //    flags = rhs.flags;
-    //    rhs.flags = {};
-    //    pipelineBindPoint = rhs.pipelineBindPoint;
-    //    rhs.pipelineBindPoint = {};
-    //    inputAttachments = std::move(rhs.inputAttachments);
-    //    colorAttachments = std::move(rhs.colorAttachments);
-    //    resolveAttachments = rhs.resolveAttachments;
-    //    rhs.resolveAttachments = {UINT32_MAX, VK_IMAGE_LAYOUT_UNDEFINED};
-    //    depthStencilAttachment = rhs.depthStencilAttachment;
-    //    rhs.depthStencilAttachment = {UINT32_MAX, VK_IMAGE_LAYOUT_UNDEFINED};
-    //}
 
     VkSubpassDescription Get()
     {
@@ -79,7 +49,6 @@ public:
         dependencies = std::move(rhs.dependencies);
         renderPass_ = rhs.renderPass_; 
         rhs.renderPass_ = VK_NULL_HANDLE;
-
     }
     RenderPass& operator=(RenderPass &&rhs)
     {
@@ -110,16 +79,45 @@ public:
     {
         attachments.push_back(attachmentDescription);
     }
-    void AddSubpassDescriptionHelper(SubpassDescriptionHelper&& subpassDescriptionHelper)
+
+    void AddSubpassDescriptionHelper(SubpassDescriptionHelper subpassDescriptionHelper)
     {
-        subpasseDescriptionHelpers.emplace_back(std::forward<SubpassDescriptionHelper>(subpassDescriptionHelper));
+        subpasseDescriptionHelpers.emplace_back(subpassDescriptionHelper);
     }
+
     void AddSubpassDependency(VkSubpassDependency subpassDependency)
     {
         dependencies.push_back(subpassDependency);
     }
 
     void Reset()
+    {
+        flags = {};
+        attachments.clear();
+        subpasseDescriptionHelpers.clear();
+        subpasses.clear();
+        dependencies.clear();
+        Desstroy();
+    }
+
+    void Create()
+    {
+        subpasses.clear();
+        for (auto &subpasseDescriptionHelper : subpasseDescriptionHelpers)
+            subpasses.push_back(subpasseDescriptionHelper.Get());
+        VkRenderPassCreateInfo renderPassCI_{
+            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+            .attachmentCount = static_cast<uint32_t>(attachments.size()),
+            .pAttachments = attachments.data(),
+            .subpassCount = static_cast<uint32_t>(subpasses.size()),
+            .pSubpasses = subpasses.data(),
+            .dependencyCount = static_cast<uint32_t>(dependencies.size()),
+            .pDependencies = dependencies.data(),
+        };
+        VK_ASSERT_SUCCESSED(vkCreateRenderPass(device_, &renderPassCI_, nullptr, &renderPass_));
+    }
+
+    void Desstroy()
     {
         if (renderPass_ != VK_NULL_HANDLE) {
             vkDestroyRenderPass(device_, renderPass_, nullptr);
@@ -130,26 +128,13 @@ public:
     VkRenderPass Get()
     {
         if (renderPass_ == VK_NULL_HANDLE) {
-
-            subpasses.clear();
-            for (auto& subpasseDescriptionHelper : subpasseDescriptionHelpers) 
-                subpasses.push_back(subpasseDescriptionHelper.Get());
-            VkRenderPassCreateInfo renderPassCI_{
-                .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-                .attachmentCount = static_cast<uint32_t>(attachments.size()),
-                .pAttachments = attachments.data(),
-                .subpassCount = static_cast<uint32_t>(subpasses.size()),
-                .pSubpasses = subpasses.data(),
-                .dependencyCount =static_cast<uint32_t>(dependencies.size()),
-                .pDependencies = dependencies.data(),
-            };
-            VK_ASSERT_SUCCESSED(vkCreateRenderPass(device_, &renderPassCI_, nullptr, &renderPass_));
+            Create();
         }
         return renderPass_;
     }
 
 private:
-    VkRenderPassCreateFlags flags;
+    VkRenderPassCreateFlags flags{};
     std::vector<VkAttachmentDescription> attachments;
     std::vector<SubpassDescriptionHelper> subpasseDescriptionHelpers;
     std::vector<VkSubpassDescription> subpasses;
