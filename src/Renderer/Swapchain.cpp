@@ -164,13 +164,9 @@ void Swapchain::CreateRenderPass()
                                                                  .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                                                  .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                                                                  .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR});
-    VkAttachmentReference colorAttachmentRef{};
-    colorAttachmentRef.attachment = 0;
-    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    renderPass_.AddSubpassDescription(VkSubpassDescription{
+    renderPass_.AddSubpassDescriptionHelper(SubpassDescriptionHelper{
         .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &colorAttachmentRef,
+        .colorAttachments = {{0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}},
     });
     renderPass_.AddSubpassDependency(VkSubpassDependency{
         .srcSubpass = VK_SUBPASS_EXTERNAL,

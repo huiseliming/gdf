@@ -6,6 +6,63 @@
 namespace gdf
 {
 
+struct SubpassDescriptionHelper //: public NonCopyable
+{
+
+    VkSubpassDescriptionFlags flags{};
+    VkPipelineBindPoint pipelineBindPoint{};
+    std::vector<VkAttachmentReference> inputAttachments;
+    std::vector<VkAttachmentReference> colorAttachments;
+    VkAttachmentReference resolveAttachments{UINT32_MAX, VK_IMAGE_LAYOUT_UNDEFINED};
+    VkAttachmentReference depthStencilAttachment{UINT32_MAX, VK_IMAGE_LAYOUT_UNDEFINED};
+    std::vector<uint32_t> preserveAttachments;
+
+    //SubpassDescriptionHelper(SubpassDescriptionHelper &&rhs)
+    //{
+    //    flags = rhs.flags;
+    //    rhs.flags = {};
+    //    pipelineBindPoint = rhs.pipelineBindPoint;
+    //    rhs.pipelineBindPoint = {};
+    //    inputAttachments = std::move(rhs.inputAttachments);
+    //    colorAttachments = std::move(rhs.colorAttachments);
+    //    resolveAttachments = rhs.resolveAttachments;
+    //    rhs.resolveAttachments = {UINT32_MAX, VK_IMAGE_LAYOUT_UNDEFINED};
+    //    depthStencilAttachment = rhs.depthStencilAttachment;
+    //    rhs.depthStencilAttachment = {UINT32_MAX, VK_IMAGE_LAYOUT_UNDEFINED};
+    //}
+    //SubpassDescriptionHelper &operator=(SubpassDescriptionHelper &&rhs)
+    //{
+    //    if (std::addressof(rhs) != this)
+    //        return *this;
+    //    flags = rhs.flags;
+    //    rhs.flags = {};
+    //    pipelineBindPoint = rhs.pipelineBindPoint;
+    //    rhs.pipelineBindPoint = {};
+    //    inputAttachments = std::move(rhs.inputAttachments);
+    //    colorAttachments = std::move(rhs.colorAttachments);
+    //    resolveAttachments = rhs.resolveAttachments;
+    //    rhs.resolveAttachments = {UINT32_MAX, VK_IMAGE_LAYOUT_UNDEFINED};
+    //    depthStencilAttachment = rhs.depthStencilAttachment;
+    //    rhs.depthStencilAttachment = {UINT32_MAX, VK_IMAGE_LAYOUT_UNDEFINED};
+    //}
+
+    VkSubpassDescription Get()
+    {
+        return VkSubpassDescription{
+            .flags = flags,
+            .pipelineBindPoint = pipelineBindPoint,
+            .inputAttachmentCount = static_cast<uint32_t>(inputAttachments.size()),
+            .pInputAttachments = inputAttachments.data(),
+            .colorAttachmentCount = static_cast<uint32_t>(colorAttachments.size()),
+            .pColorAttachments = colorAttachments.data(),
+            .pResolveAttachments = (resolveAttachments.attachment != UINT32_MAX ? &resolveAttachments : nullptr),
+            .pDepthStencilAttachment = (depthStencilAttachment.attachment != UINT32_MAX ? &depthStencilAttachment : nullptr),
+            .preserveAttachmentCount = static_cast<uint32_t>(preserveAttachments.size()),
+            .pPreserveAttachments = preserveAttachments.data(),
+        };
+    }
+};
+
 class RenderPass : public VulkanObject
 {
 public:
@@ -53,9 +110,9 @@ public:
     {
         attachments.push_back(attachmentDescription);
     }
-    void AddSubpassDescription(VkSubpassDescription subpassDescription)
+    void AddSubpassDescriptionHelper(SubpassDescriptionHelper&& subpassDescriptionHelper)
     {
-        subpasses.push_back(subpassDescription);
+        subpasseDescriptionHelpers.emplace_back(std::forward<SubpassDescriptionHelper>(subpassDescriptionHelper));
     }
     void AddSubpassDependency(VkSubpassDependency subpassDependency)
     {
@@ -73,6 +130,10 @@ public:
     VkRenderPass Get()
     {
         if (renderPass_ == VK_NULL_HANDLE) {
+
+            subpasses.clear();
+            for (auto& subpasseDescriptionHelper : subpasseDescriptionHelpers) 
+                subpasses.push_back(subpasseDescriptionHelper.Get());
             VkRenderPassCreateInfo renderPassCI_{
                 .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
                 .attachmentCount = static_cast<uint32_t>(attachments.size()),
@@ -88,14 +149,9 @@ public:
     }
 
 private:
-    //AttachmentReference
-    //std::vector<VkAttachmentReference> inputAttachments;
-    //std::vector<VkAttachmentReference> colorAttachments;
-    //VkAttachmentReference resolveAttachments;
-    //VkAttachmentReference depthStencilAttachment;
-    //
     VkRenderPassCreateFlags flags;
     std::vector<VkAttachmentDescription> attachments;
+    std::vector<SubpassDescriptionHelper> subpasseDescriptionHelpers;
     std::vector<VkSubpassDescription> subpasses;
     std::vector<VkSubpassDependency> dependencies;
     VkRenderPass renderPass_{VK_NULL_HANDLE};
