@@ -3,6 +3,7 @@
 #include "VulkanApi.h"
 #include <vector>
 #include "Renderer/RenderPass.h"
+#include "Renderer/GraphicsPipeline.h"
 
 namespace gdf
 {
@@ -93,6 +94,7 @@ private:
     std::vector<VkImageView> imageViews_;
     RenderPass renderPass_;
     VkPipeline graphicsPipeline_;
+    GraphicsPipeline graphicsPipeline;
     VkPipelineLayout pipelineLayout_;
     std::vector<VkFramebuffer> framebuffers_;
     std::vector<VkCommandBuffer> commandBuffers_;

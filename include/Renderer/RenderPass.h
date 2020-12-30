@@ -63,6 +63,7 @@ public:
         rhs.renderPass_ = VK_NULL_HANDLE;
         VulkanObject::operator =(std::forward<RenderPass>(rhs));
     }
+
     ~RenderPass()
     {
         if (renderPass_ != VK_NULL_HANDLE) {
@@ -70,26 +71,6 @@ public:
             renderPass_ = VK_NULL_HANDLE;
         }
     }
-
-    void SetRenderPassCreateFlags(VkRenderPassCreateFlags flags)
-    {
-        this->flags = flags;
-    }
-    void AddAttachmentDescription(VkAttachmentDescription attachmentDescription)
-    {
-        attachments.push_back(attachmentDescription);
-    }
-
-    void AddSubpassDescriptionHelper(SubpassDescriptionHelper subpassDescriptionHelper)
-    {
-        subpasseDescriptionHelpers.emplace_back(subpassDescriptionHelper);
-    }
-
-    void AddSubpassDependency(VkSubpassDependency subpassDependency)
-    {
-        dependencies.push_back(subpassDependency);
-    }
-
     void Reset()
     {
         flags = {};
@@ -132,6 +113,28 @@ public:
         }
         return renderPass_;
     }
+
+    
+    void SetRenderPassCreateFlags(VkRenderPassCreateFlags flags)
+    {
+        this->flags = flags;
+    }
+    void AddAttachmentDescription(VkAttachmentDescription attachmentDescription)
+    {
+        attachments.push_back(attachmentDescription);
+    }
+
+    void AddSubpassDescriptionHelper(SubpassDescriptionHelper subpassDescriptionHelper)
+    {
+        subpasseDescriptionHelpers.emplace_back(subpassDescriptionHelper);
+    }
+
+    void AddSubpassDependency(VkSubpassDependency subpassDependency)
+    {
+        dependencies.push_back(subpassDependency);
+    }
+
+
 
 private:
     VkRenderPassCreateFlags flags{};
