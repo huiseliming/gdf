@@ -3,6 +3,7 @@
 #include "Base/Window.h"
 #include "Renderer/Graphics.h"
 #include <cmath>
+#include <vulkan/vulkan_core.h>
 
 namespace gdf
 {
@@ -58,9 +59,9 @@ Swapchain::~Swapchain()
 
 void Swapchain::CreateSwapchain(VkSurfaceFormatKHR surfaceFormat, VkPresentModeKHR presentMode, uint32_t minImageCount)
 {
-    if (surfaceFormat.format != UINT32_MAX)
+    if (surfaceFormat.format != VK_FORMAT_UNDEFINED)
         SetSurfaceFormat(surfaceFormat_);
-    if (presentMode != UINT32_MAX)
+    if (presentMode != VK_PRESENT_MODE_MAX_ENUM_KHR)
         SetPresentMode(presentMode_);
     if (minImageCount != UINT32_MAX)
         SetMinImageCount(3U);
@@ -125,20 +126,19 @@ void Swapchain::CreateImageViews()
                                       .viewType = VK_IMAGE_VIEW_TYPE_2D,
                                       .format = surfaceFormat_.format,
                                       .components =
-                                        {
-                                            VK_COMPONENT_SWIZZLE_R,
-                                            VK_COMPONENT_SWIZZLE_G,
-                                            VK_COMPONENT_SWIZZLE_B,
-                                            VK_COMPONENT_SWIZZLE_A,
-                                        },
-                                      .subresourceRange = 
-                                        {
-                                              .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                                              .baseMipLevel = 0,
-                                              .levelCount = 1,
-                                              .baseArrayLayer = 0,
-                                              .layerCount = 1,
-                                        }};
+                                          {
+                                              VK_COMPONENT_SWIZZLE_R,
+                                              VK_COMPONENT_SWIZZLE_G,
+                                              VK_COMPONENT_SWIZZLE_B,
+                                              VK_COMPONENT_SWIZZLE_A,
+                                          },
+                                      .subresourceRange = {
+                                          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                          .baseMipLevel = 0,
+                                          .levelCount = 1,
+                                          .baseArrayLayer = 0,
+                                          .layerCount = 1,
+                                      }};
     assert(imageViews_.empty());
     imageViews_.resize(SwapchainImageCount_, VK_NULL_HANDLE);
     for (size_t i = 0; i < SwapchainImageCount_; i++) {
@@ -165,10 +165,9 @@ void Swapchain::CreateRenderPass()
                                                                  .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                                                  .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                                                                  .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR});
-    renderPass_.AddSubpassDescriptionHelper(SubpassDescriptionHelper{
-        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .colorAttachments = {{0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}}
-        });
+    renderPass_.AddSubpassDescriptionHelper(
+        SubpassDescriptionHelper{.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                 .colorAttachments = {{0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}}});
     renderPass_.AddSubpassDependency(VkSubpassDependency{
         .srcSubpass = VK_SUBPASS_EXTERNAL,
         .dstSubpass = 0,
@@ -196,16 +195,13 @@ void Swapchain::CreateGraphicsPipeline()
 
     graphicsPipeline.AddViewport(VkViewport{
         .x = 0.0f,
-        .y = 0.0f, 
+        .y = 0.0f,
         .width = float(extent_.width),
         .height = float(extent_.height),
         .minDepth = 0.0f,
         .maxDepth = 1.0f,
     });
-    graphicsPipeline.AddScissor(VkRect2D{
-        .offset = {0,0},
-        .extent = extent_
-        });
+    graphicsPipeline.AddScissor(VkRect2D{.offset = {0, 0}, .extent = extent_});
     graphicsPipeline.SetRasterizationState({
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
         .depthClampEnable = VK_FALSE,
@@ -215,30 +211,31 @@ void Swapchain::CreateGraphicsPipeline()
         .frontFace = VK_FRONT_FACE_CLOCKWISE,
         .depthBiasEnable = VK_FALSE,
         .lineWidth = 1.0f,
-        });
+    });
     graphicsPipeline.SetMultisampleState({
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
         .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
         .sampleShadingEnable = VK_FALSE,
     });
-    graphicsPipeline.AddColorBlendAttachmentState({ 
+    graphicsPipeline.AddColorBlendAttachmentState({
         .blendEnable = VK_FALSE,
-        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-        });
+        .colorWriteMask =
+            VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+    });
     graphicsPipeline.SetColorBlendState({
         .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
         .logicOpEnable = VK_FALSE,
         .logicOp = VK_LOGIC_OP_COPY,
         .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f},
-        });
+    });
     graphicsPipeline.SetRenderPass(renderPass_.Get());
 }
 
 void Swapchain::DestroyGraphicsPipeline()
 {
     graphicsPipeline.Reset();
-    //vkDestroyPipeline(gfx_.device(), graphicsPipeline_, nullptr);
-    //vkDestroyPipelineLayout(gfx_.device(), pipelineLayout_, nullptr);
+    // vkDestroyPipeline(gfx_.device(), graphicsPipeline_, nullptr);
+    // vkDestroyPipelineLayout(gfx_.device(), pipelineLayout_, nullptr);
 }
 
 void Swapchain::CreateFramebuffer()

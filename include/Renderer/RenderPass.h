@@ -1,13 +1,12 @@
-#pragma once 
+#pragma once
+#include "Renderer/RenderPass.h"
 #include "VulkanObject.h"
 #include <vector>
-#include "Renderer/RenderPass.h"
 
 namespace gdf
 {
 
-struct SubpassDescriptionHelper
-{
+struct SubpassDescriptionHelper {
     VkSubpassDescriptionFlags flags{};
     VkPipelineBindPoint pipelineBindPoint{};
     std::vector<VkAttachmentReference> inputAttachments;
@@ -40,19 +39,19 @@ public:
     {
     }
 
-    RenderPass(RenderPass &&rhs) :VulkanObject(std::forward<RenderPass>(rhs))
+    RenderPass(RenderPass &&rhs) : VulkanObject(std::forward<RenderPass>(rhs))
     {
         flags = rhs.flags;
         rhs.flags = 0;
         attachments = std::move(rhs.attachments);
         subpasses = std::move(rhs.subpasses);
         dependencies = std::move(rhs.dependencies);
-        renderPass_ = rhs.renderPass_; 
+        renderPass_ = rhs.renderPass_;
         rhs.renderPass_ = VK_NULL_HANDLE;
     }
-    RenderPass& operator=(RenderPass &&rhs)
+    RenderPass &operator=(RenderPass &&rhs)
     {
-        if (std::addressof(rhs) != this) 
+        if (std::addressof(rhs) != this)
             return *this;
         flags = rhs.flags;
         rhs.flags = 0;
@@ -61,13 +60,14 @@ public:
         dependencies = std::move(rhs.dependencies);
         renderPass_ = rhs.renderPass_;
         rhs.renderPass_ = VK_NULL_HANDLE;
-        VulkanObject::operator =(std::forward<RenderPass>(rhs));
+        VulkanObject::operator=(std::forward<RenderPass>(rhs));
+        return *this;
     }
 
     ~RenderPass()
     {
         if (renderPass_ != VK_NULL_HANDLE) {
-            vkDestroyRenderPass(device_, renderPass_,nullptr);
+            vkDestroyRenderPass(device_, renderPass_, nullptr);
             renderPass_ = VK_NULL_HANDLE;
         }
     }
@@ -114,7 +114,6 @@ public:
         return renderPass_;
     }
 
-    
     void SetRenderPassCreateFlags(VkRenderPassCreateFlags flags)
     {
         this->flags = flags;
@@ -134,8 +133,6 @@ public:
         dependencies.push_back(subpassDependency);
     }
 
-
-
 private:
     VkRenderPassCreateFlags flags{};
     std::vector<VkAttachmentDescription> attachments;
@@ -146,17 +143,3 @@ private:
 };
 
 } // namespace gdf
-
-//uint32_t inputAttachmentCount;
-//const VkAttachmentReference *pInputAttachments;
-//uint32_t colorAttachmentCount;
-//const VkAttachmentReference *pColorAttachments;
-//const VkAttachmentReference *pResolveAttachments;
-//const VkAttachmentReference *pDepthStencilAttachment;
-//uint32_t preserveAttachmentCount;
-//const uint32_t *pPreserveAttachments;
-
-
-
-
-

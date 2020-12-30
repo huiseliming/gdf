@@ -1,4 +1,4 @@
-#include "Renderer\CommandQueue.h"
+#include "Renderer/CommandQueue.h"
 
 namespace gdf
 {
@@ -7,7 +7,7 @@ CommandQueue::CommandQueue(VkDevice device, uint32_t graphicsQueueFamilyIndex, u
 {
     // request queue
     queues_.resize(queueNum);
-    for (uint32_t i = 0; i < queueNum; i++) 
+    for (uint32_t i = 0; i < queueNum; i++)
         vkGetDeviceQueue(device_, graphicsQueueFamilyIndex, i, &queues_[i]);
 
     // create command pool
@@ -20,7 +20,7 @@ CommandQueue::CommandQueue(VkDevice device, uint32_t graphicsQueueFamilyIndex, u
 
 CommandQueue::~CommandQueue()
 {
-    //if (commandPool_!= VK_NULL_HANDLE) {
+    // if (commandPool_!= VK_NULL_HANDLE) {
     vkDestroyCommandPool(device_, commandPool_, nullptr);
     //    commandPool_ = VK_NULL_HANDLE;
     //}

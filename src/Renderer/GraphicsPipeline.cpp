@@ -1,5 +1,4 @@
-#include "Renderer\GraphicsPipeline.h"
-
+#include "Renderer/GraphicsPipeline.h"
 
 namespace gdf
 {
@@ -54,7 +53,8 @@ void GraphicsPipeline::Create()
         .basePipelineHandle = basePipelineHandle,
         .basePipelineIndex = basePipelineIndex,
     };
-    VK_ASSERT_SUCCESSED(vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1, &GraphicsPipelineCI, nullptr, &graphicsPipeline_));
+    VK_ASSERT_SUCCESSED(
+        vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1, &GraphicsPipelineCI, nullptr, &graphicsPipeline_));
 }
 
 } // namespace gdf
