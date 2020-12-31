@@ -118,6 +118,7 @@ public:
     {
         this->flags = flags;
     }
+
     void AddAttachmentDescription(VkAttachmentDescription attachmentDescription)
     {
         attachments.push_back(attachmentDescription);
