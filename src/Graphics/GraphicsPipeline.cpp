@@ -1,4 +1,4 @@
-#include "Renderer/GraphicsPipeline.h"
+#include "Graphics/GraphicsPipeline.h"
 
 namespace gdf
 {

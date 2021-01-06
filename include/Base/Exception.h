@@ -14,7 +14,7 @@ public:
     Exception(int line, const char *file) noexcept : line_(line), file_(file)
     {
     }
-    explicit Exception(int line, const char *file, char const *const message) noexcept
+    explicit Exception(int line, const char *file, std::string message) noexcept
         : line_(line), file_(file), message_(message)
     {
     }

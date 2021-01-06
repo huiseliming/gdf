@@ -1,8 +1,9 @@
 #pragma once
 #include "Base/NonCopyable.h"
-#include "Renderer/GraphicsPipeline.h"
-#include "Renderer/RenderPass.h"
+#include "GraphicsPipeline.h"
+#include "RenderPass.h"
 #include "VulkanApi.h"
+#include "Device.h"
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
@@ -16,15 +17,14 @@ class GDF_EXPORT Swapchain : public NonCopyable
 {
 public:
     Swapchain() = delete;
-    Swapchain(Window &wnd,
-              Graphics &gfx,
-              VkSurfaceFormatKHR surfaceFormat = {VK_FORMAT_UNDEFINED, VK_COLOR_SPACE_MAX_ENUM_KHR},
-              VkPresentModeKHR presentMode = VK_PRESENT_MODE_MAX_ENUM_KHR,
-              uint32_t minImageCount = 0);
+    Swapchain(Window &wnd, Device &device, bool VSync = false);
     ~Swapchain();
-    void CreateSwapchain(VkSurfaceFormatKHR surfaceFormat = {VkFormat(UINT32_MAX), VkColorSpaceKHR(UINT32_MAX)},
-                         VkPresentModeKHR presentMode = VkPresentModeKHR(UINT32_MAX),
-                         uint32_t minImageCount = UINT32_MAX);
+
+    void SetVSyncEnable(bool enable);
+
+    void CreateSwapchain(VkSurfaceFormatKHR surfaceFormat = {  VK_FORMAT_UNDEFINED,VK_COLOR_SPACE_MAX_ENUM_KHR },
+                         VkPresentModeKHR presentMode = VK_PRESENT_MODE_MAILBOX_KHR,
+                         bool vsync = true);
     void DestroySwapchain();
 
     void CreateImageViews();
@@ -57,10 +57,6 @@ public:
     VkFence *GetCurrentFrameInFlightFencePointer();
     std::vector<VkFence> &imageInFlight();
 
-    bool SetSurfaceFormat(VkSurfaceFormatKHR surfaceFormat);
-    bool SetPresentMode(VkPresentModeKHR presentMode);
-    bool SetMinImageCount(uint32_t minImageCount);
-
     VkSurfaceFormatKHR surfaceFormat()
     {
         return surfaceFormat_;
@@ -75,6 +71,7 @@ public:
     }
 
 private:
+    bool VSyncEnable_ = false;
     // reuse data
     VkSurfaceFormatKHR surfaceFormat_;
     VkPresentModeKHR presentMode_;
@@ -86,12 +83,13 @@ private:
     // const define
     constexpr static uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
-    Window &wnd_;
-    Graphics &gfx_;
+    Window &window_;
+    Device &device_;
     // vk object
     VkSurfaceKHR surface_{VK_NULL_HANDLE};
     VkSwapchainKHR swapchain_{VK_NULL_HANDLE};
     std::vector<VkImageView> imageViews_;
+
     RenderPass renderPass_;
     VkPipeline graphicsPipeline_;
     GraphicsPipeline graphicsPipeline;

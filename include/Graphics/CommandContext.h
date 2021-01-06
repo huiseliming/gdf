@@ -1,14 +1,14 @@
 #pragma once
-#include"Renderer/VulkanObject.h"
+#include "VulkanObject.h"
 #include <vector>
-
 
 namespace gdf
 {
 
-class CommandQueue;
+class GraphicsQueue;
 
-enum class CommandBufferState {
+enum class CommandBufferState
+{
     kRecording,
     kPending,
 };
@@ -16,13 +16,10 @@ enum class CommandBufferState {
 class CommandContext : public VulkanObject
 {
 public:
-    CommandContext(VkDevice device, CommandQueue *commandQueue, VkCommandBuffer commandBuffer);
+    CommandContext(VkDevice device, GraphicsQueue *commandQueue, VkCommandBuffer commandBuffer);
     CommandContext(CommandContext &&rhs);
     CommandContext &operator=(CommandContext &&rhs);
     ~CommandContext();
-
-
-
 
     void AddWaitSemaphore(VkSemaphore semaphore);
     void AddSignalSemaphore(VkSemaphore semaphore);
@@ -31,10 +28,10 @@ public:
     void Submit();
 
 private:
-    CommandQueue *pCommandQueue_;
+    GraphicsQueue *pCommandQueue_;
     VkCommandBuffer commandBuffer_;
 
-    //submit data
+    // submit data
     std::vector<VkSemaphore> waitSemaphores_;
     std::vector<VkSemaphore> signalSemaphores_;
     VkPipelineStageFlags waitDstStageMask_;

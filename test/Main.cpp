@@ -6,8 +6,8 @@
 #include "DeveloperTool/DeveloperConsole.h"
 #include "Log/Logger.h"
 #include "Log/StdSink.h"
-#include "Renderer/Graphics.h"
-#include "Renderer/Swapchain.h"
+#include "Graphics/Graphics.h"
+#include "Graphics/Swapchain.h"
 #include "gdf.h"
 #include <chrono>
 #include <fmt/core.h>
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
             developerConsole.RegisterCommand("PrintTest", [](std::string_view) { GDF_LOG(General, LogLevel::Info, "Test"); });
             window.Create("test", 800, 600);
             gfx.Initialize();
-            gfx.SetSwapchain(std::make_unique<Swapchain>(window, gfx));
+            //gfx.SetSwapchain(std::make_unique<Swapchain>(window, gfx));
             tm.Reset();
             tm.dilation(0.01);
             GDF_LOG(General,
@@ -46,10 +46,10 @@ int main(int argc, char **argv)
             while (!window.ShouldClose()) {
                 window.PollEvents();
                 tm.Update();
-                if (window.resized()) {
-                    gfx.swapchain().RequestRecreate();
-                }
-                gfx.swapchain().DrawFrame();
+                //if (window.resized()) {
+                //    gfx.swapchain().RequestRecreate();
+                //}
+                //gfx.swapchain().DrawFrame();
             }
             gfx.DeviceWaitIdle();
             GDF_LOG(General,

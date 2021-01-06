@@ -1,8 +1,8 @@
 #pragma once
-#include "Renderer/VulkanObject.h"
+#include "VulkanObject.h"
 #include <vector>
 #include "Base/File.h"
-#include "Renderer/GraphicsTool.h"
+#include "VulkanTools.h"
 
 namespace gdf
 {
@@ -158,7 +158,7 @@ public:
     void AddShaderStage(std::string spvShaderPath, VkShaderStageFlagBits shaderStageFlag, std::string_view mainName = "main")
     {
         auto vertShaderCode = File::ReadBytes(spvShaderPath);
-        VkShaderModule vertShaderModule = GraphicsTool::CreateShaderModule(device_, vertShaderCode);
+        VkShaderModule vertShaderModule = VulkanTools::CreateShaderModule(device_, vertShaderCode);
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
         vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         vertShaderStageInfo.stage = shaderStageFlag;
