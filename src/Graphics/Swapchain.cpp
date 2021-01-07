@@ -10,7 +10,7 @@ namespace gdf
 {
 
 Swapchain::Swapchain(Window &window, Device &device, bool VSync)
-    : window_(window), device_(device), needRecreate_(false), renderPass_(device), graphicsPipeline(device)
+    : window_(window), device_(device), needRecreate_(false)
 {
     VK_ASSERT_SUCCESSED(window_.GetVkSurfaceKHR(Graphics::vulkanInstance(), &surface_));
 

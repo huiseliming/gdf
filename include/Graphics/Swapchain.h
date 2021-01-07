@@ -1,8 +1,6 @@
 #pragma once
 #include "Base/NonCopyable.h"
 #include "Device.h"
-#include "GraphicsPipeline.h"
-#include "RenderPass.h"
 #include "VulkanApi.h"
 #include <vector>
 #include <vulkan/vulkan_core.h>
@@ -96,9 +94,7 @@ private:
     VkSwapchainKHR swapchain_{VK_NULL_HANDLE};
     std::vector<VkImageView> imageViews_;
 
-    RenderPass renderPass_;
     VkPipeline graphicsPipeline_;
-    GraphicsPipeline graphicsPipeline;
     VkPipelineLayout pipelineLayout_;
     std::vector<VkFramebuffer> framebuffers_;
     std::vector<VkCommandBuffer> commandBuffers_;

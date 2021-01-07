@@ -52,6 +52,14 @@ struct Device {
     bool ExtensionSupported(std::string extension);
     VkCommandPool CreateCommandPool(uint32_t queueFamilyIndex,
                                     VkCommandPoolCreateFlags createFlags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+
+
+
+
+
+    //tool 
+    VkShaderModule CreateShaderModule(const std::vector<char> &code);
+    VkShaderModule CreateShaderModuleFromFile(std::string path);
 };
 
 } // namespace gdf

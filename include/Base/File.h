@@ -4,9 +4,8 @@
 namespace gdf
 {
 
-class File
+namespace File
 {
-public:
-    static std::vector<char> ReadBytes(const std::string &filename);
+    std::vector<char> ReadBytes(const std::string &filename);
 };
 } // namespace gdf

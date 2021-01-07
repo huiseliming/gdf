@@ -1,5 +1,7 @@
 #include "Graphics/Device.h"
 #include <cassert>
+#include "Base/File.h"
+
 namespace gdf
 {
 Device::Device(VkPhysicalDevice physicalDevice) : physicalDevice(physicalDevice)
@@ -268,6 +270,24 @@ VkCommandPool Device::CreateCommandPool(uint32_t queueFamilyIndex, VkCommandPool
     VkCommandPool commandPool;
     VK_ASSERT_SUCCESSED(vkCreateCommandPool(logicalDevice, &commandPoolCI, nullptr, &commandPool));
     return commandPool;
+}
+
+VkShaderModule Device::CreateShaderModule(const std::vector<char> &code)
+{
+    VkShaderModuleCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize = code.size();
+    createInfo.pCode = reinterpret_cast<const uint32_t *>(code.data());
+
+    VkShaderModule shaderModule;
+    VK_ASSERT_SUCCESSED(vkCreateShaderModule(logicalDevice, &createInfo, nullptr, &shaderModule))
+    return shaderModule;
+}
+
+VkShaderModule Device::CreateShaderModuleFromFile(const std::string path)
+{
+    auto shaderData = File::ReadBytes(path);
+    return CreateShaderModule(shaderData);
 }
 
 } // namespace gdf
