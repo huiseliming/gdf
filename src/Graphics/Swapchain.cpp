@@ -99,7 +99,7 @@ Swapchain::Swapchain(Window &window, Device &device, bool VSync)
         device_.physicalDevice, surface_, &presentModeCount, supportedPresentModes_.data()));
     SetVSyncEnable(VSync);
 
-    CreateSwapchain();
+    //CreateSwapchain();
     // CreateImageViews();
     // CreateRenderPass();
     // CreateGraphicsPipeline();
@@ -116,7 +116,7 @@ Swapchain::~Swapchain()
     // DestroyGraphicsPipeline();
     // DestroyRenderPass();
     // DestroyImageViews();
-    DestroySwapchain();
+    Destroy();
     if (surface_ != VK_NULL_HANDLE) {
         vkDestroySurfaceKHR(Graphics::vulkanInstance(), surface_, nullptr);
         surface_ = VK_NULL_HANDLE;
@@ -137,7 +137,7 @@ void Swapchain::SetVSyncEnable(bool enable)
     presentMode_ = VK_PRESENT_MODE_MAILBOX_KHR;
 }
 
-void Swapchain::CreateSwapchain(VkSurfaceFormatKHR surfaceFormat, VkPresentModeKHR presentMode, bool vsync)
+void Swapchain::Create(VkSurfaceFormatKHR surfaceFormat, VkPresentModeKHR presentMode, bool vsync)
 {
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device_.physicalDevice, surface_, &surfaceCapabilities));
@@ -211,8 +211,9 @@ void Swapchain::CreateSwapchain(VkSurfaceFormatKHR surfaceFormat, VkPresentModeK
     CreateImageViews();
 }
 
-void Swapchain::DestroySwapchain()
+void Swapchain::Destroy()
 {
+    DestroyImageViews();
     if (swapchain_ != VK_NULL_HANDLE) {
         vkDestroySwapchainKHR(device_, swapchain_, nullptr);
         swapchain_ = VK_NULL_HANDLE;

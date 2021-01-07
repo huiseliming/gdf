@@ -1,6 +1,7 @@
 #include "Graphics/GraphicsApplication.h"
 
 #include "Log/StdSink.h"
+#include "gdf.h"
 namespace gdf{
 
 GDF_DEFINE_LOG_CATEGORY(General)
@@ -9,6 +10,7 @@ GraphicsApplication *pGraphicsApplication;
 
 void GraphicsApplication::StartUp()
 {
+    gdf::Initialize();
     pTimerManager_ = std::make_unique<TimeManager>();
     pTimerManager_->Reset();
     pDeveloperConsole_ = std::make_unique<DeveloperConsole>();
@@ -22,14 +24,9 @@ void GraphicsApplication::StartUp()
     // device extensions
     std::vector<const char *> deviceExtensions;
     pGraphics_->CreateSwapchain(*pWindow_);
-
     pGraphics_->device().CreateLogicalDevice(VkPhysicalDeviceFeatures{}, deviceExtensions, nullptr, pGraphics_->swapchain().surface());
-
-    // Get a graphics queue from the device
-    //VkQueue queue;
-    //vkGetDeviceQueue(*pDevice_, pDevice_->queueFamilyIndices.graphics, 0, &queue);
-    //pGraphicsQueue_ = std::make_unique<GraphicsQueue>(queue);
-
+    pGraphics_->GetDeviceQueue();
+    pGraphics_->swapchain().Create();
     pGraphicsApplication = this;
     GDF_LOG(General, LogLevel::Info, "Entering MainLoop at ProgramTime: {}", pTimerManager_->RealCurrentTime());
 }
@@ -41,7 +38,7 @@ void GraphicsApplication::MainLoop()
         pTimerManager_->Update();
         // if (window.resized()) {
         //    gfx.swapchain().RequestRecreate();
-        //}
+        // }
         // gfx.swapchain().DrawFrame();
     }
 }
@@ -52,6 +49,7 @@ void GraphicsApplication::Cleanup()
     pGraphics_->Cleanup();
     pWindow_->Destroy();
     Logger::instance().DeregisterSink(&coutSink);
+    gdf::Cleanup();
 }
 
 }

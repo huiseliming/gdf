@@ -33,6 +33,7 @@ Device::Device(VkPhysicalDevice physicalDevice) : physicalDevice(physicalDevice)
 
 Device::~Device()
 {
+    vkDestroyCommandPool(logicalDevice, commandPool, nullptr);
     if (logicalDevice != VK_NULL_HANDLE) {
         vkDestroyDevice(logicalDevice, nullptr);
         logicalDevice = VK_NULL_HANDLE;
@@ -40,10 +41,10 @@ Device::~Device()
 }
 
 VkResult Device::CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
-											std::vector<const char *> enabledExtensions,
-											void *pNextChain,
-                                            VkSurfaceKHR surface,
-											VkQueueFlags requestedQueueTypes)
+									    std::vector<const char *> enabledExtensions,
+									    void *pNextChain,
+                                        VkSurfaceKHR surface,
+									    VkQueueFlags requestedQueueTypes)
 {
     assert(logicalDevice == VK_NULL_HANDLE);
 	// Desired queues need to be requested upon logical device creation

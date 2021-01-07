@@ -105,6 +105,63 @@ void Graphics::CreateSwapchain(Window &window, bool VSync)
     pSwapchain_ = std::make_unique<Swapchain>(window, *pDevice_, VSync);
 }
 
+void Graphics::GetDeviceQueue()
+{
+    std::vector<uint32_t> CreatedQueueIndices;
+    // Get a graphics queue from the device
+    if (pDevice_->queueFamilyIndices.graphics != UINT32_MAX) {
+        bool isCreated = false;
+        for (auto CreatedQueueIndex : CreatedQueueIndices) {
+            if (pDevice_->queueFamilyIndices.graphics == CreatedQueueIndex) {
+                isCreated = true;
+            }
+        }
+        if (!isCreated) {
+            VkQueue queue;
+            vkGetDeviceQueue(*pDevice_, pDevice_->queueFamilyIndices.graphics, 0, &queue);
+            pGraphicsQueue_ = std::make_unique<GraphicsQueue>(queue);
+            CreatedQueueIndices.push_back(pDevice_->queueFamilyIndices.graphics);
+        }
+    }
+    if (pDevice_->queueFamilyIndices.compute != UINT32_MAX) {
+        bool isCreated = false;
+        for (auto CreatedQueueIndex : CreatedQueueIndices) {
+            if (pDevice_->queueFamilyIndices.compute == CreatedQueueIndex) {
+                isCreated = true;
+            }
+        }
+        if (!isCreated) {
+            vkGetDeviceQueue(*pDevice_, pDevice_->queueFamilyIndices.compute, 0, &computeQueue_);
+            CreatedQueueIndices.push_back(pDevice_->queueFamilyIndices.compute);
+        }
+    }
+    if (pDevice_->queueFamilyIndices.transfer != UINT32_MAX) {
+        bool isCreated = false;
+        for (auto CreatedQueueIndex : CreatedQueueIndices) {
+            if (pDevice_->queueFamilyIndices.transfer == CreatedQueueIndex) {
+                isCreated = true;
+            }
+        }
+        if (!isCreated) {
+            vkGetDeviceQueue(*pDevice_, pDevice_->queueFamilyIndices.transfer, 0, &transferQueue_);
+
+            CreatedQueueIndices.push_back(pDevice_->queueFamilyIndices.transfer);
+        }
+    }
+    if (pDevice_->queueFamilyIndices.present != UINT32_MAX) {
+        bool isCreated = false;
+        for (auto CreatedQueueIndex : CreatedQueueIndices) {
+            if (pDevice_->queueFamilyIndices.present == CreatedQueueIndex) {
+                isCreated = true;
+            }
+        }
+        if (!isCreated) {
+            vkGetDeviceQueue(*pDevice_, pDevice_->queueFamilyIndices.present, 0, &presentQueue_);
+            CreatedQueueIndices.push_back(pDevice_->queueFamilyIndices.present);
+        }
+    }
+}
+
 bool Graphics::IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice)
 {
     VkPhysicalDeviceProperties properties;
@@ -163,6 +220,11 @@ Device &Graphics::device()
 GraphicsQueue &Graphics::graphicsQueue()
 {
     return *pGraphicsQueue_;
+}
+
+VkQueue Graphics::presentQueue()
+{
+    return presentQueue_;
 }
 
 Swapchain &Graphics::swapchain()

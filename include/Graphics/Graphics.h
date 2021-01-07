@@ -25,12 +25,16 @@ class GDF_EXPORT Graphics : public NonCopyable
 {
 public:
     bool Initialize(bool enableValidationLayer = GDF_ENABLE_VALIDATION_LAYER);
+    
+    void CreateSwapchain(Window &window, bool VSync = false);
 
-    void Cleanup();
+    void GetDeviceQueue();
 
     void DrawFrame();
 
-    void CreateSwapchain(Window &window, bool VSync = false);
+    void Cleanup();
+
+
     bool IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice);
 
     //helpful function
@@ -43,9 +47,11 @@ public:
 
     Device &device();
 
+    Swapchain &swapchain();
+
     GraphicsQueue &graphicsQueue();
 
-    Swapchain &swapchain();
+    VkQueue presentQueue();
 
     static VkBool32 DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
                                            VkDebugReportObjectTypeEXT objectType,
@@ -55,12 +61,16 @@ public:
                                            const char *pLayerPrefix,
                                            const char *pMessage,
                                            void *pUserData);
+
     friend class Swapchain;
 
 private:
     std::unique_ptr<Device> pDevice_;
     std::unique_ptr<Swapchain> pSwapchain_;
     std::unique_ptr<GraphicsQueue> pGraphicsQueue_;
+    VkQueue computeQueue_{VK_NULL_HANDLE};
+    VkQueue transferQueue_{VK_NULL_HANDLE};
+    VkQueue presentQueue_{VK_NULL_HANDLE};
 
     VkDebugReportCallbackEXT fpDebugReportCallbackEXT_ = VK_NULL_HANDLE;
     bool enableValidationLayer_;

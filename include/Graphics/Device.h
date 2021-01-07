@@ -29,10 +29,10 @@ struct Device {
     /** @brief Contains queue family indices */
 
     struct {
-        uint32_t graphics;
-        uint32_t compute;
-        uint32_t transfer;
-        uint32_t present;
+        uint32_t graphics{UINT32_MAX};
+        uint32_t compute{UINT32_MAX};
+        uint32_t transfer{UINT32_MAX};
+        uint32_t present{UINT32_MAX};
     } queueFamilyIndices;
 
     operator VkDevice() const

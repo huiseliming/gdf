@@ -22,10 +22,10 @@ public:
 
     void SetVSyncEnable(bool enable);
 
-    void CreateSwapchain(VkSurfaceFormatKHR surfaceFormat = {VK_FORMAT_UNDEFINED, VK_COLOR_SPACE_MAX_ENUM_KHR},
+    void Create(VkSurfaceFormatKHR surfaceFormat = {VK_FORMAT_UNDEFINED, VK_COLOR_SPACE_MAX_ENUM_KHR},
                          VkPresentModeKHR presentMode = VK_PRESENT_MODE_MAILBOX_KHR,
                          bool vsync = true);
-    void DestroySwapchain();
+    void Destroy();
 
     void CreateImageViews();
     void DestroyImageViews();
