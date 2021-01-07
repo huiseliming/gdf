@@ -4,7 +4,4 @@
     ],
     "editor.formatOnSave": true,
     "clang-format.executable": "/Users/daimingze/Documents/clang+llvm-11.0.0-x86_64-apple-darwin/bin/clang-format",
-    "files.associations": {
-        "xiosbase": "cpp"
-    },
 }
