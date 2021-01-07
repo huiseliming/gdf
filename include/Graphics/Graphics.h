@@ -3,6 +3,7 @@
 #include "Log/Logger.h"
 #include "VulkanApi.h"
 #include "GraphicsQueue.h"
+#include "Swapchain.h"
 #include <vector>
 #include <optional>
 #include "Device.h"
@@ -27,30 +28,24 @@ public:
 
     void Cleanup();
 
-    void SetSwapchain(std::unique_ptr<Swapchain> &&swapchain);
+    void DrawFrame();
 
+    void SetSwapchain(std::unique_ptr<Swapchain> &&swapchain);
     bool IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice);
 
     //helpful function
-    bool GetSupportPresentQueue(VkSurfaceKHR surface, VkQueue &queue);
     VkShaderModule CreateShaderModule(const std::vector<char> &code);
+    bool GetSupportPresentQueue(VkSurfaceKHR surface, VkQueue &queue);
+
+
 
     void DeviceWaitIdle();
 
-    Device &device()
-    {
-        return *pDevice_;
-    }
+    Device &device();
 
-    GraphicsQueue &graphicsQueue()
-    {
-        return *pGraphicsQueue_;
-    }
+    GraphicsQueue &graphicsQueue();
 
-    Swapchain &swapchain()
-    {
-        return *pSwapchain_;
-    }
+    Swapchain &swapchain();
 
     static VkBool32 DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
                                            VkDebugReportObjectTypeEXT objectType,

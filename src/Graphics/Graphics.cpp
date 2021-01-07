@@ -90,6 +90,7 @@ bool Graphics::Initialize(bool enableValidationLayer)
 
 void Graphics::Cleanup()
 {
+    DeviceWaitIdle();
     pSwapchain_.reset();
     pDevice_.reset();
     if (enableValidationLayer_) {
@@ -99,6 +100,10 @@ void Graphics::Cleanup()
     }
     vkDestroyInstance(vulkanInstance_, nullptr);
     vulkanInstance_ = VK_NULL_HANDLE;
+}
+
+void Graphics::DrawFrame()
+{
 }
 
 void Graphics::SetSwapchain(std::unique_ptr<Swapchain> &&swapchain)
@@ -154,6 +159,21 @@ VkShaderModule Graphics::CreateShaderModule(const std::vector<char> &code)
 void Graphics::DeviceWaitIdle()
 {
     VK_ASSERT_SUCCESSED(vkDeviceWaitIdle(*pDevice_));
+}
+
+Device &Graphics::device()
+{
+    return *pDevice_;
+}
+
+GraphicsQueue &Graphics::graphicsQueue()
+{
+    return *pGraphicsQueue_;
+}
+
+Swapchain &Graphics::swapchain()
+{
+    return *pSwapchain_;
 }
 
 VkBool32 Graphics::DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,

@@ -128,15 +128,15 @@ struct TimeManager {
             .count();
 #endif // GDF_TIMEMANAGER_PRESTORE_DATA
     }
-    OutputDataType RealCurrentTimePoint()
-    {
-        return std::chrono::duration_cast<std::chrono::duration<OutputDataType, Ratio>>(currentActualTimePoint_).count();
-    }
+    //OutputDataType RealCurrentTimePoint()
+    //{
+    //    return std::chrono::duration_cast<std::chrono::duration<OutputDataType, Ratio>>(currentActualTimePoint_).count();
+    //}
 
-    OutputDataType RealPreviousTimePoint()
-    {
-        return std::chrono::duration_cast<std::chrono::duration<OutputDataType, Ratio>>(actualStartTimePoint_).count();
-    }
+    //OutputDataType RealPreviousTimePoint()
+    //{
+    //    return std::chrono::duration_cast<std::chrono::duration<OutputDataType, Ratio>>(actualStartTimePoint_).count();
+    //}
 
     float dilation()
     {

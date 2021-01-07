@@ -51,7 +51,6 @@ int main(int argc, char **argv)
                 //}
                 //gfx.swapchain().DrawFrame();
             }
-            gfx.DeviceWaitIdle();
             GDF_LOG(General,
                     LogLevel::Info,
                     "Exiting main loop at ProgramTime: {}",

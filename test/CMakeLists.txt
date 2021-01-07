@@ -10,4 +10,5 @@ target_link_libraries(MouseAndKeyboard gdf)
 add_executable(Main Main.cpp)
 target_link_libraries(Main gdf)
 
- 
+add_executable(App App.cpp)
+target_link_libraries(App gdf)

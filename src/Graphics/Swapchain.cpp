@@ -4,9 +4,9 @@
 #include "Graphics/Graphics.h"
 #include <cmath>
 #include <algorithm>
+
 namespace gdf
 {
-
 
 Swapchain::Swapchain(Window &window, Device &device, bool VSync)
     : window_(window), device_(device), needRecreate_(false), renderPass_(device), graphicsPipeline(device)

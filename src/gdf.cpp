@@ -13,7 +13,7 @@ GDF_DEFINE_LOG_CATEGORY(gdfLog)
 
 void Initialize()
 {
-    ProgramClock::SetProgramStartTime();
+    //ProgramClock::SetProgramStartTime();
     glfwInit();
     Logger::Create();
     GDF_LOG(gdfLog, LogLevel::Info, "gdf Initialize");
