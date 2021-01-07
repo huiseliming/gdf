@@ -1,8 +1,8 @@
 #pragma once
-#include "VulkanObject.h"
-#include <vector>
 #include "Base/File.h"
+#include "VulkanObject.h"
 #include "VulkanTools.h"
+#include <vector>
 
 namespace gdf
 {
@@ -228,6 +228,7 @@ public:
     {
         colorBlendAttachmentStates.push_back(colorBlendAttachmentState);
     }
+
     void SetColorBlendState(VkPipelineColorBlendStateCreateInfo colorBlendStateCI)
     {
         this->colorBlendStateCI = colorBlendStateCI;
@@ -315,39 +316,4 @@ private:
     VkPipeline graphicsPipeline_{VK_NULL_HANDLE};
 };
 
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+} // namespace gdf
