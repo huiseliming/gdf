@@ -1,9 +1,9 @@
 #pragma once
 #include "Base/NonCopyable.h"
+#include "Device.h"
 #include "GraphicsPipeline.h"
 #include "RenderPass.h"
 #include "VulkanApi.h"
-#include "Device.h"
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
@@ -22,7 +22,7 @@ public:
 
     void SetVSyncEnable(bool enable);
 
-    void CreateSwapchain(VkSurfaceFormatKHR surfaceFormat = {  VK_FORMAT_UNDEFINED,VK_COLOR_SPACE_MAX_ENUM_KHR },
+    void CreateSwapchain(VkSurfaceFormatKHR surfaceFormat = {VK_FORMAT_UNDEFINED, VK_COLOR_SPACE_MAX_ENUM_KHR},
                          VkPresentModeKHR presentMode = VK_PRESENT_MODE_MAILBOX_KHR,
                          bool vsync = true);
     void DestroySwapchain();
@@ -70,8 +70,14 @@ public:
         return minImageCount_;
     }
 
+    VkSurfaceKHR surface()
+    {
+        return surface_;
+    }
+
 private:
     bool VSyncEnable_ = false;
+    uint32_t presentQueueIndex_ = UINT32_MAX;
     // reuse data
     VkSurfaceFormatKHR surfaceFormat_;
     VkPresentModeKHR presentMode_;

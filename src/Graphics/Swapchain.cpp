@@ -2,8 +2,9 @@
 #include "Base/File.h"
 #include "Base/Window.h"
 #include "Graphics/Graphics.h"
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+
 
 namespace gdf
 {
@@ -13,10 +14,10 @@ Swapchain::Swapchain(Window &window, Device &device, bool VSync)
 {
     VK_ASSERT_SUCCESSED(window_.GetVkSurfaceKHR(Graphics::vulkanInstance(), &surface_));
 
-    //found supports presenting:
+    // found supports presenting:
     uint32_t queueFamilyCount = device_.queueFamilyProperties.size();
     std::vector<VkBool32> supportsPresent(queueFamilyCount);
-    for (uint32_t i = 0; i < queueFamilyCount; i++) 
+    for (uint32_t i = 0; i < queueFamilyCount; i++)
         vkGetPhysicalDeviceSurfaceSupportKHR(device_.physicalDevice, i, surface_, &supportsPresent[i]);
 
     // Search for a graphics and a present queue in the array of queue
@@ -48,25 +49,26 @@ Swapchain::Swapchain(Window &window, Device &device, bool VSync)
         THROW_EXCEPT("Could not find a graphics and/or presenting queue!");
     }
 
-    // todo : Add support for separate graphics and presenting queue
-    // todo : create present queue 
-    if (graphicsQueueIndex != presentQueueIndex) {
-        THROW_EXCEPT("Separate graphics and presenting queues are not supported yet!");
-    }
+    //if (graphicsQueueIndex != presentQueueIndex) {
+    //    THROW_EXCEPT("Separate graphics and presenting queues are not supported yet!");
+    //}
+
+    presentQueueIndex_ = presentQueueIndex;
 
     // found color format
     uint32_t surfaceFormatCount;
     VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfaceFormatsKHR(device_.physicalDevice, surface_, &surfaceFormatCount, nullptr));
     supportedSurfaceFormats_.resize(surfaceFormatCount);
-    VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfaceFormatsKHR(device_.physicalDevice, surface_, &surfaceFormatCount, supportedSurfaceFormats_.data()));
-    
+    VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfaceFormatsKHR(
+        device_.physicalDevice, surface_, &surfaceFormatCount, supportedSurfaceFormats_.data()));
+
     surfaceFormat_ = supportedSurfaceFormats_[0];
     // If the surface format list only includes one entry with VK_FORMAT_UNDEFINED,
     // there is no preferred format, so we assume VK_FORMAT_B8G8R8A8_UNORM
     if ((surfaceFormatCount == 1) && (supportedSurfaceFormats_[0].format == VK_FORMAT_UNDEFINED)) {
         surfaceFormat_.format = VK_FORMAT_B8G8R8A8_UNORM;
         surfaceFormat_.colorSpace = supportedSurfaceFormats_[0].colorSpace;
-        // TODO: print warn 
+        // TODO: print warn
     } else {
         // iterate over the list of available surface format and
         // check for the presence of VK_FORMAT_B8G8R8A8_UNORM
@@ -85,34 +87,35 @@ Swapchain::Swapchain(Window &window, Device &device, bool VSync)
         if (!found_B8G8R8A8_UNORM) {
             surfaceFormat_.format = supportedSurfaceFormats_[0].format;
             surfaceFormat_.colorSpace = supportedSurfaceFormats_[0].colorSpace;
-            // TODO: print warn 
+            // TODO: print warn
         }
     }
 
     uint32_t presentModeCount;
-    VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfacePresentModesKHR(device_.physicalDevice, surface_, &presentModeCount, nullptr));
+    VK_ASSERT_SUCCESSED(
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device_.physicalDevice, surface_, &presentModeCount, nullptr));
     supportedPresentModes_.resize(presentModeCount);
-    VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfacePresentModesKHR(device_.physicalDevice, surface_, &presentModeCount, supportedPresentModes_.data()));
+    VK_ASSERT_SUCCESSED(vkGetPhysicalDeviceSurfacePresentModesKHR(
+        device_.physicalDevice, surface_, &presentModeCount, supportedPresentModes_.data()));
     SetVSyncEnable(VSync);
 
     CreateSwapchain();
-    //CreateImageViews();
-    //CreateRenderPass();
-    //CreateGraphicsPipeline();
-    //CreateFramebuffer();
-    //CreateCommandBuffers();
-    //CreateSyncObjects();
+    // CreateImageViews();
+    // CreateRenderPass();
+    // CreateGraphicsPipeline();
+    // CreateFramebuffer();
+    // CreateCommandBuffers();
+    // CreateSyncObjects();
 }
-
 
 Swapchain::~Swapchain()
 {
-    //DestroySyncObjects();
-    //DestroyCommandBuffers();
-    //DestroyFramebuffer();
-    //DestroyGraphicsPipeline();
-    //DestroyRenderPass();
-    //DestroyImageViews();
+    // DestroySyncObjects();
+    // DestroyCommandBuffers();
+    // DestroyFramebuffer();
+    // DestroyGraphicsPipeline();
+    // DestroyRenderPass();
+    // DestroyImageViews();
     DestroySwapchain();
     if (surface_ != VK_NULL_HANDLE) {
         vkDestroySurfaceKHR(Graphics::vulkanInstance(), surface_, nullptr);
@@ -129,7 +132,7 @@ void Swapchain::SetVSyncEnable(bool enable)
                 return;
             }
         }
-        // TODO: print warn 
+        // TODO: print warn
     }
     presentMode_ = VK_PRESENT_MODE_MAILBOX_KHR;
 }
@@ -143,9 +146,9 @@ void Swapchain::CreateSwapchain(VkSurfaceFormatKHR surfaceFormat, VkPresentModeK
     if (surfaceCapabilities.currentExtent.width == UINT32_MAX) {
         extent_ =
             VkExtent2D{std::min(std::max(static_cast<uint32_t>(window_.width()), surfaceCapabilities.minImageExtent.width),
-                                      surfaceCapabilities.maxImageExtent.width),
+                                surfaceCapabilities.maxImageExtent.width),
                        std::min(std::max(static_cast<uint32_t>(window_.height()), surfaceCapabilities.minImageExtent.height),
-                                      surfaceCapabilities.maxImageExtent.height)};
+                                surfaceCapabilities.maxImageExtent.height)};
     } else {
         extent_ = surfaceCapabilities.currentExtent;
     }
@@ -169,7 +172,8 @@ void Swapchain::CreateSwapchain(VkSurfaceFormatKHR surfaceFormat, VkPresentModeK
         VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR,
         VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR,
     };
-    if (std::find(compositeAlphaFlags.begin(), compositeAlphaFlags.end(), VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR) != compositeAlphaFlags.end()) {
+    if (std::find(compositeAlphaFlags.begin(), compositeAlphaFlags.end(), VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR) !=
+        compositeAlphaFlags.end()) {
         compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     } else {
         // TODO: print warn
@@ -253,7 +257,7 @@ void Swapchain::DestroyImageViews()
     imageViews_.clear();
 }
 
-//void Swapchain::CreateRenderPass()
+// void Swapchain::CreateRenderPass()
 //{
 //    renderPass_.AddAttachmentDescription(VkAttachmentDescription{.format = surfaceFormat_.format,
 //                                                                 .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -276,12 +280,12 @@ void Swapchain::DestroyImageViews()
 //    });
 //}
 //
-//void Swapchain::DestroyRenderPass()
+// void Swapchain::DestroyRenderPass()
 //{
 //    renderPass_.Reset();
 //}
 //
-//void Swapchain::CreateGraphicsPipeline()
+// void Swapchain::CreateGraphicsPipeline()
 //{
 //    graphicsPipeline.AddShaderStage("../shaders/test.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
 //    graphicsPipeline.AddShaderStage("../shaders/test.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -329,14 +333,14 @@ void Swapchain::DestroyImageViews()
 //    graphicsPipeline.SetRenderPass(renderPass_.Get());
 //}
 //
-//void Swapchain::DestroyGraphicsPipeline()
+// void Swapchain::DestroyGraphicsPipeline()
 //{
 //    graphicsPipeline.Reset();
 //    // vkDestroyPipeline(device_, graphicsPipeline_, nullptr);
 //    // vkDestroyPipelineLayout(device_, pipelineLayout_, nullptr);
 //}
 //
-//void Swapchain::CreateFramebuffer()
+// void Swapchain::CreateFramebuffer()
 //{
 //    framebuffers_.resize(SwapchainImageCount_);
 //    for (size_t i = 0; i < SwapchainImageCount_; i++) {
@@ -353,14 +357,14 @@ void Swapchain::DestroyImageViews()
 //    }
 //}
 //
-//void Swapchain::DestroyFramebuffer()
+// void Swapchain::DestroyFramebuffer()
 //{
 //    for (auto framebuffer : framebuffers_)
 //        vkDestroyFramebuffer(device_, framebuffer, nullptr);
 //    framebuffers_.clear();
 //}
 //
-//void Swapchain::CreateCommandBuffers()
+// void Swapchain::CreateCommandBuffers()
 //{
 //    commandBuffers_.resize(SwapchainImageCount_);
 //
@@ -407,7 +411,7 @@ void Swapchain::DestroyImageViews()
 //    }
 //}
 //
-//void Swapchain::DestroyCommandBuffers()
+// void Swapchain::DestroyCommandBuffers()
 //{
 //    vkFreeCommandBuffers(device_,
 //                         gfx_.graphicsCommandQueue().commandPool(),
@@ -415,7 +419,7 @@ void Swapchain::DestroyImageViews()
 //                         commandBuffers_.data());
 //}
 //
-//void Swapchain::CreateSyncObjects()
+// void Swapchain::CreateSyncObjects()
 //{
 //    VkSemaphoreCreateInfo semaphoreCI{.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
 //    VkFenceCreateInfo fenceCI{.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, .flags = VK_FENCE_CREATE_SIGNALED_BIT};
@@ -432,7 +436,7 @@ void Swapchain::DestroyImageViews()
 //    }
 //}
 //
-//void Swapchain::DestroySyncObjects()
+// void Swapchain::DestroySyncObjects()
 //{
 //    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 //        if (renderFinishedSemaphores_[i] != VK_NULL_HANDLE)
@@ -447,17 +451,17 @@ void Swapchain::DestroyImageViews()
 //    inFlightFences_.clear();
 //}
 //
-//void Swapchain::RequestRecreate()
+// void Swapchain::RequestRecreate()
 //{
 //    needRecreate_ = true;
 //}
 //
-//bool Swapchain::needRecreate()
+// bool Swapchain::needRecreate()
 //{
 //    return needRecreate_;
 //}
 //
-//void Swapchain::Recreate()
+// void Swapchain::Recreate()
 //{
 //    gfx_.DeviceWaitIdle();
 //    DestroyCommandBuffers();
@@ -474,7 +478,7 @@ void Swapchain::DestroyImageViews()
 //    needRecreate_ = false;
 //}
 //
-//void Swapchain::DrawFrame()
+// void Swapchain::DrawFrame()
 //{
 //    if (needRecreate()) {
 //        Recreate();
@@ -535,27 +539,27 @@ void Swapchain::DestroyImageViews()
 //    currentFrame_ = (currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;
 //}
 //
-//VkSemaphore Swapchain::GetCurrentFrameRenderFinishedSemaphore()
+// VkSemaphore Swapchain::GetCurrentFrameRenderFinishedSemaphore()
 //{
 //    return renderFinishedSemaphores_[currentFrame_];
 //}
 //
-//VkSemaphore Swapchain::GetCurrentFrameImageAvailableSemaphore()
+// VkSemaphore Swapchain::GetCurrentFrameImageAvailableSemaphore()
 //{
 //    return imageAvailableSemaphores_[currentFrame_];
 //}
 //
-//VkFence Swapchain::GetCurrentFrameInFlightFence()
+// VkFence Swapchain::GetCurrentFrameInFlightFence()
 //{
 //    return inFlightFences_[currentFrame_];
 //}
 //
-//VkFence *Swapchain::GetCurrentFrameInFlightFencePointer()
+// VkFence *Swapchain::GetCurrentFrameInFlightFencePointer()
 //{
 //    return &inFlightFences_[currentFrame_];
 //}
 //
-//std::vector<VkFence> &Swapchain::imageInFlight()
+// std::vector<VkFence> &Swapchain::imageInFlight()
 //{
 //    return imagesInFlight_;
 //}

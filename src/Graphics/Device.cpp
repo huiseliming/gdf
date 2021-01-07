@@ -42,7 +42,7 @@ Device::~Device()
 VkResult Device::CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
 											std::vector<const char *> enabledExtensions,
 											void *pNextChain,
-											bool useSwapChain,
+                                            VkSurfaceKHR surface,
 											VkQueueFlags requestedQueueTypes)
 {
     assert(logicalDevice == VK_NULL_HANDLE);
@@ -73,7 +73,6 @@ VkResult Device::CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
 	{
 		queueFamilyIndices.graphics = UINT32_MAX;
 	}
-
 	// Dedicated compute queue
 	if (requestedQueueTypes & VK_QUEUE_COMPUTE_BIT)
 	{
@@ -117,11 +116,59 @@ VkResult Device::CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
 		// Else we use the same queue
 		queueFamilyIndices.transfer = queueFamilyIndices.graphics;
 	}
-
 	// Create the logical device representation
 	std::vector<const char*> deviceExtensions(enabledExtensions);
-	if (useSwapChain)
+    if (surface != VK_NULL_HANDLE)
 	{
+        // Dedicated present queue
+        uint32_t queueFamilyCount = queueFamilyProperties.size();
+        std::vector<VkBool32> supportsPresent(queueFamilyCount);
+        for (uint32_t i = 0; i < queueFamilyCount; i++)
+            vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &supportsPresent[i]);
+
+        // Search for a graphics and a present queue in the array of queue
+        // families, try to find one that supports both
+        uint32_t graphicsQueueIndex = UINT32_MAX;
+        uint32_t presentQueueIndex = UINT32_MAX;
+        for (uint32_t i = 0; i < queueFamilyCount; i++) {
+            if ((queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
+                if (supportsPresent[i] == VK_TRUE) {
+                    graphicsQueueIndex = i;
+                    presentQueueIndex = i;
+                    break;
+                }
+            }
+        }
+
+        // If there's no queue that supports both present and graphics
+        // try to find a separate present queue
+        if (presentQueueIndex == UINT32_MAX) {
+            for (uint32_t i = 0; i < queueFamilyCount; ++i) {
+                if (supportsPresent[i] == VK_TRUE) {
+                    presentQueueIndex = i;
+                    break;
+                }
+            }
+        }
+
+        // Exit if either a graphics or a presenting queue hasn't been found
+        if (presentQueueIndex == UINT32_MAX) {
+            THROW_EXCEPT("Could not find a presenting queue!");
+        }
+
+        queueFamilyIndices.present = presentQueueIndex;
+        
+        // if present queue not createinfo push createinfo
+        if ((queueFamilyIndices.present != queueFamilyIndices.graphics) &&
+            (queueFamilyIndices.present != queueFamilyIndices.compute) &&
+            (queueFamilyIndices.present != queueFamilyIndices.transfer)) {
+            deviceQueueCIs.emplace_back(VkDeviceQueueCreateInfo{
+                .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                .queueFamilyIndex = queueFamilyIndices.present,
+                .queueCount = 1,
+                .pQueuePriorities = &defaultQueuePriority,
+            });
+        }
 		// If the device will be used for presenting to a display via a swapchain we need to request the swapchain extension
 		deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	}

@@ -32,6 +32,7 @@ struct Device {
         uint32_t graphics;
         uint32_t compute;
         uint32_t transfer;
+        uint32_t present;
     } queueFamilyIndices;
 
     operator VkDevice() const
@@ -45,7 +46,7 @@ struct Device {
     VkResult CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
                                  std::vector<const char *> enabledExtensions,
                                  void *pNextChain,
-                                 bool useSwapChain = true,
+                                 VkSurfaceKHR surface = VK_NULL_HANDLE,
                                  VkQueueFlags requestedQueueTypes = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT);
     uint32_t GetQueueFamilyIndex(VkQueueFlagBits queueFlags) const;
     bool ExtensionSupported(std::string extension);

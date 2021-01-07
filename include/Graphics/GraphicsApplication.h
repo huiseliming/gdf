@@ -15,8 +15,6 @@ public:
 	virtual void MainLoop() override;
 	virtual void Cleanup() override;
 
-
-
     DeveloperConsole &developerConsole()
     {
         return *pDeveloperConsole_;

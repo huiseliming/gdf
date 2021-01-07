@@ -78,13 +78,7 @@ bool Graphics::Initialize(bool enableValidationLayer)
     }
     if (pDevice_ == nullptr)
         return false;
-    // device extensions
-    std::vector<const char *> deviceExtensions;
-    pDevice_->CreateLogicalDevice(VkPhysicalDeviceFeatures{}, deviceExtensions,nullptr);
-    // Get a graphics queue from the device
-    VkQueue queue;
-    vkGetDeviceQueue(*pDevice_, pDevice_->queueFamilyIndices.graphics, 0, &queue);
-    pGraphicsQueue_ = std::make_unique<GraphicsQueue>(queue);
+
     return true;
 }
 
@@ -106,9 +100,9 @@ void Graphics::DrawFrame()
 {
 }
 
-void Graphics::SetSwapchain(std::unique_ptr<Swapchain> &&swapchain)
+void Graphics::CreateSwapchain(Window &window, bool VSync)
 {
-    pSwapchain_ = std::move(swapchain);
+    pSwapchain_ = std::make_unique<Swapchain>(window, *pDevice_, VSync);
 }
 
 bool Graphics::IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice)

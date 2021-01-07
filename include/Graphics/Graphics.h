@@ -30,7 +30,7 @@ public:
 
     void DrawFrame();
 
-    void SetSwapchain(std::unique_ptr<Swapchain> &&swapchain);
+    void CreateSwapchain(Window &window, bool VSync = false);
     bool IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice);
 
     //helpful function
