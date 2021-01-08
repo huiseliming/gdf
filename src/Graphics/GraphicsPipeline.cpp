@@ -1,7 +1,10 @@
 #include "Graphics/GraphicsPipeline.h"
 #include "Graphics/Device.h"
+#include "Base/File.h"
 
-gdf::GraphicsPipeline::operator VkPipeline()
+namespace gdf{
+
+GraphicsPipeline::operator VkPipeline()
 {
     if (!isModify) {
         Destroy();
@@ -14,7 +17,21 @@ gdf::GraphicsPipeline::operator VkPipeline()
     return graphicsPipeline_;
 }
 
-void gdf::GraphicsPipeline::Create()
+void GraphicsPipeline::AddShaderStage(std::string spvShaderPath,
+                                                  VkShaderStageFlagBits shaderStageFlag,
+                                                  std::string_view mainName)
+{
+    VkShaderModule vertShaderModule = device_.CreateShaderModule(File::ReadBytes(spvShaderPath));
+    VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+    vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertShaderStageInfo.stage = shaderStageFlag;
+    vertShaderStageInfo.module = vertShaderModule;
+    vertShaderStageInfo.pName = "main";
+    ShaderModules.push_back(vertShaderModule);
+    shaderStageCIs.push_back(vertShaderStageInfo);
+}
+
+void GraphicsPipeline::Create()
 {
     VkPipelineVertexInputStateCreateInfo vertexInputStateCI{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -38,8 +55,12 @@ void gdf::GraphicsPipeline::Create()
         .pPushConstantRanges = nullptr, // Optional
 
     };
+    VkPipelineDynamicStateCreateInfo dynamicStateCI{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
+        .pDynamicStates = dynamicStates.data(),
+    };
     vkCreatePipelineLayout(device_, &pipelineLayoutCI, nullptr, &pipelineLayout_);
-
     VkGraphicsPipelineCreateInfo GraphicsPipelineCI{
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
         .stageCount = static_cast<uint32_t>(shaderStageCIs.size()),
@@ -52,7 +73,7 @@ void gdf::GraphicsPipeline::Create()
         .pMultisampleState = &multisampleStateCI,
         //.pDepthStencilState = depthStencilStateCI.sType ? &depthStencilStateCI : nullptr,
         .pColorBlendState = &colorBlendStateCI,
-        //.pDynamicState = &dynamicStateCI,
+        .pDynamicState = &dynamicStateCI,
         .layout = pipelineLayout_,
         .renderPass = renderPass_,
         .subpass = subpass,
@@ -61,7 +82,7 @@ void gdf::GraphicsPipeline::Create()
     };
 }
 
-void gdf::GraphicsPipeline::Destroy()
+void GraphicsPipeline::Destroy()
 {
     for (auto ShaderModules : ShaderModules) {
         if (ShaderModules != VK_NULL_HANDLE) {
@@ -77,5 +98,7 @@ void gdf::GraphicsPipeline::Destroy()
         vkDestroyPipeline(device_, graphicsPipeline_, nullptr);
         graphicsPipeline_ = VK_NULL_HANDLE;
     }
+
+}
 
 }

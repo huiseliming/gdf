@@ -29,6 +29,9 @@ void GraphicsApplication::StartUp()
     pGraphics_->swapchain().Create();
     pGraphicsApplication = this;
     GDF_LOG(General, LogLevel::Info, "Entering MainLoop at ProgramTime: {}", pTimerManager_->RealCurrentTime());
+
+
+
 }
 
 void GraphicsApplication::MainLoop()
