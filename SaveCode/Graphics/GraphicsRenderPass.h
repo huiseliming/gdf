@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics/VulkanApi.h"
 #include <vector>
+
 struct GraphicsRenderPass {
 
 
@@ -14,6 +15,7 @@ struct GraphicsRenderPass {
 
     VkRenderPassCreateFlags flags{};
     std::vector<VkAttachmentDescription> attachments;
+    std::vector<SubpassDescriptionHelper> subpasseDescriptionHelpers;
     std::vector<VkSubpassDescription> subpasses;
     std::vector<VkSubpassDependency> dependencies;
     VkRenderPass renderPass_{VK_NULL_HANDLE};

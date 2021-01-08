@@ -1,9 +1,12 @@
 #pragma once
-#include "Graphics/VulkanApi.h"
-#include "Base/Window.h"
+#include "Base/NonCopyable.h"
 #include "Log/Logger.h"
-#include "DeviceInfo.h"
-#include <mutex>
+#include "VulkanApi.h"
+#include "GraphicsQueue.h"
+#include "Swapchain.h"
+#include <vector>
+#include <optional>
+#include "Device.h"
 
 #ifdef GDF_DEBUG
 #define GDF_ENABLE_VALIDATION_LAYER true
@@ -16,33 +19,40 @@ namespace gdf
 
 GDF_DECLARE_EXPORT_LOG_CATEGORY(GraphicsLog, LogLevel::Info, LogLevel::All);
 
-struct GDF_EXPORT Graphics : public NonCopyable
+class Swapchain;
+
+class GDF_EXPORT Graphics : public NonCopyable
 {
-    void Initialize(bool enableValidationLayer = GDF_ENABLE_VALIDATION_LAYER);
+public:
+    bool Initialize(bool enableValidationLayer = GDF_ENABLE_VALIDATION_LAYER);
     
+    void CreateSwapchain(Window &window, bool VSync = false);
+
+    void GetDeviceQueue();
+
     void DrawFrame();
 
     void Cleanup();
 
-    // Initialize Funtion
-    void CreateInstance();
-    void CreateDevice();
-    void CreateDebugReporter();
 
-    // Cleanup Funtion
-    void DestroyDebugReporter();
-    void DestroyDevice();
-    void DestroyInstance();
-
-    // Tool Funtion
     bool IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice);
 
     //helpful function
     VkShaderModule CreateShaderModule(const std::vector<char> &code);
-
     bool GetSupportPresentQueue(VkSurfaceKHR surface, VkQueue &queue);
 
+
+
     void DeviceWaitIdle();
+
+    Device &device();
+
+    Swapchain &swapchain();
+
+    GraphicsQueue &graphicsQueue();
+
+    VkQueue presentQueue();
+
     static VkBool32 DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
                                            VkDebugReportObjectTypeEXT objectType,
                                            uint64_t object,
@@ -54,20 +64,24 @@ struct GDF_EXPORT Graphics : public NonCopyable
 
     friend class Swapchain;
 
-    VkInstance instance_{VK_NULL_HANDLE};
-    VkDevice device_{VK_NULL_HANDLE};
+private:
+    std::unique_ptr<Device> pDevice_;
+    std::unique_ptr<Swapchain> pSwapchain_;
+    std::unique_ptr<GraphicsQueue> pGraphicsQueue_;
+    VkQueue computeQueue_{VK_NULL_HANDLE};
+    VkQueue transferQueue_{VK_NULL_HANDLE};
+    VkQueue presentQueue_{VK_NULL_HANDLE};
+
     VkDebugReportCallbackEXT fpDebugReportCallbackEXT_ = VK_NULL_HANDLE;
     bool enableValidationLayer_;
 
-
-    // Infomation
-    DeviceInfo deviceInfo_;
-
-private:
 public:
+    static VkInstance vulkanInstance()
+    {
+        return vulkanInstance_;
+    }
+
 private:
+    static VkInstance vulkanInstance_;
 };
 } // namespace gdf
-
-
-

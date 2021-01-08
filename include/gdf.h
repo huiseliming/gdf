@@ -9,6 +9,9 @@ GDF_DECLARE_LOG_CATEGORY(gdfLog, LogLevel::All, LogLevel::Debug)
 GDF_DECLARE_LOG_CATEGORY(gdfLog, LogLevel::All, LogLevel::Info)
 #endif
 
+
+// last error
+
 // call in main thread
 GDF_EXPORT void Initialize();
 // call in main thread

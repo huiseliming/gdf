@@ -1,12 +1,6 @@
-#include "Base/Window.h"
-#include "Graphics/Graphics.h"
 #include "Git.h"
-#include "Graphics/Swapchain.h"
-#include "Graphics/GraphicsQueue.h"
-#include <GLFW/glfw3.h>
-#include <iostream>
-#include <vector>
-
+#include "Graphics/Renderer.h"
+#include "..\..\include\Graphics\Graphics.h"
 #define GIT_UINT32_VERSION                                                                                                     \
     (static_cast<uint32_t>(wcstoul(GIT_VERSION_MAJOR, nullptr, 10) && 0xF) << 28) ||                                           \
         (static_cast<uint32_t>(wcstoul(GIT_VERSION_MINOR, nullptr, 10) && 0xFF) << 20) ||                                      \
@@ -15,25 +9,42 @@
 
 namespace gdf
 {
+
 GDF_DEFINE_EXPORT_LOG_CATEGORY(GraphicsLog);
 
-VkInstance Graphics::vulkanInstance_ = VK_NULL_HANDLE;
 
-bool Graphics::Initialize(bool enableValidationLayer)
+void Graphics::Initialize(bool enableValidationLayer)
 {
     enableValidationLayer_ = enableValidationLayer;
-    // instance extensions 
+    CreateInstance();
+    // Setup DebugReportCallback
+    if (enableValidationLayer_) CreateDebugReporter();
+    CreateDevice();
+
+}
+void Graphics::DrawFrame()
+{
+}
+
+void Graphics::Cleanup()
+{
+    DeviceWaitIdle();
+    DestroyDevice();
+    if (enableValidationLayer_) DestroyDebugReporter();
+    DestroyInstance();
+}
+
+void Graphics::CreateInstance()
+{
     std::vector<const char *> instanceExtensions;
     if (!Window::GetRequiredInstanceExtensions(instanceExtensions))
-        return false;
-    // instance layers
+        THROW_EXCEPT("Required window instance extensions faild!");
+    // Instance
     std::vector<const char *> instanceLayers;
     if (enableValidationLayer_) {
         instanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
         instanceLayers.emplace_back("VK_LAYER_KHRONOS_validation");
     }
-
-    // Instance
     VkApplicationInfo appinfo{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
                               .pApplicationName = APPLICATION_NAME,
                               .applicationVersion = GIT_UINT32_VERSION,
@@ -49,130 +60,67 @@ bool Graphics::Initialize(bool enableValidationLayer)
         .ppEnabledExtensionNames = instanceExtensions.data(),
     };
 
-    VK_ASSERT_SUCCESSED(vkCreateInstance(&instanceCI, nullptr, &vulkanInstance_));
+    VK_ASSERT_SUCCESSED(vkCreateInstance(&instanceCI, nullptr, &instance_));
+}
 
-    // Setup DebugReportCallback
-    if (enableValidationLayer_) {
-        VkDebugReportCallbackCreateInfoEXT DebugReportCallbackCI{
-            .sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT,
-            .flags = VK_DEBUG_REPORT_DEBUG_BIT_EXT | VK_DEBUG_REPORT_ERROR_BIT_EXT |
-                     VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT
-            //| VK_DEBUG_REPORT_INFORMATION_BIT_EXT
-            ,
-            .pfnCallback = Graphics::DebugReportCallbackEXT,
-        };
-        auto fpCreateDebugReportCallbackEXT = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(
-            vkGetInstanceProcAddr(vulkanInstance_, "vkCreateDebugReportCallbackEXT"));
-        fpCreateDebugReportCallbackEXT(vulkanInstance_, &DebugReportCallbackCI, nullptr, &fpDebugReportCallbackEXT_);
-    }
+void Graphics::CreateDebugReporter()
+{
+    VkDebugReportCallbackCreateInfoEXT DebugReportCallbackCI{
+        .sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT,
+        .flags = VK_DEBUG_REPORT_DEBUG_BIT_EXT | VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
+                 VK_DEBUG_REPORT_WARNING_BIT_EXT
+        //| VK_DEBUG_REPORT_INFORMATION_BIT_EXT
+        ,
+        .pfnCallback = Graphics::DebugReportCallbackEXT,
+    };
+    auto fpCreateDebugReportCallbackEXT = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(
+        vkGetInstanceProcAddr(vulkanInstance_, "vkCreateDebugReportCallbackEXT"));
+    fpCreateDebugReportCallbackEXT(vulkanInstance_, &DebugReportCallbackCI, nullptr, &fpDebugReportCallbackEXT_);
+}
+
+void Graphics::CreateDevice()
+{
     // Physical Device
     uint32_t physicalDeviceCount;
-    VK_ASSERT_SUCCESSED(vkEnumeratePhysicalDevices(vulkanInstance_, &physicalDeviceCount, nullptr));
+    VK_ASSERT_SUCCESSED(vkEnumeratePhysicalDevices(instance_, &physicalDeviceCount, nullptr));
     std::vector<VkPhysicalDevice> physicalDevices(physicalDeviceCount, VK_NULL_HANDLE);
-    VK_ASSERT_SUCCESSED(vkEnumeratePhysicalDevices(vulkanInstance_, &physicalDeviceCount, physicalDevices.data()));
-    
+    VK_ASSERT_SUCCESSED(vkEnumeratePhysicalDevices(instance_, &physicalDeviceCount, physicalDevices.data()));
+
     std::vector<VkPhysicalDevice> availablePhysicalDevices;
     for (auto physicalDevice : physicalDevices) {
         if (IsPhysicalDeviceSuitable(physicalDevice))
-            pDevice_ = std::make_unique<Device>(physicalDevice);
+            1;
     }
-    if (pDevice_ == nullptr)
-        return false;
-
-    return true;
 }
 
-void Graphics::Cleanup()
+
+void Graphics::DestroyInstance()
 {
-    DeviceWaitIdle();
-    pSwapchain_.reset();
-    pDevice_.reset();
-    if (enableValidationLayer_) {
-        auto vkDestroyDebugReportCallbackEXT = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(
-            vkGetInstanceProcAddr(vulkanInstance_, "vkDestroyDebugReportCallbackEXT"));
-        vkDestroyDebugReportCallbackEXT(vulkanInstance_, fpDebugReportCallbackEXT_, nullptr);
-    }
-    vkDestroyInstance(vulkanInstance_, nullptr);
-    vulkanInstance_ = VK_NULL_HANDLE;
+    vkDestroyInstance(instance_, nullptr);
+    instance_ = VK_NULL_HANDLE;
 }
 
-void Graphics::DrawFrame()
+void Graphics::DestroyDebugReporter()
 {
 }
 
-void Graphics::CreateSwapchain(Window &window, bool VSync)
+void Graphics::DestroyDevice()
 {
-    pSwapchain_ = std::make_unique<Swapchain>(window, *pDevice_, VSync);
+
 }
 
-void Graphics::GetDeviceQueue()
-{
-    std::vector<uint32_t> CreatedQueueIndices;
-    // Get a graphics queue from the device
-    if (pDevice_->queueFamilyIndices.graphics != UINT32_MAX) {
-        bool isCreated = false;
-        for (auto CreatedQueueIndex : CreatedQueueIndices) {
-            if (pDevice_->queueFamilyIndices.graphics == CreatedQueueIndex) {
-                isCreated = true;
-            }
-        }
-        if (!isCreated) {
-            VkQueue queue;
-            vkGetDeviceQueue(*pDevice_, pDevice_->queueFamilyIndices.graphics, 0, &queue);
-            pGraphicsQueue_ = std::make_unique<GraphicsQueue>(queue);
-            CreatedQueueIndices.push_back(pDevice_->queueFamilyIndices.graphics);
-        }
-    }
-    if (pDevice_->queueFamilyIndices.compute != UINT32_MAX) {
-        bool isCreated = false;
-        for (auto CreatedQueueIndex : CreatedQueueIndices) {
-            if (pDevice_->queueFamilyIndices.compute == CreatedQueueIndex) {
-                isCreated = true;
-            }
-        }
-        if (!isCreated) {
-            vkGetDeviceQueue(*pDevice_, pDevice_->queueFamilyIndices.compute, 0, &computeQueue_);
-            CreatedQueueIndices.push_back(pDevice_->queueFamilyIndices.compute);
-        }
-    }
-    if (pDevice_->queueFamilyIndices.transfer != UINT32_MAX) {
-        bool isCreated = false;
-        for (auto CreatedQueueIndex : CreatedQueueIndices) {
-            if (pDevice_->queueFamilyIndices.transfer == CreatedQueueIndex) {
-                isCreated = true;
-            }
-        }
-        if (!isCreated) {
-            vkGetDeviceQueue(*pDevice_, pDevice_->queueFamilyIndices.transfer, 0, &transferQueue_);
-
-            CreatedQueueIndices.push_back(pDevice_->queueFamilyIndices.transfer);
-        }
-    }
-    if (pDevice_->queueFamilyIndices.present != UINT32_MAX) {
-        bool isCreated = false;
-        for (auto CreatedQueueIndex : CreatedQueueIndices) {
-            if (pDevice_->queueFamilyIndices.present == CreatedQueueIndex) {
-                isCreated = true;
-            }
-        }
-        if (!isCreated) {
-            vkGetDeviceQueue(*pDevice_, pDevice_->queueFamilyIndices.present, 0, &presentQueue_);
-            CreatedQueueIndices.push_back(pDevice_->queueFamilyIndices.present);
-        }
-    }
-}
 
 bool Graphics::IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice)
 {
     VkPhysicalDeviceProperties properties;
-    //find discrete GPU
+    // find discrete GPU
     vkGetPhysicalDeviceProperties(physicalDevice, &properties);
     if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
         return true;
     return false;
 }
 
-//bool Graphics::GetSupportPresentQueue(VkSurfaceKHR surface, VkQueue &queue)
+// bool Graphics::GetSupportPresentQueue(VkSurfaceKHR surface, VkQueue &queue)
 //{
 //    VkBool32 supported = VK_FALSE;
 //    // if graphics queue support present, use it
@@ -203,33 +151,13 @@ VkShaderModule Graphics::CreateShaderModule(const std::vector<char> &code)
     createInfo.pCode = reinterpret_cast<const uint32_t *>(code.data());
 
     VkShaderModule shaderModule;
-    VK_ASSERT_SUCCESSED(vkCreateShaderModule(*pDevice_, &createInfo, nullptr, &shaderModule))
+    VK_ASSERT_SUCCESSED(vkCreateShaderModule(device_, &createInfo, nullptr, &shaderModule))
     return shaderModule;
 }
 
 void Graphics::DeviceWaitIdle()
 {
-    VK_ASSERT_SUCCESSED(vkDeviceWaitIdle(*pDevice_));
-}
-
-Device &Graphics::device()
-{
-    return *pDevice_;
-}
-
-GraphicsQueue &Graphics::graphicsQueue()
-{
-    return *pGraphicsQueue_;
-}
-
-VkQueue Graphics::presentQueue()
-{
-    return presentQueue_;
-}
-
-Swapchain &Graphics::swapchain()
-{
-    return *pSwapchain_;
+    VK_ASSERT_SUCCESSED(vkDeviceWaitIdle(device_));
 }
 
 VkBool32 Graphics::DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
@@ -256,4 +184,5 @@ VkBool32 Graphics::DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
 
     return VK_FALSE;
 }
+
 } // namespace gdf

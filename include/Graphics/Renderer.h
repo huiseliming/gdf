@@ -2,7 +2,6 @@
 #include "Graphics/VulkanApi.h"
 #include "Base/Window.h"
 #include "Log/Logger.h"
-#include "DeviceInfo.h"
 #include <mutex>
 
 #ifdef GDF_DEBUG
@@ -56,12 +55,11 @@ struct GDF_EXPORT Graphics : public NonCopyable
 
     VkInstance instance_{VK_NULL_HANDLE};
     VkDevice device_{VK_NULL_HANDLE};
+
+
+
     VkDebugReportCallbackEXT fpDebugReportCallbackEXT_ = VK_NULL_HANDLE;
     bool enableValidationLayer_;
-
-
-    // Infomation
-    DeviceInfo deviceInfo_;
 
 private:
 public:

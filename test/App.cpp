@@ -1,11 +1,11 @@
 #include <iostream>
-#include "Graphics/GraphicsApplication.h"
+//#include "Graphics/GraphicsApplication.h"
 
 int main(int argc, char **argv)
 {
     try {
-        gdf::GraphicsApplication gfxApp;
-        gfxApp.Run();
+        //gdf::GraphicsApplication gfxApp;
+        //gfxApp.Run();
     } catch (const std::exception &e) {
         std::cout << "Fatal exception: " << e.what() << "\n";
         return EXIT_FAILURE;
