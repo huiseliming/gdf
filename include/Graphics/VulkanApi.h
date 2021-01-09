@@ -1,6 +1,7 @@
 #pragma once
 #include "Base/Exception.h"
 #include <vulkan/vulkan.h>
+#include "Graphics/VulkanTools.h"
 
 #define VK_ASSERT_SUCCESSED(result)                                                                                            \
     if ((result) != VK_SUCCESS) {                                                                                              \

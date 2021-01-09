@@ -5,12 +5,10 @@
 #include <algorithm>
 #include <cmath>
 
-
 namespace gdf
 {
 
-Swapchain::Swapchain(Window &window, Device &device, bool VSync)
-    : window_(window), device_(device), needRecreate_(false)
+Swapchain::Swapchain(Window &window, Device &device, bool VSync) : window_(window), device_(device), needRecreate_(false)
 {
     VK_ASSERT_SUCCESSED(window_.GetVkSurfaceKHR(Graphics::vulkanInstance(), &surface_));
 
@@ -49,7 +47,7 @@ Swapchain::Swapchain(Window &window, Device &device, bool VSync)
         THROW_EXCEPT("Could not find a graphics and/or presenting queue!");
     }
 
-    //if (graphicsQueueIndex != presentQueueIndex) {
+    // if (graphicsQueueIndex != presentQueueIndex) {
     //    THROW_EXCEPT("Separate graphics and presenting queues are not supported yet!");
     //}
 
@@ -99,7 +97,7 @@ Swapchain::Swapchain(Window &window, Device &device, bool VSync)
         device_.physicalDevice, surface_, &presentModeCount, supportedPresentModes_.data()));
     SetVSyncEnable(VSync);
 
-    //CreateSwapchain();
+    // CreateSwapchain();
     // CreateImageViews();
     // CreateRenderPass();
     // CreateGraphicsPipeline();

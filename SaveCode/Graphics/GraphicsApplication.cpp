@@ -2,7 +2,8 @@
 
 #include "Log/StdSink.h"
 #include "gdf.h"
-namespace gdf{
+namespace gdf
+{
 
 GDF_DEFINE_LOG_CATEGORY(General)
 
@@ -24,14 +25,12 @@ void GraphicsApplication::StartUp()
     // device extensions
     std::vector<const char *> deviceExtensions;
     pGraphics_->CreateSwapchain(*pWindow_);
-    pGraphics_->device().CreateLogicalDevice(VkPhysicalDeviceFeatures{}, deviceExtensions, nullptr, pGraphics_->swapchain().surface());
+    pGraphics_->device().CreateLogicalDevice(
+        VkPhysicalDeviceFeatures{}, deviceExtensions, nullptr, pGraphics_->swapchain().surface());
     pGraphics_->GetDeviceQueue();
     pGraphics_->swapchain().Create();
     pGraphicsApplication = this;
     GDF_LOG(General, LogLevel::Info, "Entering MainLoop at ProgramTime: {}", pTimerManager_->RealCurrentTime());
-
-
-
 }
 
 void GraphicsApplication::MainLoop()
@@ -55,7 +54,4 @@ void GraphicsApplication::Cleanup()
     gdf::Cleanup();
 }
 
-}
-
-
-
+} // namespace gdf

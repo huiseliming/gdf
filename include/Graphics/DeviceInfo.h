@@ -32,7 +32,7 @@ struct DeviceInfo
         uint32_t present{UINT32_MAX};
     } queueFamilyIndices;
 
-    DeviceInfo(VkPhysicalDevice physicalDevice);
+    DeviceInfo() = default;
     void Parse(VkPhysicalDevice physicalDevice);
 
     uint32_t GetQueueFamilyIndex(VkQueueFlagBits queueFlags) const;

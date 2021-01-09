@@ -1,6 +1,7 @@
 #include "Graphics/Device.h"
-#include <cassert>
 #include "Base/File.h"
+#include <cassert>
+
 
 namespace gdf
 {
@@ -43,27 +44,26 @@ Device::~Device()
 }
 
 VkResult Device::CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
-									    std::vector<const char *> enabledExtensions,
-									    void *pNextChain,
-                                        VkSurfaceKHR surface,
-									    VkQueueFlags requestedQueueTypes)
+                                     std::vector<const char *> enabledExtensions,
+                                     void *pNextChain,
+                                     VkSurfaceKHR surface,
+                                     VkQueueFlags requestedQueueTypes)
 {
     assert(logicalDevice == VK_NULL_HANDLE);
-	// Desired queues need to be requested upon logical device creation
-	// Due to differing queue family configurations of Vulkan implementations this can be a bit tricky, especially if the application
-	// requests different queue types
+    // Desired queues need to be requested upon logical device creation
+    // Due to differing queue family configurations of Vulkan implementations this can be a bit tricky, especially if the
+    // application requests different queue types
 
-	std::vector<VkDeviceQueueCreateInfo> deviceQueueCIs;
+    std::vector<VkDeviceQueueCreateInfo> deviceQueueCIs;
 
-	// Get queue family indices for the requested queue family types
-	// Note that the indices may overlap depending on the implementation
+    // Get queue family indices for the requested queue family types
+    // Note that the indices may overlap depending on the implementation
 
-	const float defaultQueuePriority(0.0f);
-	// Graphics queue
-	if (requestedQueueTypes & VK_QUEUE_GRAPHICS_BIT)
-	{
-		queueFamilyIndices.graphics = GetQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT);
-        if (queueFamilyIndices.graphics == UINT32_MAX) 
+    const float defaultQueuePriority(0.0f);
+    // Graphics queue
+    if (requestedQueueTypes & VK_QUEUE_GRAPHICS_BIT) {
+        queueFamilyIndices.graphics = GetQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT);
+        if (queueFamilyIndices.graphics == UINT32_MAX)
             THROW_EXCEPT("No found graphics queue family indices!");
         deviceQueueCIs.emplace_back(VkDeviceQueueCreateInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -71,58 +71,48 @@ VkResult Device::CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
             .queueCount = 1,
             .pQueuePriorities = &defaultQueuePriority,
         });
-	}
-	else
-	{
-		queueFamilyIndices.graphics = UINT32_MAX;
-	}
-	// Dedicated compute queue
-	if (requestedQueueTypes & VK_QUEUE_COMPUTE_BIT)
-	{
-		queueFamilyIndices.compute = GetQueueFamilyIndex(VK_QUEUE_COMPUTE_BIT);
+    } else {
+        queueFamilyIndices.graphics = UINT32_MAX;
+    }
+    // Dedicated compute queue
+    if (requestedQueueTypes & VK_QUEUE_COMPUTE_BIT) {
+        queueFamilyIndices.compute = GetQueueFamilyIndex(VK_QUEUE_COMPUTE_BIT);
         if (queueFamilyIndices.graphics == UINT32_MAX)
             THROW_EXCEPT("No found compute queue family indices!");
-		if (queueFamilyIndices.compute != queueFamilyIndices.graphics)
-		{
+        if (queueFamilyIndices.compute != queueFamilyIndices.graphics) {
             deviceQueueCIs.emplace_back(VkDeviceQueueCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
                 .queueFamilyIndex = queueFamilyIndices.compute,
                 .queueCount = 1,
                 .pQueuePriorities = &defaultQueuePriority,
             });
-		}
-	}
-	else
-	{
-		// Else we use the same queue
-		queueFamilyIndices.compute = queueFamilyIndices.graphics;
-	}
+        }
+    } else {
+        // Else we use the same queue
+        queueFamilyIndices.compute = queueFamilyIndices.graphics;
+    }
 
-	// Dedicated transfer queue
-	if (requestedQueueTypes & VK_QUEUE_TRANSFER_BIT)
-	{
-		queueFamilyIndices.transfer = GetQueueFamilyIndex(VK_QUEUE_TRANSFER_BIT);
+    // Dedicated transfer queue
+    if (requestedQueueTypes & VK_QUEUE_TRANSFER_BIT) {
+        queueFamilyIndices.transfer = GetQueueFamilyIndex(VK_QUEUE_TRANSFER_BIT);
         if (queueFamilyIndices.transfer == UINT32_MAX)
             THROW_EXCEPT("No found transfer queue family indices!");
-		if ((queueFamilyIndices.transfer != queueFamilyIndices.graphics) && (queueFamilyIndices.transfer != queueFamilyIndices.compute))
-		{
+        if ((queueFamilyIndices.transfer != queueFamilyIndices.graphics) &&
+            (queueFamilyIndices.transfer != queueFamilyIndices.compute)) {
             deviceQueueCIs.emplace_back(VkDeviceQueueCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
                 .queueFamilyIndex = queueFamilyIndices.transfer,
                 .queueCount = 1,
                 .pQueuePriorities = &defaultQueuePriority,
             });
-		}
-	}
-	else
-	{
-		// Else we use the same queue
-		queueFamilyIndices.transfer = queueFamilyIndices.graphics;
-	}
-	// Create the logical device representation
-	std::vector<const char*> deviceExtensions(enabledExtensions);
-    if (surface != VK_NULL_HANDLE)
-	{
+        }
+    } else {
+        // Else we use the same queue
+        queueFamilyIndices.transfer = queueFamilyIndices.graphics;
+    }
+    // Create the logical device representation
+    std::vector<const char *> deviceExtensions(enabledExtensions);
+    if (surface != VK_NULL_HANDLE) {
         // Dedicated present queue
         uint32_t queueFamilyCount = queueFamilyProperties.size();
         std::vector<VkBool32> supportsPresent(queueFamilyCount);
@@ -160,7 +150,7 @@ VkResult Device::CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
         }
 
         queueFamilyIndices.present = presentQueueIndex;
-        
+
         // if present queue not createinfo push createinfo
         if ((queueFamilyIndices.present != queueFamilyIndices.graphics) &&
             (queueFamilyIndices.present != queueFamilyIndices.compute) &&
@@ -172,11 +162,11 @@ VkResult Device::CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
                 .pQueuePriorities = &defaultQueuePriority,
             });
         }
-		// If the device will be used for presenting to a display via a swapchain we need to request the swapchain extension
-		deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-	}
+        // If the device will be used for presenting to a display via a swapchain we need to request the swapchain extension
+        deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    }
 
-	// Enable the debug marker extension if it is present (likely meaning a debugging tool is present)
+    // Enable the debug marker extension if it is present (likely meaning a debugging tool is present)
     if (ExtensionSupported(VK_EXT_DEBUG_MARKER_EXTENSION_NAME)) {
         deviceExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
         enableDebugMarkers = true;
@@ -185,40 +175,41 @@ VkResult Device::CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
     if (deviceExtensions.size() > 0) {
         for (const char *enabledExtension : deviceExtensions) {
             if (!ExtensionSupported(enabledExtension)) {
-                THROW_EXCEPT(std::string("Enabled device extension \"") + enabledExtension + "\" is not present at device level");
+                THROW_EXCEPT(std::string("Enabled device extension \"") + enabledExtension +
+                             "\" is not present at device level");
             }
         }
     }
 
-	VkDeviceCreateInfo deviceCI = {
-		.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-		.queueCreateInfoCount = static_cast<uint32_t>(deviceQueueCIs.size()),
-		.pQueueCreateInfos = deviceQueueCIs.data(),
+    VkDeviceCreateInfo deviceCI = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .queueCreateInfoCount = static_cast<uint32_t>(deviceQueueCIs.size()),
+        .pQueueCreateInfos = deviceQueueCIs.data(),
         .enabledLayerCount = static_cast<uint32_t>(0),
-		.ppEnabledLayerNames = nullptr,
-		.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
+        .ppEnabledLayerNames = nullptr,
+        .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
         .ppEnabledExtensionNames = deviceExtensions.data(),
-		.pEnabledFeatures = &enabledFeatures,
+        .pEnabledFeatures = &enabledFeatures,
     };
 
-	// If a pNext(Chain) has been passed, we need to add it to the device creation info
-	VkPhysicalDeviceFeatures2 physicalDeviceFeatures2{};
-	if (pNextChain) {
-		physicalDeviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-		physicalDeviceFeatures2.features = enabledFeatures;
-		physicalDeviceFeatures2.pNext = pNextChain;
-		deviceCI.pEnabledFeatures = nullptr;
-		deviceCI.pNext = &physicalDeviceFeatures2;
-	}
+    // If a pNext(Chain) has been passed, we need to add it to the device creation info
+    VkPhysicalDeviceFeatures2 physicalDeviceFeatures2{};
+    if (pNextChain) {
+        physicalDeviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        physicalDeviceFeatures2.features = enabledFeatures;
+        physicalDeviceFeatures2.pNext = pNextChain;
+        deviceCI.pEnabledFeatures = nullptr;
+        deviceCI.pNext = &physicalDeviceFeatures2;
+    }
 
-	VkResult result = vkCreateDevice(physicalDevice, &deviceCI, nullptr, &logicalDevice);
-	if (result != VK_SUCCESS) 
-		return result;
+    VkResult result = vkCreateDevice(physicalDevice, &deviceCI, nullptr, &logicalDevice);
+    if (result != VK_SUCCESS)
+        return result;
 
-	// Create a default command pool for graphics command buffers
+    // Create a default command pool for graphics command buffers
     commandPool = CreateCommandPool(queueFamilyIndices.graphics);
 
-	return result;
+    return result;
 }
 
 uint32_t Device::GetQueueFamilyIndex(VkQueueFlagBits queueFlags) const
