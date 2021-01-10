@@ -31,6 +31,7 @@ void Graphics::Initialize(Window* pWindow, bool enableValidationLayer)
     CreateRenderPass();
     CreateGraphicsPipeline();
     CreateFramebuffers();
+    AllocateCommandBuffers();
     CreateSyncObjects();
 }
 
@@ -43,6 +44,7 @@ void Graphics::Cleanup()
 {
     DeviceWaitIdle();
     DestroySyncObjects();
+    FreeCommandBuffers();
     DestroyFramebuffers();
     DestroyGraphicsPipeline();
     DestroyRenderPass();
@@ -349,9 +351,9 @@ void Graphics::CreateSwapchain()
     }
     swapchainImageFormat_ = surfaceFormat.format;
     swapchainExtent_ = extent;
-    vkGetSwapchainImagesKHR(device_, swapchainKHR_, &swapahainImageCount, nullptr);
-    swapahainImages_.resize(swapahainImageCount);
-    vkGetSwapchainImagesKHR(device_, swapchainKHR_, &swapahainImageCount, swapahainImages_.data());
+    vkGetSwapchainImagesKHR(device_, swapchainKHR_, &swapahainImageCount_, nullptr);
+    swapahainImages_.resize(swapahainImageCount_);
+    vkGetSwapchainImagesKHR(device_, swapchainKHR_, &swapahainImageCount_, swapahainImages_.data());
     CreateSwapchainImageViews();
 }
 
@@ -525,7 +527,7 @@ void Graphics::CreateFramebuffers()
     }
 }
 
-void Graphics::CreateCommandBuffers()
+void Graphics::AllocateCommandBuffers()
 {
     commandBuffers_.resize(swapahainImageCount_);
 
@@ -533,7 +535,7 @@ void Graphics::CreateCommandBuffers()
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .commandPool = commandPool_,
         .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-        .commandBufferCount = (uint32_t)commandBuffers_.size(),
+        .commandBufferCount = swapahainImageCount_,
     };
 
     VK_ASSERT_SUCCESSED(vkAllocateCommandBuffers(device_, &CommandBufferAI, commandBuffers_.data()));
@@ -561,7 +563,7 @@ void Graphics::CreateCommandBuffers()
 
         vkCmdBindPipeline(commandBuffers_[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline_);
 
-        vkCmdDrawIndexed(commandBuffers_[i], 3, 1, 0, 0, 0);
+        vkCmdDraw(commandBuffers_[i], 3, 1, 0, 0);
 
         vkCmdEndRenderPass(commandBuffers_[i]);
 
@@ -598,8 +600,9 @@ void Graphics::DestroySyncObjects()
     }
 }
 
-void Graphics::DestroyCommandBuffers()
+void Graphics::FreeCommandBuffers()
 {
+    vkFreeCommandBuffers(device_, commandPool_, static_cast<uint32_t>(commandBuffers_.size()), commandBuffers_.data());
 }
 
 void Graphics::DestroyFramebuffers()

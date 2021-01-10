@@ -50,13 +50,13 @@ public:
     void CreateRenderPass();
     void CreateGraphicsPipeline();
     void CreateFramebuffers();
-    void CreateCommandBuffers();
+    void AllocateCommandBuffers();
     void CreateSyncObjects();
 
 
     // Cleanup Funtion
     void DestroySyncObjects();
-    void DestroyCommandBuffers();
+    void FreeCommandBuffers();
     void DestroyFramebuffers();
     void DestroyGraphicsPipeline();
     void DestroyRenderPass();
