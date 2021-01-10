@@ -68,6 +68,19 @@ public:
     void DestroyDebugReporter();
     void DestroyInstance();
 
+    // ImGui
+    void ImGuiCreate();
+    void ImGuiDestroy();
+    void ImGuiCreateDescriptorPool();
+    void ImGuiCreateRenderPass();
+    void ImGuiUploadFonts();
+    static void ImGuiCheckVkResultCallback(VkResult result);
+
+    VkAllocationCallbacks *imguiAllocator_{nullptr};
+    VkPipelineCache imguiPipelineCache_{VK_NULL_HANDLE};
+    VkDescriptorPool imguiDescriptorPool_{VK_NULL_HANDLE};
+    VkRenderPass imguiRenderPass_{VK_NULL_HANDLE};
+
     // Tool Funtion
     bool IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice);
 
@@ -86,7 +99,11 @@ public:
     VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
 
+    // Command Helper
+    VkCommandBuffer BeginSingleTimeCommand();
+    void EndSingleTimeCommand( VkCommandBuffer commandBuffer);
 
+    //
     void DeviceWaitIdle();
 
     SwapChainSupportDetails QuerySwapChainSupport();
@@ -132,6 +149,7 @@ public:
     // Swapchain Infomation
     VkFormat swapchainImageFormat_;
     VkExtent2D swapchainExtent_;
+    uint32_t swapahainMinImageCount_{0};
     uint32_t swapahainImageCount_{0};
     std::vector<VkImage> swapahainImages_;
     std::vector<VkImageView> swapahainImageViews_;

@@ -1,8 +1,10 @@
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_vulkan.h"
 #include "Git.h"
-#include "Graphics\Graphics.h"
+#include "Graphics/Graphics.h"
 #include "Base/File.h"
 #include <array>
-
 
 #define GIT_UINT32_VERSION                                                                                                     \
     (static_cast<uint32_t>(wcstoul(GIT_VERSION_MAJOR, nullptr, 10) && 0xF) << 28) ||                                           \
@@ -33,16 +35,27 @@ void Graphics::Initialize(Window* pWindow, bool enableValidationLayer)
     CreateFramebuffers();
     AllocateCommandBuffers();
     CreateSyncObjects();
+
+    ImGuiCreate();
 }
 
 void Graphics::DrawFrame()
 {
 
+
+    
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    ImGui::ShowDemoWindow();
+    ImGui::Render();
 }
 
 void Graphics::Cleanup()
 {
     DeviceWaitIdle();
+    ImGuiDestroy();
+
     DestroySyncObjects();
     FreeCommandBuffers();
     DestroyFramebuffers();
@@ -285,9 +298,9 @@ void Graphics::CreateSwapchain()
     VkSurfaceFormatKHR surfaceFormat = GetAvailableFormat(swapchainSupport.formats);
     VkPresentModeKHR presentMode = GetAvailablePresentMode(swapchainSupport.presentModes);
     VkExtent2D extent = GetAvailableExtent(swapchainSupport.capabilities);
-    uint32_t swapahainImageCount = swapchainSupport.capabilities.minImageCount + 1;
-    if (swapchainSupport.capabilities.maxImageCount > 0 && swapahainImageCount > swapchainSupport.capabilities.maxImageCount)
-        swapahainImageCount = swapchainSupport.capabilities.maxImageCount;
+    swapahainMinImageCount_ = swapchainSupport.capabilities.minImageCount + 1;
+    if (swapchainSupport.capabilities.maxImageCount > 0 && swapahainMinImageCount_ > swapchainSupport.capabilities.maxImageCount)
+        swapahainMinImageCount_ = swapchainSupport.capabilities.maxImageCount;
     VkSwapchainKHR oldSwapchainKHR = swapchainKHR_;
     VkSurfaceTransformFlagBitsKHR preTranform{};
 
@@ -320,7 +333,7 @@ void Graphics::CreateSwapchain()
     VkSwapchainCreateInfoKHR swapchainCI{
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .surface = surfaceKHR_,
-        .minImageCount = swapahainImageCount,
+        .minImageCount = swapahainMinImageCount_,
         .imageFormat = surfaceFormat.format,
         .imageColorSpace = surfaceFormat.colorSpace,
         .imageExtent = extent,
@@ -408,7 +421,7 @@ void Graphics::CreateRenderPass()
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
     };
 
     VkAttachmentDescription depthAttachment{};
@@ -668,6 +681,124 @@ void Graphics::DestroyInstance()
     instance_ = VK_NULL_HANDLE;
 }
 
+void Graphics::ImGuiCreate()
+{
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+
+    ImGuiCreateDescriptorPool();
+    ImGuiCreateRenderPass();
+
+    ImGui_ImplGlfw_InitForVulkan(pWindow_->pGLFWWindow(), true);
+    ImGui_ImplVulkan_InitInfo initInfo = {};
+    initInfo.Instance = instance_;
+    initInfo.PhysicalDevice = deviceInfo_.physicalDevice;
+    initInfo.Device = device_;
+    initInfo.QueueFamily = deviceInfo_.queueFamilyIndices.graphics;
+    initInfo.Queue = graphicsQueue_;
+    initInfo.PipelineCache = imguiPipelineCache_;
+    initInfo.DescriptorPool = imguiDescriptorPool_;
+    initInfo.Allocator = imguiAllocator_;
+    initInfo.MinImageCount = swapahainMinImageCount_;
+    initInfo.ImageCount = swapahainImageCount_;
+    initInfo.CheckVkResultFn = ImGuiCheckVkResultCallback;
+    ImGui_ImplVulkan_Init(&initInfo, renderPass_);
+
+    ImGuiUploadFonts();
+}
+
+void Graphics::ImGuiDestroy()
+{
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    vkDestroyDescriptorPool(device_, imguiDescriptorPool_, imguiAllocator_);
+    vkDestroyRenderPass(device_, imguiRenderPass_, nullptr);
+    ImGui::DestroyContext();
+}
+
+void Graphics::ImGuiCreateDescriptorPool()
+{
+    VkDescriptorPoolSize descriptorPoolSize[] = {{VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
+                                                 {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
+                                                 {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
+                                                 {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
+                                                 {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
+                                                 {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
+                                                 {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
+                                                 {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
+                                                 {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
+                                                 {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
+                                                 {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}};
+    VkDescriptorPoolCreateInfo descriptorPoolCI = {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+        .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
+        .maxSets = 1000 * IM_ARRAYSIZE(descriptorPoolSize),
+        .poolSizeCount = (uint32_t)IM_ARRAYSIZE(descriptorPoolSize),
+        .pPoolSizes = descriptorPoolSize,
+    };
+    VK_ASSERT_SUCCESSED(vkCreateDescriptorPool(device_, &descriptorPoolCI, imguiAllocator_, &imguiDescriptorPool_));
+}
+
+void Graphics::ImGuiCreateRenderPass()
+{
+    VkAttachmentDescription attachmentDesc{
+        .format = swapchainImageFormat_,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+    };
+    VkAttachmentReference attachmentRef{
+        .attachment = 0,
+        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    };
+    VkSubpassDescription subpassDesc = {
+        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &attachmentRef,
+    };
+    VkSubpassDependency subpassDependency = {
+        .srcSubpass = VK_SUBPASS_EXTERNAL,
+        .dstSubpass = 0,
+        .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        .srcAccessMask = 0, // or VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+    };
+
+    VkRenderPassCreateInfo RenderPassCI = {
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        .attachmentCount = 1,
+        .pAttachments = &attachmentDesc,
+        .subpassCount = 1,
+        .pSubpasses = &subpassDesc,
+        .dependencyCount = 1,
+        .pDependencies = &subpassDependency,
+    };
+    VK_ASSERT_SUCCESSED(vkCreateRenderPass(device_, &RenderPassCI, nullptr, &imguiRenderPass_))
+}
+
+void Graphics::ImGuiUploadFonts()
+{
+    VkCommandBuffer commandBuffer = BeginSingleTimeCommand();
+    ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
+    EndSingleTimeCommand(commandBuffer);
+    ImGui_ImplVulkan_DestroyFontUploadObjects();
+}
+
+void Graphics::ImGuiCheckVkResultCallback(VkResult result)
+{
+    VK_ASSERT_SUCCESSED(result);
+}
+
 bool Graphics::IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice)
 {
     VkPhysicalDeviceProperties properties;
@@ -782,6 +913,41 @@ VkImageView Graphics::CreateImageView(VkImage image, VkFormat format, VkImageAsp
     };
     VK_ASSERT_SUCCESSED(vkCreateImageView(device_, &imageViewCI, nullptr, &imageView))
     return imageView;
+}
+
+// Command Helper
+
+inline VkCommandBuffer Graphics::BeginSingleTimeCommand()
+{
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = commandPool_;
+    allocInfo.commandBufferCount = 1;
+
+    VkCommandBuffer commandBuffer;
+    VK_ASSERT_SUCCESSED(vkAllocateCommandBuffers(device_, &allocInfo, &commandBuffer));
+
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    VK_ASSERT_SUCCESSED(vkBeginCommandBuffer(commandBuffer, &beginInfo));
+
+    return commandBuffer;
+}
+
+inline void Graphics::EndSingleTimeCommand(VkCommandBuffer commandBuffer)
+{
+    VK_ASSERT_SUCCESSED(vkEndCommandBuffer(commandBuffer));
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+    VK_ASSERT_SUCCESSED(vkQueueSubmit(graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE));
+    VK_ASSERT_SUCCESSED(vkQueueWaitIdle(graphicsQueue_));
+    vkFreeCommandBuffers(device_, commandPool_, 1, &commandBuffer);
 }
 
 void Graphics::DeviceWaitIdle()

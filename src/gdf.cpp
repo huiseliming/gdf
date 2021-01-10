@@ -11,13 +11,21 @@ namespace gdf
 ProgramClock programClock;
 
 GDF_DEFINE_LOG_CATEGORY(gdfLog)
-
+ 
+void glfwErrorCallback(int error, const char *description)
+{
+    GDF_LOG(gdfLog, LogLevel::Info, "Glfw Error {}: {}", error, description);
+}
 void Initialize()
 {
     ProgramClock::Initialize();
     Logger::Create();
     Logger::instance().RegisterSink(&coutSink);
-    glfwInit();
+    glfwSetErrorCallback(glfwErrorCallback);
+    if (!glfwInit())
+        THROW_EXCEPT("glfwInit Failed!");
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     GDF_LOG(gdfLog, LogLevel::Info, "gdf::Initialize");
 }
 
@@ -25,8 +33,9 @@ void Cleanup()
 {
 
     GDF_LOG(gdfLog, LogLevel::Info, "gdf::Cleanup");
-    Logger::Destroy();
     ::glfwTerminate();
+    Logger::instance().DeregisterSink(&coutSink);
+    Logger::Destroy();
 }
 
 bool GitRetrievedState()

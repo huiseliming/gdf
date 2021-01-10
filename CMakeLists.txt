@@ -43,9 +43,9 @@ set(CMAKE_BUILD_TYPE "Debug")
 message("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 # set system name
-add_definitions(-DPLATFORM_OS=${CMAKE_SYSTEM_NAME})
-add_definitions(-D${CMAKE_SYSTEM_NAME})
+add_definitions(-DGDF_OS_${CMAKE_SYSTEM_NAME})
 add_definitions(-DAPPLICATION_NAME="${PROJECT_NAME}")
+add_definitions(-DGLFW_INCLUDE_NONE)
 add_definitions(-DGLFW_INCLUDE_VULKAN)
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     add_definitions(-DGDF_DEBUG)
@@ -58,6 +58,9 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+# get ImGuiSourceFile
+file(GLOB IMGUI_SRC lib/ImGui/*.cpp)
 
 # library header file and source file
 file(GLOB_RECURSE Header include/*.h)
@@ -74,6 +77,7 @@ endif()
 # cmake set library 
 if(BUILD_SHARED_LIBS)
 add_library(${PROJECT_NAME} SHARED
+    ${IMGUI_SRC}
     ${Header}
     ${Source})
 else()
@@ -88,7 +92,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<INSTALL_INTERFACE:include>    #${CMAKE_INSTALL_PREFIX}/include
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/exports>
     $<INSTALL_INTERFACE:exports>    #${CMAKE_INSTALL_PREFIX}/include
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/ImGui>
+    $<INSTALL_INTERFACE:/lib/ImGui>    #${CMAKE_INSTALL_PREFIX}/lib/ImGui
     )
+
 # For windows export symbols
 include(GenerateExportHeader)
 generate_export_header(${PROJECT_NAME} EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/exports/gdf_export.h)

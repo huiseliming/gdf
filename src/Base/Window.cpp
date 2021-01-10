@@ -20,8 +20,6 @@ void Window::Create(const std::string &applicationName, const int width, const i
         return;
     width_ = width;
     height_ = height;
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     pGLFWWindow_ = glfwCreateWindow(width_, height_, applicationName.c_str(), nullptr, nullptr);
     glfwSetWindowUserPointer(pGLFWWindow_, this);
     // mouse callback
