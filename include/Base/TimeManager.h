@@ -64,11 +64,12 @@ struct TimeManager {
 
     void Reset() noexcept
     {
+#ifdef GDF_TIMEMANAGER_PRESTORE_DATA
         elapsed_ = OutputDataType(0);
         currentTime_ = OutputDataType(0);
         realElapsed_ = OutputDataType(0);
         realCurrentTime_ = OutputDataType(0);
-
+#endif // GDF_TIMEMANAGER_PRESTORE_DATA
         actualStartTimePoint_ = ClockType::now();
         currentActualTimePoint_ = actualStartTimePoint_;
         previousActualTimePoint_ = currentActualTimePoint_;

@@ -3,6 +3,7 @@
 #include "Base/Window.h"
 #include "Git.h"
 #include "Log/Logger.h"
+#include "Log/StdSink.h"
 #include <chrono>
 
 namespace gdf
@@ -13,16 +14,17 @@ GDF_DEFINE_LOG_CATEGORY(gdfLog)
 
 void Initialize()
 {
-    //ProgramClock::SetProgramStartTime();
-    glfwInit();
+    ProgramClock::Initialize();
     Logger::Create();
-    GDF_LOG(gdfLog, LogLevel::Info, "gdf Initialize");
+    Logger::instance().RegisterSink(&coutSink);
+    glfwInit();
+    GDF_LOG(gdfLog, LogLevel::Info, "gdf::Initialize");
 }
 
 void Cleanup()
 {
 
-    GDF_LOG(gdfLog, LogLevel::Info, "gdf Cleanup");
+    GDF_LOG(gdfLog, LogLevel::Info, "gdf::Cleanup");
     Logger::Destroy();
     ::glfwTerminate();
 }

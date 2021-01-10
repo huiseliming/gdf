@@ -35,8 +35,13 @@ struct DeviceInfo
     DeviceInfo() = default;
     void Parse(VkPhysicalDevice physicalDevice);
 
-    uint32_t GetQueueFamilyIndex(VkQueueFlagBits queueFlags) const;
+    uint32_t GetQueueFamilyIndex(VkQueueFlagBits queueFlags);
     bool ExtensionSupported(std::string extension);
+
+    VkFormat FindDepthFormat();
+    VkFormat FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+
+    uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 
 

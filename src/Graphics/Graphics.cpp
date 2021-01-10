@@ -1,5 +1,7 @@
 #include "Git.h"
 #include "Graphics\Graphics.h"
+#include "Base/File.h"
+#include <array>
 
 
 #define GIT_UINT32_VERSION                                                                                                     \
@@ -23,16 +25,32 @@ void Graphics::Initialize(Window* pWindow, bool enableValidationLayer)
     if (enableValidationLayer_) CreateDebugReporter();
     if (pWindow) pWindow_->GetVkSurfaceKHR(instance_, &surfaceKHR_);
     CreateDevice({}, {});
+    CreateCommandPool();
+    CreateSwapchain();
+    CreateDepthResources();
+    CreateRenderPass();
+    CreateGraphicsPipeline();
+    CreateFramebuffers();
+    CreateSyncObjects();
 }
 
 void Graphics::DrawFrame()
 {
+
 }
 
 void Graphics::Cleanup()
 {
     DeviceWaitIdle();
+    DestroySyncObjects();
+    DestroyFramebuffers();
+    DestroyGraphicsPipeline();
+    DestroyRenderPass();
+    DestroyDepthResources();
+    DestroySwapchain();
+    DestroyCommandPool();
     DestroyDevice();
+    if (surfaceKHR_ != VK_NULL_HANDLE) vkDestroySurfaceKHR(instance_, surfaceKHR_, nullptr);
     if (enableValidationLayer_) DestroyDebugReporter();
     DestroyInstance();
 }
@@ -250,22 +268,31 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
     }
 }
 
+void Graphics::CreateCommandPool()
+{
+    VkCommandPoolCreateInfo poolInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .queueFamilyIndex = deviceInfo_.queueFamilyIndices.graphics,
+    };
+    VK_ASSERT_SUCCESSED(vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPool_))
+}
+
 void Graphics::CreateSwapchain()
 {
-    SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport();
-    VkSurfaceFormatKHR surfaceFormat = GetAvailableFormat(swapChainSupport.formats);
-    VkPresentModeKHR presentMode = GetAvailablePresentMode(swapChainSupport.presentModes);
-    VkExtent2D extent = GetAvailableExtent(swapChainSupport.capabilities);
-    uint32_t swapahainImageCount = swapChainSupport.capabilities.minImageCount + 1;
-    if (swapChainSupport.capabilities.maxImageCount > 0 && swapahainImageCount > swapChainSupport.capabilities.maxImageCount)
-        swapahainImageCount = swapChainSupport.capabilities.maxImageCount;
+    SwapChainSupportDetails swapchainSupport = QuerySwapChainSupport();
+    VkSurfaceFormatKHR surfaceFormat = GetAvailableFormat(swapchainSupport.formats);
+    VkPresentModeKHR presentMode = GetAvailablePresentMode(swapchainSupport.presentModes);
+    VkExtent2D extent = GetAvailableExtent(swapchainSupport.capabilities);
+    uint32_t swapahainImageCount = swapchainSupport.capabilities.minImageCount + 1;
+    if (swapchainSupport.capabilities.maxImageCount > 0 && swapahainImageCount > swapchainSupport.capabilities.maxImageCount)
+        swapahainImageCount = swapchainSupport.capabilities.maxImageCount;
     VkSwapchainKHR oldSwapchainKHR = swapchainKHR_;
     VkSurfaceTransformFlagBitsKHR preTranform{};
 
-    if ((swapChainSupport.capabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) != 0) {
+    if ((swapchainSupport.capabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) != 0) {
         preTranform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
     } else {
-        preTranform = swapChainSupport.capabilities.currentTransform;
+        preTranform = swapchainSupport.capabilities.currentTransform;
     }
 
     VkCompositeAlphaFlagBitsKHR compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
@@ -281,7 +308,7 @@ void Graphics::CreateSwapchain()
     } else {
         // TODO: print warn
         for (auto &compositeAlphaFlag : compositeAlphaFlags) {
-            if (swapChainSupport.capabilities.supportedCompositeAlpha & compositeAlphaFlag) {
+            if (swapchainSupport.capabilities.supportedCompositeAlpha & compositeAlphaFlag) {
                 compositeAlpha = compositeAlphaFlag;
                 break;
             };
@@ -317,19 +344,22 @@ void Graphics::CreateSwapchain()
 
     VK_ASSERT_SUCCESSED(vkCreateSwapchainKHR(device_, &swapchainCI, nullptr, &swapchainKHR_));
     if (oldSwapchainKHR != VK_NULL_HANDLE) {
-        DestroyImageViews();
+        DestroySwapchainImageViews();
         vkDestroySwapchainKHR(device_, oldSwapchainKHR, nullptr);
     }
+    swapchainImageFormat_ = surfaceFormat.format;
+    swapchainExtent_ = extent;
     vkGetSwapchainImagesKHR(device_, swapchainKHR_, &swapahainImageCount, nullptr);
-    swapahainImages.resize(swapahainImageCount);
-    vkGetSwapchainImagesKHR(device_, swapchainKHR_, &swapahainImageCount, swapahainImages.data());
+    swapahainImages_.resize(swapahainImageCount);
+    vkGetSwapchainImagesKHR(device_, swapchainKHR_, &swapahainImageCount, swapahainImages_.data());
+    CreateSwapchainImageViews();
 }
 
-void Graphics::CreateImageViews()
+void Graphics::CreateSwapchainImageViews()
 {
     VkImageViewCreateInfo ImageViewCI{.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
                                       .viewType = VK_IMAGE_VIEW_TYPE_2D,
-                                      .format = swapChainImageFormat,
+                                      .format = swapchainImageFormat_,
                                       .components =
                                           {
                                               VK_COMPONENT_SWIZZLE_R,
@@ -344,23 +374,275 @@ void Graphics::CreateImageViews()
                                           .baseArrayLayer = 0,
                                           .layerCount = 1,
                                       }};
-    swapahainImageViews.resize(swapahainImageCount);
-    for (size_t i = 0; i < swapahainImageCount; i++) {
-        ImageViewCI.image = swapahainImages[i];
-        VK_ASSERT_SUCCESSED(vkCreateImageView(device_, &ImageViewCI, nullptr, &swapahainImageViews[i]));
+    swapahainImageViews_.resize(swapahainImageCount_);
+    for (size_t i = 0; i < swapahainImageCount_; i++) {
+        ImageViewCI.image = swapahainImages_[i];
+        VK_ASSERT_SUCCESSED(vkCreateImageView(device_, &ImageViewCI, nullptr, &swapahainImageViews_[i]));
     }
 }
 
-void Graphics::DestroyImageViews()
+void Graphics::CreateDepthResources()
 {
-    for (auto imageView : swapahainImageViews)
+    VkFormat depthFormat = deviceInfo_.FindDepthFormat();
+
+    CreateImage(swapchainExtent_.width,
+                swapchainExtent_.height,
+                depthFormat,
+                VK_IMAGE_TILING_OPTIMAL,
+                VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                depthImage_,
+                depthImageMemory_);
+    depthImageView_ = CreateImageView(depthImage_, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+}
+
+void Graphics::CreateRenderPass()
+{
+    VkAttachmentDescription colorAttachment{
+        .format = swapchainImageFormat_,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+    };
+
+    VkAttachmentDescription depthAttachment{};
+    depthAttachment.format = deviceInfo_.FindDepthFormat();
+    depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    auto colorAttachmentRef = GraphicsTools::MakeAttachmentReference(0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    auto depthAttachmentRef = GraphicsTools::MakeAttachmentReference(1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+    auto subpass = GraphicsTools::MakeSubpassDescription(1,&colorAttachmentRef, &depthAttachmentRef);
+    auto dependency = GraphicsTools::MakeSubpassDependency(VK_SUBPASS_EXTERNAL,0,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+        0,
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
+    std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
+    std::array<VkSubpassDescription, 1> subpasses = {subpass};
+    std::array<VkSubpassDependency, 1> dependencies = {dependency};
+    VkRenderPassCreateInfo renderPassCI
+    {
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .attachmentCount = static_cast<uint32_t>(attachments.size()),
+        .pAttachments = attachments.data(),
+        .subpassCount = static_cast<uint32_t>(subpasses.size()),
+        .pSubpasses = subpasses.data(),
+        .dependencyCount = static_cast<uint32_t>(dependencies.size()),
+        .pDependencies = dependencies.data(),
+    };
+    VK_ASSERT_SUCCESSED(vkCreateRenderPass(device_, &renderPassCI, nullptr, &renderPass_));
+}
+
+void Graphics::CreateGraphicsPipeline()
+{
+
+    auto vertShaderModule = CreateShaderModule(GetShadersPath() + "test.vert.spv");
+    auto fragShaderModule = CreateShaderModule(GetShadersPath() + "test.frag.spv");
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStageCIs = {
+        GraphicsTools::MakePipelineShaderStageCreateInfo(vertShaderModule, VK_SHADER_STAGE_VERTEX_BIT),
+        GraphicsTools::MakePipelineShaderStageCreateInfo(fragShaderModule, VK_SHADER_STAGE_FRAGMENT_BIT),
+    };
+
+    auto vertexInputStateCI = GraphicsTools::MakePipelineVertexInputStateCreateInfo();
+    auto inputAssemblyStateCI = GraphicsTools::MakePipelineInputAssemblyStateCreateInfo();
+    auto tessellationStateCI = GraphicsTools::MakePipelineTessellationStateCreateInfo();
+    VkViewport viewport{
+        .x = 0.0f,
+        .y = 0.0f,
+        .width = float(swapchainExtent_.width),
+        .height = float(swapchainExtent_.height),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f,
+    };
+    VkRect2D scissor
+    {
+        .offset = {0,0},
+        .extent = swapchainExtent_,
+    };
+    auto viewportStateCI = GraphicsTools::MakePipelineViewportStateCreateInfo(1, &viewport, 1, &scissor);
+    auto rasterizationStateCI = GraphicsTools::MakePipelineRasterizationStateCreateInfo();
+    auto multisampleStateCI = GraphicsTools::MakePipelineMultisampleStateCreateInfo();
+    auto depthStencilStateCI = GraphicsTools::MakePipelineDepthStencilStateCreateInfo();
+    auto colorBlendAttachmentState = GraphicsTools::MakePipelineColorBlendAttachmentState();
+    auto colorBlendStateCI = GraphicsTools::MakePipelineColorBlendStateCreateInfo(VK_FALSE, VK_LOGIC_OP_COPY, 1,&colorBlendAttachmentState);
+    auto dynamicStateCI = GraphicsTools::MakePipelineDynamicStateCreateInfo();
+
+    auto pipelineLayoutCI = GraphicsTools::MakePipelineLayoutCreateInfo();
+    VK_ASSERT_SUCCESSED(vkCreatePipelineLayout(device_, &pipelineLayoutCI, nullptr, &graphicsPipelineLayout_));
+
+    VkGraphicsPipelineCreateInfo GraphicsPipelineCI{
+        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .stageCount = static_cast<uint32_t>(shaderStageCIs.size()),
+        .pStages = shaderStageCIs.data(),
+        .pVertexInputState = &vertexInputStateCI,
+        .pInputAssemblyState = &inputAssemblyStateCI,
+        //.pTessellationState = &tessellationStateCI,
+        .pViewportState = &viewportStateCI,
+        .pRasterizationState = &rasterizationStateCI,
+        .pMultisampleState = &multisampleStateCI,
+        .pDepthStencilState = &depthStencilStateCI,
+        .pColorBlendState = &colorBlendStateCI,
+        .pDynamicState = &dynamicStateCI,
+        .layout = graphicsPipelineLayout_,
+        .renderPass = renderPass_,
+        .subpass = 0,
+        //.basePipelineHandle = basePipelineHandle,
+        //.basePipelineIndex = basePipelineIndex,
+    };
+    VK_ASSERT_SUCCESSED(vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1, &GraphicsPipelineCI, nullptr, &graphicsPipeline_));
+    vkDestroyShaderModule(device_, vertShaderModule, nullptr);
+    vkDestroyShaderModule(device_, fragShaderModule, nullptr);
+}
+
+void Graphics::CreateFramebuffers()
+{
+    swapahainFramebuffers_.resize(swapahainImageCount_);
+    for (size_t i = 0; i < swapahainImageCount_; i++) {
+        std::array<VkImageView, 2> attachments = {swapahainImageViews_[i], depthImageView_};
+        VkFramebufferCreateInfo framebufferCI{
+            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+            .renderPass = renderPass_,
+            .attachmentCount = static_cast<uint32_t>(attachments.size()),
+            .pAttachments = attachments.data(),
+            .width = swapchainExtent_.width,
+            .height = swapchainExtent_.height,
+            .layers = 1,
+        };
+        VK_ASSERT_SUCCESSED(vkCreateFramebuffer(device_, &framebufferCI, nullptr, &swapahainFramebuffers_[i]))
+    }
+}
+
+void Graphics::CreateCommandBuffers()
+{
+    commandBuffers_.resize(swapahainImageCount_);
+
+    VkCommandBufferAllocateInfo CommandBufferAI{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .commandPool = commandPool_,
+        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = (uint32_t)commandBuffers_.size(),
+    };
+
+    VK_ASSERT_SUCCESSED(vkAllocateCommandBuffers(device_, &CommandBufferAI, commandBuffers_.data()));
+
+    for (size_t i = 0; i < commandBuffers_.size(); i++) {
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        VK_ASSERT_SUCCESSED(vkBeginCommandBuffer(commandBuffers_[i], &beginInfo))
+
+        VkRenderPassBeginInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = renderPass_;
+        renderPassInfo.framebuffer = swapahainFramebuffers_[i];
+        renderPassInfo.renderArea.offset = {0, 0};
+        renderPassInfo.renderArea.extent = swapchainExtent_;
+
+        std::array<VkClearValue, 2> clearValues{};
+        clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
+        clearValues[1].depthStencil = {1.0f, 0};
+
+        renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+        renderPassInfo.pClearValues = clearValues.data();
+
+        vkCmdBeginRenderPass(commandBuffers_[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        vkCmdBindPipeline(commandBuffers_[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline_);
+
+        vkCmdDrawIndexed(commandBuffers_[i], 3, 1, 0, 0, 0);
+
+        vkCmdEndRenderPass(commandBuffers_[i]);
+
+        VK_ASSERT_SUCCESSED(vkEndCommandBuffer(commandBuffers_[i]));
+    }
+}
+
+void Graphics::CreateSyncObjects()
+{
+    imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+    imagesInFlight.resize(swapahainImageCount_, VK_NULL_HANDLE);
+    VkSemaphoreCreateInfo semaphoreCI{
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+    };
+    VkFenceCreateInfo fenceCI{
+        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        .flags = VK_FENCE_CREATE_SIGNALED_BIT,
+    };
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        VK_ASSERT_SUCCESSED(vkCreateSemaphore(device_, &semaphoreCI, nullptr, &imageAvailableSemaphores[i]));
+        VK_ASSERT_SUCCESSED(vkCreateSemaphore(device_, &semaphoreCI, nullptr, &renderFinishedSemaphores[i]));
+        VK_ASSERT_SUCCESSED(vkCreateFence(device_, &fenceCI, nullptr, &inFlightFences[i]));
+    }
+}
+
+void Graphics::DestroySyncObjects()
+{
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        vkDestroySemaphore(device_, imageAvailableSemaphores[i], nullptr);
+        vkDestroySemaphore(device_, renderFinishedSemaphores[i], nullptr);
+        vkDestroyFence(device_, inFlightFences[i], nullptr);
+    }
+}
+
+void Graphics::DestroyCommandBuffers()
+{
+}
+
+void Graphics::DestroyFramebuffers()
+{
+    for (auto swapahainFramebuffer : swapahainFramebuffers_) 
+        vkDestroyFramebuffer(device_, swapahainFramebuffer, nullptr);
+    swapahainFramebuffers_.clear();
+}
+
+void Graphics::DestroyGraphicsPipeline()
+{
+    vkDestroyPipelineLayout(device_, graphicsPipelineLayout_,nullptr);
+    vkDestroyPipeline(device_, graphicsPipeline_, nullptr);
+}
+
+void Graphics::DestroyRenderPass()
+{
+    vkDestroyRenderPass(device_, renderPass_, nullptr);
+}
+
+void Graphics::DestroyDepthResources()
+{
+    vkDestroyImageView(device_, depthImageView_, nullptr);
+    vkDestroyImage(device_, depthImage_, nullptr);
+    vkFreeMemory(device_, depthImageMemory_, nullptr);
+}
+
+void Graphics::DestroySwapchainImageViews()
+{
+    for (auto imageView : swapahainImageViews_)
             vkDestroyImageView(device_, imageView, nullptr);
-    swapahainImageViews.clear();
+    swapahainImageViews_.clear();
 }
 
 void Graphics::DestroySwapchain()
 {
+    DestroySwapchainImageViews();
     vkDestroySwapchainKHR(device_, swapchainKHR_, nullptr);
+}
+
+void Graphics::DestroyCommandPool()
+{
+    vkDestroyCommandPool(device_, commandPool_, nullptr);
 }
 
 void Graphics::DestroyDevice()
@@ -415,6 +697,11 @@ bool Graphics::IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice)
 //    return true;
 //}
 
+VkShaderModule Graphics::CreateShaderModule(const std::string &shaderPath)
+{
+    return CreateShaderModule(File::ReadBytes(shaderPath));
+}
+
 // helpful function
 VkShaderModule Graphics::CreateShaderModule(const std::vector<char> &code)
 {
@@ -426,6 +713,72 @@ VkShaderModule Graphics::CreateShaderModule(const std::vector<char> &code)
     VkShaderModule shaderModule;
     VK_ASSERT_SUCCESSED(vkCreateShaderModule(device_, &createInfo, nullptr, &shaderModule))
     return shaderModule;
+}
+
+void Graphics::CreateImage(uint32_t width,
+                           uint32_t height,
+                           VkFormat format,
+                           VkImageTiling tiling,
+                           VkImageUsageFlags usage,
+                           VkMemoryPropertyFlags properties,
+                           VkImage &image,
+                           VkDeviceMemory &imageMemory)
+{
+    VkImageCreateInfo imageCI
+    {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .format = format,
+        .extent = {
+            .width = width,
+            .height = height,
+            .depth = 1,
+        },
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .tiling = tiling,
+        .usage = usage,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = nullptr,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    };
+
+    VK_ASSERT_SUCCESSED(vkCreateImage(device_, &imageCI, nullptr, &image))
+
+    VkMemoryRequirements memRequirements;
+    vkGetImageMemoryRequirements(device_, image, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = deviceInfo_.FindMemoryType(memRequirements.memoryTypeBits, properties);
+
+    VK_ASSERT_SUCCESSED(vkAllocateMemory(device_, &allocInfo, nullptr, &imageMemory))
+    VK_ASSERT_SUCCESSED(vkBindImageMemory(device_, image, imageMemory, 0));
+}
+
+VkImageView Graphics::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
+{
+    VkImageView imageView;
+    VkImageViewCreateInfo imageViewCI
+    {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .image = image,
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .format = format,
+        .components = {},
+        .subresourceRange{
+            .aspectMask = aspectFlags,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1,
+        }
+    };
+    VK_ASSERT_SUCCESSED(vkCreateImageView(device_, &imageViewCI, nullptr, &imageView))
+    return imageView;
 }
 
 void Graphics::DeviceWaitIdle()
@@ -505,6 +858,15 @@ VkBool32 Graphics::DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
     }
 
     return VK_FALSE;
+}
+
+std::string Graphics::GetShadersPath()
+{
+#ifdef _WIN32
+    return File::GetExeDir() + "/../../../../shaders/";
+#else
+    return File::GetExeDir() + "../../../shaders/";
+#endif
 }
 
 } // namespace gdf

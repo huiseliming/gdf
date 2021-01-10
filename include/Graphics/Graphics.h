@@ -12,6 +12,8 @@
 #define GDF_ENABLE_VALIDATION_LAYER false
 #endif // GDF_DEBUG
 
+#define MAX_FRAMES_IN_FLIGHT 2
+
 namespace gdf
 {
 GDF_DECLARE_EXPORT_LOG_CATEGORY(GraphicsLog, LogLevel::Info, LogLevel::All);
@@ -21,7 +23,6 @@ struct GDF_EXPORT SwapChainSupportDetails {
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> presentModes;
 };
-
 
 class  GDF_EXPORT Graphics : public NonCopyable
 {
@@ -42,14 +43,27 @@ public:
     void CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
                       std::vector<const char *> enabledExtensions,
                       VkQueueFlags requestedQueueTypes = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT);
-
+    void CreateCommandPool();
     void CreateSwapchain();
-    void CreateImageViews();
+    void CreateSwapchainImageViews();
+    void CreateDepthResources();
+    void CreateRenderPass();
+    void CreateGraphicsPipeline();
+    void CreateFramebuffers();
+    void CreateCommandBuffers();
+    void CreateSyncObjects();
+
 
     // Cleanup Funtion
-    
-    void DestroyImageViews();
+    void DestroySyncObjects();
+    void DestroyCommandBuffers();
+    void DestroyFramebuffers();
+    void DestroyGraphicsPipeline();
+    void DestroyRenderPass();
+    void DestroyDepthResources();
+    void DestroySwapchainImageViews();
     void DestroySwapchain();
+    void DestroyCommandPool();
     void DestroyDevice();
     void DestroyDebugReporter();
     void DestroyInstance();
@@ -58,7 +72,20 @@ public:
     bool IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice);
 
     //helpful function
+    VkShaderModule CreateShaderModule(const std::string &code);
     VkShaderModule CreateShaderModule(const std::vector<char> &code);
+
+    void CreateImage(uint32_t width,
+                     uint32_t height,
+                     VkFormat format,
+                     VkImageTiling tiling,
+                     VkImageUsageFlags usage,
+                     VkMemoryPropertyFlags properties,
+                     VkImage &image,
+                     VkDeviceMemory &imageMemory);
+    VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+
+
 
     void DeviceWaitIdle();
 
@@ -92,6 +119,8 @@ public:
     VkInstance instance_{VK_NULL_HANDLE};
     VkDebugReportCallbackEXT fpDebugReportCallbackEXT_{VK_NULL_HANDLE};
     VkDevice device_{VK_NULL_HANDLE};
+    VkCommandPool commandPool_;
+
 
     //SwapchainInfo
     Window *pWindow_;
@@ -100,12 +129,32 @@ public:
     VkPresentModeKHR PresentModeKHR_;
     VkSwapchainKHR swapchainKHR_{VK_NULL_HANDLE};
 
-    VkFormat swapChainImageFormat;
-    VkExtent2D swapChainExtent;
-    uint32_t swapahainImageCount{0};
-    std::vector<VkImage> swapahainImages;
-    std::vector<VkImageView> swapahainImageViews;
+    // Swapchain Infomation
+    VkFormat swapchainImageFormat_;
+    VkExtent2D swapchainExtent_;
+    uint32_t swapahainImageCount_{0};
+    std::vector<VkImage> swapahainImages_;
+    std::vector<VkImageView> swapahainImageViews_;
+    std::vector<VkFramebuffer> swapahainFramebuffers_;
 
+    //Depth Resource
+    VkImage depthImage_{VK_NULL_HANDLE};
+    VkImageView depthImageView_{VK_NULL_HANDLE};
+    VkDeviceMemory depthImageMemory_{VK_NULL_HANDLE};
+    
+    // Render Objects
+    VkRenderPass renderPass_{VK_NULL_HANDLE};
+    VkPipeline graphicsPipeline_{VK_NULL_HANDLE};
+    VkPipelineLayout graphicsPipelineLayout_{VK_NULL_HANDLE};
+
+    std::vector<VkCommandBuffer> commandBuffers_;
+
+    // Sync Objects
+    std::vector<VkSemaphore> imageAvailableSemaphores;
+    std::vector<VkSemaphore> renderFinishedSemaphores;
+    std::vector<VkFence> inFlightFences;
+    // ref Fence Object wait render finished
+    std::vector<VkFence> imagesInFlight; 
 
 
     VkQueue graphicsQueue_{VK_NULL_HANDLE};
@@ -128,6 +177,7 @@ public:
                                            const char *pLayerPrefix,
                                            const char *pMessage,
                                            void *pUserData);
+    static std::string GetShadersPath();
 
 private:
 };

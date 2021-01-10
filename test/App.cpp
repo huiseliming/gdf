@@ -4,9 +4,13 @@
 #include "Base/TimeManager.h"
 #include "DeveloperTool/DeveloperConsole.h"
 #include "Log/StdSink.h"
+#include "Base/Clock.h"
+
 #include "gdf.h"
 using namespace gdf;
 
+GDF_DECLARE_LOG_CATEGORY(GfxAppLog, LogLevel::All, LogLevel::Info)
+GDF_DEFINE_LOG_CATEGORY(GfxAppLog)
 
 class GfxApp : public Application
 {
@@ -26,9 +30,10 @@ private:
 void GfxApp::StartUp()
 {
     gdf::Initialize();
-    Logger::instance().RegisterSink(&coutSink);
-    gfx_.Initialize();
+    timerManager_.Reset();
     window_.Create("test", 800, 600);
+    gfx_.Initialize(&window_);
+    GDF_LOG(GfxAppLog, LogLevel::Info, "Entering MainLoop at Time: {}", ProgramClock::CurrentTime());
 }
 void GfxApp::MainLoop()
 {
@@ -44,6 +49,7 @@ void GfxApp::MainLoop()
 }
 void GfxApp::Cleanup()
 {
+    GDF_LOG(GfxAppLog, LogLevel::Info, "Exiting MainLoop at Time: {}", ProgramClock::CurrentTime());
     gfx_.Cleanup();
     gdf::Cleanup();
 }

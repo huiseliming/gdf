@@ -48,8 +48,10 @@ struct GDF_EXPORT ProgramClock {
     using time_point = std::chrono::time_point<ProgramClock, duration>;
 
 public:
-    static void SetProgramStartTime() noexcept;
+    static void Initialize() noexcept;
     static time_point now() noexcept;
+    static rep CurrentTime();
+
     static constexpr bool is_steady = std::chrono::steady_clock::is_steady;
     static typename std::chrono::steady_clock::time_point programStartTime;
 };
