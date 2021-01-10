@@ -113,5 +113,20 @@ VkPipelineLayoutCreateInfo MakePipelineLayoutCreateInfo(uint32_t setLayoutCount 
                                                         const VkPushConstantRange *pPushConstantRanges = nullptr );
 
 
+VkSubmitInfo MakeSubmitInfo(uint32_t waitSemaphoreCount,
+                            const VkSemaphore *pWaitSemaphores,
+                            const VkPipelineStageFlags *pWaitDstStageMask,
+                            uint32_t commandBufferCount,
+                            const VkCommandBuffer *pCommandBuffers,
+                            uint32_t signalSemaphoreCount,
+                            const VkSemaphore *pSignalSemaphores);
+
+VkPresentInfoKHR MakePresentInfoKHR(uint32_t waitSemaphoreCount,
+                                    const VkSemaphore *pWaitSemaphores,
+                                    const VkSwapchainKHR *pSwapchains,
+                                    const uint32_t *pImageIndices,
+                                    uint32_t swapchainCount = 1, 
+                                    VkResult *pResults = nullptr);
+
 }; // namespace VulkanTools
 } // namespace gdf

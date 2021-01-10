@@ -352,6 +352,44 @@ VkPipelineLayoutCreateInfo MakePipelineLayoutCreateInfo(uint32_t setLayoutCount,
     };
 }
 
+VkSubmitInfo MakeSubmitInfo(uint32_t waitSemaphoreCount,
+                            const VkSemaphore *pWaitSemaphores,
+                            const VkPipelineStageFlags *pWaitDstStageMask,
+                            uint32_t commandBufferCount,
+                            const VkCommandBuffer *pCommandBuffers,
+                            uint32_t signalSemaphoreCount,
+                            const VkSemaphore *pSignalSemaphores)
+{
+    return VkSubmitInfo{
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .waitSemaphoreCount = waitSemaphoreCount,
+        .pWaitSemaphores = pWaitSemaphores,
+        .pWaitDstStageMask = pWaitDstStageMask,
+        .commandBufferCount = commandBufferCount,
+        .pCommandBuffers = pCommandBuffers,
+        .signalSemaphoreCount = signalSemaphoreCount,
+        .pSignalSemaphores = pSignalSemaphores,
+    };
+}
+
+VkPresentInfoKHR MakePresentInfoKHR(uint32_t waitSemaphoreCount,
+                                    const VkSemaphore *pWaitSemaphores,
+                                    const VkSwapchainKHR *pSwapchains,
+                                    const uint32_t *pImageIndices,
+                                    uint32_t swapchainCount,
+                                    VkResult *pResults)
+{
+    return VkPresentInfoKHR{
+        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .waitSemaphoreCount = waitSemaphoreCount,
+        .pWaitSemaphores = pWaitSemaphores,
+        .swapchainCount = swapchainCount,
+        .pSwapchains = pSwapchains,
+        .pImageIndices = pImageIndices,
+        .pResults = pResults,
+    };
+}
+
 
 } // namespace VulkanTools
 } // namespace gdf

@@ -171,9 +171,9 @@ public:
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
     std::vector<VkFence> inFlightFences;
+    uint32_t currentFrame_{0};
     // ref Fence Object wait render finished
     std::vector<VkFence> imagesInFlight; 
-
 
     VkQueue graphicsQueue_{VK_NULL_HANDLE};
     VkQueue computeQueue_{VK_NULL_HANDLE};

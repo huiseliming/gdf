@@ -51,6 +51,7 @@ void GfxApp::Cleanup()
 {
     GDF_LOG(GfxAppLog, LogLevel::Info, "Exiting MainLoop at Time: {}", ProgramClock::CurrentTime());
     gfx_.Cleanup();
+    window_.Destroy();
     gdf::Cleanup();
 }
 

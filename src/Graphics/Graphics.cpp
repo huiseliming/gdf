@@ -41,14 +41,51 @@ void Graphics::Initialize(Window* pWindow, bool enableValidationLayer)
 
 void Graphics::DrawFrame()
 {
+    //ImGui_ImplVulkan_NewFrame();
+    //ImGui_ImplGlfw_NewFrame();
+    //ImGui::NewFrame();
+    //ImGui::ShowDemoWindow();
+    //ImGui::Render();
 
+    vkWaitForFences(device_, 1, &inFlightFences[currentFrame_], VK_TRUE, UINT64_MAX);
+    uint32_t imageIndex;
+    VkResult result = vkAcquireNextImageKHR( device_, swapchainKHR_, UINT64_MAX, imageAvailableSemaphores[currentFrame_], VK_NULL_HANDLE, &imageIndex);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        GDF_LOG(GraphicsLog, LogLevel::Warning, "Recreate swapchain");
+        // TODO : recreateSwapChain();
+        return;
+    } else if (result != VK_SUBOPTIMAL_KHR) {
+        GDF_LOG(GraphicsLog, LogLevel::Warning, "Swapchine image no longer matches the surface properties");
+    } else if (result != VK_SUCCESS) {
+        THROW_EXCEPT("Failed to acquire swap chain image!");
+    }
 
-    
-    ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-    ImGui::ShowDemoWindow();
-    ImGui::Render();
+    if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
+        vkWaitForFences(device_, 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
+    }
+    imagesInFlight[imageIndex] = inFlightFences[currentFrame_];
+    vkResetFences(device_, 1, &inFlightFences[currentFrame_]);
+
+    VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame_]};
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame_]};
+    auto submitInfo = GraphicsTools::MakeSubmitInfo(1, waitSemaphores, waitStages, 1, &commandBuffers_[imageIndex], 1, signalSemaphores);
+    VK_ASSERT_SUCCESSED(vkQueueSubmit(graphicsQueue_, 1, &submitInfo, inFlightFences[currentFrame_]))
+
+    auto presentInfoKHR = GraphicsTools::MakePresentInfoKHR(1, signalSemaphores, &swapchainKHR_, &imageIndex);
+
+    result = vkQueuePresentKHR(presentQueue_, &presentInfoKHR);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        GDF_LOG(GraphicsLog, LogLevel::Warning, "VK_ERROR_OUT_OF_DATE_KHR : Recreate swapchain");
+        // TODO : recreateSwapChain();
+        return;
+    } else if (result != VK_SUBOPTIMAL_KHR) {
+        // TODO : recreateSwapChain();
+        GDF_LOG(GraphicsLog, LogLevel::Warning, "VK_SUBOPTIMAL_KHR : Swapchine image no longer matches the surface properties");
+    } else if (result != VK_SUCCESS) {
+        THROW_EXCEPT("Failed to present swap chain image!");
+    }
+    currentFrame_ = (currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void Graphics::Cleanup()
@@ -421,7 +458,7 @@ void Graphics::CreateRenderPass()
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
     };
 
     VkAttachmentDescription depthAttachment{};
