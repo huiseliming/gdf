@@ -43,7 +43,9 @@ void GfxApp::MainLoop()
             gfx_.RequireRecreateSwapchain(true);
         }
         timerManager_.Update();
+        gfx_.FrameBegin();
         gfx_.DrawFrame();
+        gfx_.FrameEnd();
         // if (window.resized()) {
         //    gfx.swapchain().RequestRecreate();
         // }

@@ -13,6 +13,7 @@
 #endif // GDF_DEBUG
 
 #define MAX_FRAMES_IN_FLIGHT 2
+struct ImDrawData;
 
 namespace gdf
 {
@@ -33,7 +34,9 @@ public:
     void Initialize(Window *pWindow = nullptr,
                     bool enableValidationLayer = GDF_ENABLE_VALIDATION_LAYER);
     
+    void FrameBegin();
     void DrawFrame();
+    void FrameEnd();
 
     void Cleanup();
 
@@ -80,15 +83,24 @@ public:
     // ImGui
     void ImGuiCreate();
     void ImGuiDestroy();
+    void ImGuiFrameBegin();
+    void ImGuiFrameRender(uint32_t imageIndex);
+    void ImGuiFrameEnd();
     void ImGuiCreateDescriptorPool();
     void ImGuiCreateRenderPass();
+    void ImGuiCreateFramebuffer();
+    void ImGuiCreateCommandBuffer();
     void ImGuiUploadFonts();
+    void ImGuiUpdateMinImageCount(uint32_t minImageCount);
     static void ImGuiCheckVkResultCallback(VkResult result);
 
+    ImDrawData *imGuiDrawData_{nullptr};
     VkAllocationCallbacks *imguiAllocator_{nullptr};
     VkPipelineCache imguiPipelineCache_{VK_NULL_HANDLE};
     VkDescriptorPool imguiDescriptorPool_{VK_NULL_HANDLE};
     VkRenderPass imguiRenderPass_{VK_NULL_HANDLE};
+    std::vector<VkFramebuffer> imguiFramebuffers_;
+    std::vector<VkCommandBuffer> imguiCommandBuffers_;
 
     // Tool Funtion
     bool IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice);
@@ -152,17 +164,17 @@ public:
     Window *pWindow_;
     VkSurfaceKHR surfaceKHR_{VK_NULL_HANDLE};
     VkSurfaceFormatKHR surfaceFormatKHR_;
-    VkPresentModeKHR PresentModeKHR_;
+    VkPresentModeKHR presentModeKHR_;
     VkSwapchainKHR swapchainKHR_{VK_NULL_HANDLE};
 
     // Swapchain Infomation
     VkFormat swapchainImageFormat_;
     VkExtent2D swapchainExtent_;
-    uint32_t swapahainMinImageCount_{0};
-    uint32_t swapahainImageCount_{0};
-    std::vector<VkImage> swapahainImages_;
-    std::vector<VkImageView> swapahainImageViews_;
-    std::vector<VkFramebuffer> swapahainFramebuffers_;
+    uint32_t swapchainMinImageCount_{0};
+    uint32_t swapchainImageCount_{0};
+    std::vector<VkImage> swapchainImages_;
+    std::vector<VkImageView> swapchainImageViews_;
+    std::vector<VkFramebuffer> swapchainFramebuffers_;
 
     //Depth Resource
     VkImage depthImage_{VK_NULL_HANDLE};
@@ -177,12 +189,12 @@ public:
     std::vector<VkCommandBuffer> commandBuffers_;
 
     // Sync Objects
-    std::vector<VkSemaphore> imageAvailableSemaphores;
-    std::vector<VkSemaphore> renderFinishedSemaphores;
-    std::vector<VkFence> inFlightFences;
+    std::vector<VkSemaphore> imageAvailableSemaphores_;
+    std::vector<VkSemaphore> renderFinishedSemaphores_;
+    std::vector<VkFence> inFlightFences_;
     uint32_t currentFrame_{0};
     // ref Fence Object wait render finished
-    std::vector<VkFence> imagesInFlight; 
+    std::vector<VkFence> imagesInFlight_; 
 
     VkQueue graphicsQueue_{VK_NULL_HANDLE};
     VkQueue computeQueue_{VK_NULL_HANDLE};

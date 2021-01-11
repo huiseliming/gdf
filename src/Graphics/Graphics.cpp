@@ -40,56 +40,86 @@ void Graphics::Initialize(Window *pWindow, bool enableValidationLayer)
     ImGuiCreate();
 }
 
+void Graphics::FrameBegin()
+{
+    ImGuiFrameBegin();
+}
+
 void Graphics::DrawFrame()
 {
-    // ImGui_ImplVulkan_NewFrame();
-    // ImGui_ImplGlfw_NewFrame();
-    // ImGui::NewFrame();
-    // ImGui::ShowDemoWindow();
-    // ImGui::Render();
     if (RequireRecreateSwapchain_)
         RecreateSwapchain();
-    vkWaitForFences(device_, 1, &inFlightFences[currentFrame_], VK_TRUE, UINT64_MAX);
+    vkWaitForFences(device_, 1, &inFlightFences_[currentFrame_], VK_TRUE, UINT64_MAX);
     uint32_t imageIndex;
     VkResult result = vkAcquireNextImageKHR(
-        device_, swapchainKHR_, UINT64_MAX, imageAvailableSemaphores[currentFrame_], VK_NULL_HANDLE, &imageIndex);
+        device_, swapchainKHR_, UINT64_MAX, imageAvailableSemaphores_[currentFrame_], VK_NULL_HANDLE, &imageIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        GDF_LOG(GraphicsLog, LogLevel::Warning, "Recreate swapchain");
+        GDF_LOG(GraphicsLog, LogLevel::Warning, "vkAcquireNextImageKHR -> VK_ERROR_OUT_OF_DATE_KHR");
         RecreateSwapchain();
         return;
-    } else if (result != VK_SUBOPTIMAL_KHR) {
-        GDF_LOG(GraphicsLog, LogLevel::Warning, "Swapchine image no longer matches the surface properties");
-    } else if (result != VK_SUCCESS) {
+    } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         THROW_EXCEPT("Failed to acquire swap chain image!");
     }
 
-    if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
-        vkWaitForFences(device_, 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
+    if (imagesInFlight_[imageIndex] != VK_NULL_HANDLE) {
+        vkWaitForFences(device_, 1, &imagesInFlight_[imageIndex], VK_TRUE, UINT64_MAX);
     }
-    imagesInFlight[imageIndex] = inFlightFences[currentFrame_];
-    vkResetFences(device_, 1, &inFlightFences[currentFrame_]);
+    imagesInFlight_[imageIndex] = inFlightFences_[currentFrame_];
+    vkResetFences(device_, 1, &inFlightFences_[currentFrame_]);
 
-    VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame_]};
+    VK_ASSERT_SUCCESSED(vkResetCommandPool(device_, commandPool_, 0));
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    VK_ASSERT_SUCCESSED(vkBeginCommandBuffer(commandBuffers_[imageIndex], &beginInfo))
+
+    VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = renderPass_;
+    renderPassInfo.framebuffer = swapchainFramebuffers_[imageIndex];
+    renderPassInfo.renderArea.offset = {0, 0};
+    renderPassInfo.renderArea.extent = swapchainExtent_;
+
+    std::array<VkClearValue, 2> clearValues{};
+    clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
+    clearValues[1].depthStencil = {1.0f, 0};
+
+    renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+    renderPassInfo.pClearValues = clearValues.data();
+
+    vkCmdBeginRenderPass(commandBuffers_[imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    vkCmdBindPipeline(commandBuffers_[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline_);
+
+    vkCmdDraw(commandBuffers_[imageIndex], 3, 1, 0, 0);
+
+    vkCmdEndRenderPass(commandBuffers_[imageIndex]);
+
+    VK_ASSERT_SUCCESSED(vkEndCommandBuffer(commandBuffers_[imageIndex]));
+
+    ImGuiFrameRender(imageIndex);
+    VkCommandBuffer commandBuffers[] = {commandBuffers_[imageIndex], imguiCommandBuffers_[imageIndex]};
+    VkSemaphore waitSemaphores[] = {imageAvailableSemaphores_[currentFrame_]};
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-    VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame_]};
-    auto submitInfo =
-        GraphicsTools::MakeSubmitInfo(1, waitSemaphores, waitStages, 1, &commandBuffers_[imageIndex], 1, signalSemaphores);
-    VK_ASSERT_SUCCESSED(vkQueueSubmit(graphicsQueue_, 1, &submitInfo, inFlightFences[currentFrame_]))
+    VkSemaphore signalSemaphores[] = {renderFinishedSemaphores_[currentFrame_]};
+    auto submitInfo = GraphicsTools::MakeSubmitInfo(1, waitSemaphores, waitStages, 2, commandBuffers, 1, signalSemaphores);
+    VK_ASSERT_SUCCESSED(vkQueueSubmit(graphicsQueue_, 1, &submitInfo, inFlightFences_[currentFrame_]))
 
     auto presentInfoKHR = GraphicsTools::MakePresentInfoKHR(1, signalSemaphores, &swapchainKHR_, &imageIndex);
 
     result = vkQueuePresentKHR(presentQueue_, &presentInfoKHR);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        GDF_LOG(GraphicsLog, LogLevel::Warning, "VK_ERROR_OUT_OF_DATE_KHR : Recreate swapchain");
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        GDF_LOG(GraphicsLog, LogLevel::Warning, "vkQueuePresentKHR -> {}", GraphicsTools::VkResultString(result));
         RecreateSwapchain();
         return;
-    } else if (result != VK_SUBOPTIMAL_KHR) {
-        RecreateSwapchain();
-        GDF_LOG(GraphicsLog, LogLevel::Warning, "VK_SUBOPTIMAL_KHR : Swapchine image no longer matches the surface properties");
     } else if (result != VK_SUCCESS) {
         THROW_EXCEPT("Failed to present swap chain image!");
     }
     currentFrame_ = (currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+void Graphics::FrameEnd()
+{
+    ImGuiFrameEnd();
 }
 
 void Graphics::Cleanup()
@@ -333,6 +363,7 @@ void Graphics::CreateCommandPool()
 {
     VkCommandPoolCreateInfo poolInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
         .queueFamilyIndex = deviceInfo_.queueFamilyIndices.graphics,
     };
     VK_ASSERT_SUCCESSED(vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPool_))
@@ -344,10 +375,10 @@ void Graphics::CreateSwapchain()
     VkSurfaceFormatKHR surfaceFormat = GetAvailableFormat(swapchainSupport.formats);
     VkPresentModeKHR presentMode = GetAvailablePresentMode(swapchainSupport.presentModes);
     VkExtent2D extent = GetAvailableExtent(swapchainSupport.capabilities);
-    swapahainMinImageCount_ = swapchainSupport.capabilities.minImageCount + 1;
+    swapchainMinImageCount_ = swapchainSupport.capabilities.minImageCount + 1;
     if (swapchainSupport.capabilities.maxImageCount > 0 &&
-        swapahainMinImageCount_ > swapchainSupport.capabilities.maxImageCount)
-        swapahainMinImageCount_ = swapchainSupport.capabilities.maxImageCount;
+        swapchainMinImageCount_ > swapchainSupport.capabilities.maxImageCount)
+        swapchainMinImageCount_ = swapchainSupport.capabilities.maxImageCount;
     VkSwapchainKHR oldSwapchainKHR = swapchainKHR_;
     VkSurfaceTransformFlagBitsKHR preTranform{};
 
@@ -381,7 +412,7 @@ void Graphics::CreateSwapchain()
     VkSwapchainCreateInfoKHR swapchainCI{
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .surface = surfaceKHR_,
-        .minImageCount = swapahainMinImageCount_,
+        .minImageCount = swapchainMinImageCount_,
         .imageFormat = surfaceFormat.format,
         .imageColorSpace = surfaceFormat.colorSpace,
         .imageExtent = extent,
@@ -412,9 +443,9 @@ void Graphics::CreateSwapchain()
     }
     swapchainImageFormat_ = surfaceFormat.format;
     swapchainExtent_ = extent;
-    vkGetSwapchainImagesKHR(device_, swapchainKHR_, &swapahainImageCount_, nullptr);
-    swapahainImages_.resize(swapahainImageCount_);
-    vkGetSwapchainImagesKHR(device_, swapchainKHR_, &swapahainImageCount_, swapahainImages_.data());
+    vkGetSwapchainImagesKHR(device_, swapchainKHR_, &swapchainImageCount_, nullptr);
+    swapchainImages_.resize(swapchainImageCount_);
+    vkGetSwapchainImagesKHR(device_, swapchainKHR_, &swapchainImageCount_, swapchainImages_.data());
     CreateSwapchainImageViews();
 }
 
@@ -437,10 +468,10 @@ void Graphics::CreateSwapchainImageViews()
                                           .baseArrayLayer = 0,
                                           .layerCount = 1,
                                       }};
-    swapahainImageViews_.resize(swapahainImageCount_);
-    for (size_t i = 0; i < swapahainImageCount_; i++) {
-        ImageViewCI.image = swapahainImages_[i];
-        VK_ASSERT_SUCCESSED(vkCreateImageView(device_, &ImageViewCI, nullptr, &swapahainImageViews_[i]));
+    swapchainImageViews_.resize(swapchainImageCount_);
+    for (size_t i = 0; i < swapchainImageCount_; i++) {
+        ImageViewCI.image = swapchainImages_[i];
+        VK_ASSERT_SUCCESSED(vkCreateImageView(device_, &ImageViewCI, nullptr, &swapchainImageViews_[i]));
     }
 }
 
@@ -469,7 +500,7 @@ void Graphics::CreateRenderPass()
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
     };
 
     VkAttachmentDescription depthAttachment{};
@@ -574,9 +605,9 @@ void Graphics::CreateGraphicsPipeline()
 
 void Graphics::CreateFramebuffers()
 {
-    swapahainFramebuffers_.resize(swapahainImageCount_);
-    for (size_t i = 0; i < swapahainImageCount_; i++) {
-        std::array<VkImageView, 2> attachments = {swapahainImageViews_[i], depthImageView_};
+    swapchainFramebuffers_.resize(swapchainImageCount_);
+    for (size_t i = 0; i < swapchainImageCount_; i++) {
+        std::array<VkImageView, 2> attachments = {swapchainImageViews_[i], depthImageView_};
         VkFramebufferCreateInfo framebufferCI{
             .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
             .renderPass = renderPass_,
@@ -586,60 +617,31 @@ void Graphics::CreateFramebuffers()
             .height = swapchainExtent_.height,
             .layers = 1,
         };
-        VK_ASSERT_SUCCESSED(vkCreateFramebuffer(device_, &framebufferCI, nullptr, &swapahainFramebuffers_[i]))
+        VK_ASSERT_SUCCESSED(vkCreateFramebuffer(device_, &framebufferCI, nullptr, &swapchainFramebuffers_[i]))
     }
 }
 
 void Graphics::AllocateCommandBuffers()
 {
-    commandBuffers_.resize(swapahainImageCount_);
+    commandBuffers_.resize(swapchainImageCount_);
 
     VkCommandBufferAllocateInfo CommandBufferAI{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .commandPool = commandPool_,
         .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-        .commandBufferCount = swapahainImageCount_,
+        .commandBufferCount = swapchainImageCount_,
     };
 
     VK_ASSERT_SUCCESSED(vkAllocateCommandBuffers(device_, &CommandBufferAI, commandBuffers_.data()));
-
-    for (size_t i = 0; i < commandBuffers_.size(); i++) {
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        VK_ASSERT_SUCCESSED(vkBeginCommandBuffer(commandBuffers_[i], &beginInfo))
-
-        VkRenderPassBeginInfo renderPassInfo{};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = renderPass_;
-        renderPassInfo.framebuffer = swapahainFramebuffers_[i];
-        renderPassInfo.renderArea.offset = {0, 0};
-        renderPassInfo.renderArea.extent = swapchainExtent_;
-
-        std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
-        clearValues[1].depthStencil = {1.0f, 0};
-
-        renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-        renderPassInfo.pClearValues = clearValues.data();
-
-        vkCmdBeginRenderPass(commandBuffers_[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-        vkCmdBindPipeline(commandBuffers_[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline_);
-
-        vkCmdDraw(commandBuffers_[i], 3, 1, 0, 0);
-
-        vkCmdEndRenderPass(commandBuffers_[i]);
-
-        VK_ASSERT_SUCCESSED(vkEndCommandBuffer(commandBuffers_[i]));
-    }
+    
 }
 
 void Graphics::CreateSyncObjects()
 {
-    imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-    imagesInFlight.resize(swapahainImageCount_, VK_NULL_HANDLE);
+    imageAvailableSemaphores_.resize(MAX_FRAMES_IN_FLIGHT);
+    renderFinishedSemaphores_.resize(MAX_FRAMES_IN_FLIGHT);
+    inFlightFences_.resize(MAX_FRAMES_IN_FLIGHT);
+    imagesInFlight_.resize(swapchainImageCount_, VK_NULL_HANDLE);
     VkSemaphoreCreateInfo semaphoreCI{
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
     };
@@ -648,18 +650,18 @@ void Graphics::CreateSyncObjects()
         .flags = VK_FENCE_CREATE_SIGNALED_BIT,
     };
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        VK_ASSERT_SUCCESSED(vkCreateSemaphore(device_, &semaphoreCI, nullptr, &imageAvailableSemaphores[i]));
-        VK_ASSERT_SUCCESSED(vkCreateSemaphore(device_, &semaphoreCI, nullptr, &renderFinishedSemaphores[i]));
-        VK_ASSERT_SUCCESSED(vkCreateFence(device_, &fenceCI, nullptr, &inFlightFences[i]));
+        VK_ASSERT_SUCCESSED(vkCreateSemaphore(device_, &semaphoreCI, nullptr, &imageAvailableSemaphores_[i]));
+        VK_ASSERT_SUCCESSED(vkCreateSemaphore(device_, &semaphoreCI, nullptr, &renderFinishedSemaphores_[i]));
+        VK_ASSERT_SUCCESSED(vkCreateFence(device_, &fenceCI, nullptr, &inFlightFences_[i]));
     }
 }
 
 void Graphics::DestroySyncObjects()
 {
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroySemaphore(device_, imageAvailableSemaphores[i], nullptr);
-        vkDestroySemaphore(device_, renderFinishedSemaphores[i], nullptr);
-        vkDestroyFence(device_, inFlightFences[i], nullptr);
+        vkDestroySemaphore(device_, imageAvailableSemaphores_[i], nullptr);
+        vkDestroySemaphore(device_, renderFinishedSemaphores_[i], nullptr);
+        vkDestroyFence(device_, inFlightFences_[i], nullptr);
     }
 }
 
@@ -670,9 +672,9 @@ void Graphics::FreeCommandBuffers()
 
 void Graphics::DestroyFramebuffers()
 {
-    for (auto swapahainFramebuffer : swapahainFramebuffers_)
+    for (auto swapahainFramebuffer : swapchainFramebuffers_)
         vkDestroyFramebuffer(device_, swapahainFramebuffer, nullptr);
-    swapahainFramebuffers_.clear();
+    swapchainFramebuffers_.clear();
 }
 
 void Graphics::DestroyGraphicsPipeline()
@@ -695,9 +697,9 @@ void Graphics::DestroyDepthResources()
 
 void Graphics::DestroySwapchainImageViews()
 {
-    for (auto imageView : swapahainImageViews_)
+    for (auto imageView : swapchainImageViews_)
         vkDestroyImageView(device_, imageView, nullptr);
-    swapahainImageViews_.clear();
+    swapchainImageViews_.clear();
 }
 
 void Graphics::DestroySwapchain()
@@ -733,6 +735,7 @@ void Graphics::DestroyInstance()
 
 void Graphics::RecreateSwapchain()
 {
+    GDF_LOG(GraphicsLog, LogLevel::Info, "RecreateSwapchain");
     RequireRecreateSwapchain_ = false;
     int width = 0, height = 0;
     glfwGetFramebufferSize(pWindow_->pGLFWWindow(), &width, &height);
@@ -756,6 +759,8 @@ void Graphics::RecreateSwapchain()
     CreateGraphicsPipeline();
     CreateFramebuffers();
     AllocateCommandBuffers();
+
+    ImGuiUpdateMinImageCount(swapchainMinImageCount_);
 }
 
 void Graphics::ImGuiCreate()
@@ -770,6 +775,8 @@ void Graphics::ImGuiCreate()
 
     ImGuiCreateDescriptorPool();
     ImGuiCreateRenderPass();
+    ImGuiCreateFramebuffer();
+    ImGuiCreateCommandBuffer();
 
     ImGui_ImplGlfw_InitForVulkan(pWindow_->pGLFWWindow(), true);
     ImGui_ImplVulkan_InitInfo initInfo = {};
@@ -781,8 +788,8 @@ void Graphics::ImGuiCreate()
     initInfo.PipelineCache = imguiPipelineCache_;
     initInfo.DescriptorPool = imguiDescriptorPool_;
     initInfo.Allocator = imguiAllocator_;
-    initInfo.MinImageCount = swapahainMinImageCount_;
-    initInfo.ImageCount = swapahainImageCount_;
+    initInfo.MinImageCount = swapchainMinImageCount_;
+    initInfo.ImageCount = swapchainImageCount_;
     initInfo.CheckVkResultFn = ImGuiCheckVkResultCallback;
     ImGui_ImplVulkan_Init(&initInfo, renderPass_);
 
@@ -793,9 +800,54 @@ void Graphics::ImGuiDestroy()
 {
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
+    vkFreeCommandBuffers(device_, commandPool_, static_cast<uint32_t>(imguiFramebuffers_.size()), imguiCommandBuffers_.data());
+    for (size_t i = 0; i < imguiFramebuffers_.size(); i++) {
+        vkDestroyFramebuffer(device_, imguiFramebuffers_[i], nullptr);
+    }
     vkDestroyDescriptorPool(device_, imguiDescriptorPool_, imguiAllocator_);
     vkDestroyRenderPass(device_, imguiRenderPass_, nullptr);
     ImGui::DestroyContext();
+}
+
+void Graphics::ImGuiFrameBegin()
+{
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    ImGui::ShowDemoWindow();
+    ImGui::Render();
+    imGuiDrawData_ = ImGui::GetDrawData();
+}
+
+void Graphics::ImGuiFrameRender(uint32_t imageIndex)
+{
+
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    VK_ASSERT_SUCCESSED(vkBeginCommandBuffer(imguiCommandBuffers_[imageIndex], &beginInfo));
+
+    VkClearValue clearValues{0.0f, 0.0f, 0.0f, 0.0f};
+    VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = imguiRenderPass_;
+    renderPassInfo.framebuffer = imguiFramebuffers_[imageIndex];
+    renderPassInfo.renderArea.offset = {0, 0};
+    renderPassInfo.renderArea.extent = swapchainExtent_;
+    renderPassInfo.clearValueCount = static_cast<uint32_t>(1);
+    renderPassInfo.pClearValues = &clearValues;
+
+    vkCmdBeginRenderPass(imguiCommandBuffers_[imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    ImGui_ImplVulkan_RenderDrawData(imGuiDrawData_, imguiCommandBuffers_[imageIndex]);
+
+    vkCmdEndRenderPass(imguiCommandBuffers_[imageIndex]);
+
+    VK_ASSERT_SUCCESSED(vkEndCommandBuffer(imguiCommandBuffers_[imageIndex]));
+}
+
+void Graphics::ImGuiFrameEnd()
+{
 }
 
 void Graphics::ImGuiCreateDescriptorPool()
@@ -863,12 +915,49 @@ void Graphics::ImGuiCreateRenderPass()
     VK_ASSERT_SUCCESSED(vkCreateRenderPass(device_, &RenderPassCI, nullptr, &imguiRenderPass_))
 }
 
+void Graphics::ImGuiCreateFramebuffer()
+{
+    VkImageView attachment[1];
+    VkFramebufferCreateInfo FramebufferCI = {
+    .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+    .renderPass = imguiRenderPass_,
+    .attachmentCount = 1,
+    .pAttachments = attachment,
+    .width = swapchainExtent_.width,
+    .height = swapchainExtent_.height,
+    .layers = 1,
+    };
+    imguiFramebuffers_.resize(swapchainImageCount_);
+    for (uint32_t i = 0; i < swapchainImageCount_; i++) {
+        attachment[0] = swapchainImageViews_[i];
+        VK_ASSERT_SUCCESSED(vkCreateFramebuffer(device_, &FramebufferCI, nullptr, &imguiFramebuffers_[i]));
+    }
+}
+
+void Graphics::ImGuiCreateCommandBuffer()
+{
+    imguiCommandBuffers_.resize(swapchainImageCount_);
+
+    VkCommandBufferAllocateInfo CommandBufferAI{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .commandPool = commandPool_,
+        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = swapchainImageCount_,
+    };
+    VK_ASSERT_SUCCESSED(vkAllocateCommandBuffers(device_, &CommandBufferAI, imguiCommandBuffers_.data()));
+}
+
 void Graphics::ImGuiUploadFonts()
 {
     VkCommandBuffer commandBuffer = BeginSingleTimeCommand();
     ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
     EndSingleTimeCommand(commandBuffer);
     ImGui_ImplVulkan_DestroyFontUploadObjects();
+}
+
+void Graphics::ImGuiUpdateMinImageCount(uint32_t minImageCount)
+{
+    ImGui_ImplVulkan_SetMinImageCount(minImageCount);
 }
 
 void Graphics::ImGuiCheckVkResultCallback(VkResult result)
