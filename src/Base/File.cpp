@@ -1,10 +1,15 @@
 #include "Base/File.h"
 #include "Base/Common.h"
+#include <cstdio>
 #include <fstream>
+#include <sys/syslimits.h>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#elif __APPLE__
+#include <limits.h>
+#include <mach-o/dyld.h>
 #endif
 
 namespace gdf
@@ -12,7 +17,6 @@ namespace gdf
 std::vector<char> File::ReadBytes(const std::string &filename)
 {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
     if (!file.is_open()) {
         THROW_EXCEPT("failed to open file!");
     }
@@ -28,9 +32,21 @@ std::string File::GetExePath()
 #ifdef _WIN32
     char result[MAX_PATH];
     return std::string(result, GetModuleFileNameA(NULL, result, MAX_PATH));
+#elif __APPLE__
+    char result[PATH_MAX];
+    uint32_t size = 0;
+    assert(0 != _NSGetExecutablePath(nullptr, &size));
+    char *buffer = new char[size + 1];
+    assert(0 == _NSGetExecutablePath(buffer, &size));
+    char buf[PATH_MAX]; /* PATH_MAX incudes the \0 so +1 is not required */
+    realpath(buffer, result);
+    if (!realpath(buffer, result)) {
+        return "";
+    }
+    return result;
 #else
     char result[PATH_MAX];
-    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+    size_t count = readlink("/proc/self/exe", result, PATH_MAX);
     return std::string(result, (count > 0) ? count : 0);
 #endif
 }

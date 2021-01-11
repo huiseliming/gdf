@@ -21,7 +21,6 @@ std::string_view PhysicalDeviceTypeString(VkPhysicalDeviceType type)
     }
 }
 
-
 std::string_view VkResultString(VkResult errorCode)
 {
     switch (errorCode) {
@@ -58,7 +57,9 @@ std::string_view VkResultString(VkResult errorCode)
         STR(ERROR_INCOMPATIBLE_DISPLAY_KHR);
         STR(ERROR_VALIDATION_FAILED_EXT);
         STR(ERROR_INVALID_SHADER_NV);
+#ifndef __APPLE__
         STR(ERROR_INCOMPATIBLE_VERSION_KHR);
+#endif
         STR(ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT);
         STR(ERROR_NOT_PERMITTED_EXT);
         STR(ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT);
@@ -69,7 +70,7 @@ std::string_view VkResultString(VkResult errorCode)
         STR(PIPELINE_COMPILE_REQUIRED_EXT);
 #undef STR
     default:
-        return "UNKNOWN_ERROR";
+        return "VK_UNKNOWN_ERROR";
     }
 }
 
@@ -138,20 +139,21 @@ VkSubpassDescription MakeSubpassDescription(uint32_t colorAttachmentsCount,
     };
 }
 
-VkSubpassDependency MakeSubpassDependency(uint32_t srcSubpass, uint32_t dstSubpass, VkPipelineStageFlags srcStageMask,
+VkSubpassDependency MakeSubpassDependency(uint32_t srcSubpass,
+                                          uint32_t dstSubpass,
+                                          VkPipelineStageFlags srcStageMask,
                                           VkPipelineStageFlags dstStageMask,
                                           VkAccessFlags srcAccessMask,
                                           VkAccessFlags dstAccessMask,
                                           VkDependencyFlags dependencyFlags)
 {
-    return VkSubpassDependency
-    {
-        .srcSubpass = srcSubpass, 
-        .dstSubpass = dstSubpass, 
-        .srcStageMask = srcStageMask, 
+    return VkSubpassDependency{
+        .srcSubpass = srcSubpass,
+        .dstSubpass = dstSubpass,
+        .srcStageMask = srcStageMask,
         .dstStageMask = dstStageMask,
-        .srcAccessMask = srcAccessMask, 
-        .dstAccessMask = dstAccessMask, 
+        .srcAccessMask = srcAccessMask,
+        .dstAccessMask = dstAccessMask,
         .dependencyFlags = dependencyFlags,
     };
 }
@@ -309,7 +311,7 @@ VkPipelineColorBlendAttachmentState MakePipelineColorBlendAttachmentState(VkColo
         .colorWriteMask = colorWriteMask,
     };
 }
-//constexpr float blendConstantsDefault[4] = {0.f,0.f,0.f,0.f};
+// constexpr float blendConstantsDefault[4] = {0.f,0.f,0.f,0.f};
 VkPipelineColorBlendStateCreateInfo MakePipelineColorBlendStateCreateInfo(
     VkBool32 logicOpEnable,
     VkLogicOp logicOp,
@@ -336,7 +338,6 @@ VkPipelineDynamicStateCreateInfo MakePipelineDynamicStateCreateInfo(uint32_t dyn
         .pDynamicStates = pDynamicStates,
     };
 }
-
 
 VkPipelineLayoutCreateInfo MakePipelineLayoutCreateInfo(uint32_t setLayoutCount,
                                                         const VkDescriptorSetLayout *pSetLayouts,
@@ -390,6 +391,5 @@ VkPresentInfoKHR MakePresentInfoKHR(uint32_t waitSemaphoreCount,
     };
 }
 
-
-} // namespace VulkanTools
+} // namespace GraphicsTools
 } // namespace gdf

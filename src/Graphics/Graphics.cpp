@@ -1,9 +1,9 @@
+#include "Graphics/Graphics.h"
+#include "Base/File.h"
+#include "Git.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
-#include "Git.h"
-#include "Graphics/Graphics.h"
-#include "Base/File.h"
 #include <array>
 
 #define GIT_UINT32_VERSION                                                                                                     \
@@ -17,15 +17,16 @@ namespace gdf
 
 GDF_DEFINE_EXPORT_LOG_CATEGORY(GraphicsLog);
 
-
-void Graphics::Initialize(Window* pWindow, bool enableValidationLayer)
+void Graphics::Initialize(Window *pWindow, bool enableValidationLayer)
 {
     pWindow_ = pWindow;
     enableValidationLayer_ = enableValidationLayer;
     CreateInstance();
     // Setup DebugReportCallback
-    if (enableValidationLayer_) CreateDebugReporter();
-    if (pWindow) pWindow_->GetVkSurfaceKHR(instance_, &surfaceKHR_);
+    if (enableValidationLayer_)
+        CreateDebugReporter();
+    if (pWindow)
+        pWindow_->GetVkSurfaceKHR(instance_, &surfaceKHR_);
     CreateDevice({}, {});
     CreateCommandPool();
     CreateSwapchain();
@@ -41,15 +42,17 @@ void Graphics::Initialize(Window* pWindow, bool enableValidationLayer)
 
 void Graphics::DrawFrame()
 {
-    //ImGui_ImplVulkan_NewFrame();
-    //ImGui_ImplGlfw_NewFrame();
-    //ImGui::NewFrame();
-    //ImGui::ShowDemoWindow();
-    //ImGui::Render();
-    if (RequireRecreateSwapchain_) RecreateSwapchain();
+    // ImGui_ImplVulkan_NewFrame();
+    // ImGui_ImplGlfw_NewFrame();
+    // ImGui::NewFrame();
+    // ImGui::ShowDemoWindow();
+    // ImGui::Render();
+    if (RequireRecreateSwapchain_)
+        RecreateSwapchain();
     vkWaitForFences(device_, 1, &inFlightFences[currentFrame_], VK_TRUE, UINT64_MAX);
     uint32_t imageIndex;
-    VkResult result = vkAcquireNextImageKHR( device_, swapchainKHR_, UINT64_MAX, imageAvailableSemaphores[currentFrame_], VK_NULL_HANDLE, &imageIndex);
+    VkResult result = vkAcquireNextImageKHR(
+        device_, swapchainKHR_, UINT64_MAX, imageAvailableSemaphores[currentFrame_], VK_NULL_HANDLE, &imageIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         GDF_LOG(GraphicsLog, LogLevel::Warning, "Recreate swapchain");
         RecreateSwapchain();
@@ -69,7 +72,8 @@ void Graphics::DrawFrame()
     VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame_]};
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame_]};
-    auto submitInfo = GraphicsTools::MakeSubmitInfo(1, waitSemaphores, waitStages, 1, &commandBuffers_[imageIndex], 1, signalSemaphores);
+    auto submitInfo =
+        GraphicsTools::MakeSubmitInfo(1, waitSemaphores, waitStages, 1, &commandBuffers_[imageIndex], 1, signalSemaphores);
     VK_ASSERT_SUCCESSED(vkQueueSubmit(graphicsQueue_, 1, &submitInfo, inFlightFences[currentFrame_]))
 
     auto presentInfoKHR = GraphicsTools::MakePresentInfoKHR(1, signalSemaphores, &swapchainKHR_, &imageIndex);
@@ -102,8 +106,10 @@ void Graphics::Cleanup()
     DestroySwapchain();
     DestroyCommandPool();
     DestroyDevice();
-    if (surfaceKHR_ != VK_NULL_HANDLE) vkDestroySurfaceKHR(instance_, surfaceKHR_, nullptr);
-    if (enableValidationLayer_) DestroyDebugReporter();
+    if (surfaceKHR_ != VK_NULL_HANDLE)
+        vkDestroySurfaceKHR(instance_, surfaceKHR_, nullptr);
+    if (enableValidationLayer_)
+        DestroyDebugReporter();
     DestroyInstance();
 }
 
@@ -173,7 +179,8 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
     std::vector<VkDeviceQueueCreateInfo> deviceQueueCIs;
     const float defaultQueuePriority(0.0f);
     // Graphics queue
-    deviceInfo_.queueFamilyIndices.graphics = GraphicsTools::GetQueueFamilyIndex(deviceInfo_.queueFamilyProperties, VK_QUEUE_GRAPHICS_BIT);
+    deviceInfo_.queueFamilyIndices.graphics =
+        GraphicsTools::GetQueueFamilyIndex(deviceInfo_.queueFamilyProperties, VK_QUEUE_GRAPHICS_BIT);
     if (deviceInfo_.queueFamilyIndices.graphics == UINT32_MAX)
         THROW_EXCEPT("No found graphics queue family indices!");
     deviceQueueCIs.emplace_back(VkDeviceQueueCreateInfo{
@@ -184,7 +191,8 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
     });
 
     // Compute queue
-    deviceInfo_.queueFamilyIndices.compute = GraphicsTools::GetQueueFamilyIndex(deviceInfo_.queueFamilyProperties, VK_QUEUE_COMPUTE_BIT);
+    deviceInfo_.queueFamilyIndices.compute =
+        GraphicsTools::GetQueueFamilyIndex(deviceInfo_.queueFamilyProperties, VK_QUEUE_COMPUTE_BIT);
     if (deviceInfo_.queueFamilyIndices.compute == UINT32_MAX)
         THROW_EXCEPT("No found compute queue family indices!");
     if (deviceInfo_.queueFamilyIndices.compute != deviceInfo_.queueFamilyIndices.graphics) {
@@ -197,7 +205,8 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
     }
 
     // Dedicated transfer queue
-    deviceInfo_.queueFamilyIndices.transfer = GraphicsTools::GetQueueFamilyIndex(deviceInfo_.queueFamilyProperties, VK_QUEUE_TRANSFER_BIT);
+    deviceInfo_.queueFamilyIndices.transfer =
+        GraphicsTools::GetQueueFamilyIndex(deviceInfo_.queueFamilyProperties, VK_QUEUE_TRANSFER_BIT);
     if (deviceInfo_.queueFamilyIndices.transfer == UINT32_MAX)
         THROW_EXCEPT("No found transfer queue family indices!");
     if ((deviceInfo_.queueFamilyIndices.transfer != deviceInfo_.queueFamilyIndices.graphics) &&
@@ -296,9 +305,9 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
 
     // GetQueue
     std::vector<uint32_t> allIndices{deviceInfo_.queueFamilyIndices.graphics,
-                                    deviceInfo_.queueFamilyIndices.compute,
-                                    deviceInfo_.queueFamilyIndices.transfer,
-                                    deviceInfo_.queueFamilyIndices.present};
+                                     deviceInfo_.queueFamilyIndices.compute,
+                                     deviceInfo_.queueFamilyIndices.transfer,
+                                     deviceInfo_.queueFamilyIndices.present};
     std::vector<VkQueue *> queues{&graphicsQueue_, &computeQueue_, &transferQueue_, &presentQueue_};
 
     std::vector<uint32_t> queueIndices(allIndices.size(), UINT32_MAX);
@@ -336,7 +345,8 @@ void Graphics::CreateSwapchain()
     VkPresentModeKHR presentMode = GetAvailablePresentMode(swapchainSupport.presentModes);
     VkExtent2D extent = GetAvailableExtent(swapchainSupport.capabilities);
     swapahainMinImageCount_ = swapchainSupport.capabilities.minImageCount + 1;
-    if (swapchainSupport.capabilities.maxImageCount > 0 && swapahainMinImageCount_ > swapchainSupport.capabilities.maxImageCount)
+    if (swapchainSupport.capabilities.maxImageCount > 0 &&
+        swapahainMinImageCount_ > swapchainSupport.capabilities.maxImageCount)
         swapahainMinImageCount_ = swapchainSupport.capabilities.maxImageCount;
     VkSwapchainKHR oldSwapchainKHR = swapchainKHR_;
     VkSurfaceTransformFlagBitsKHR preTranform{};
@@ -355,7 +365,8 @@ void Graphics::CreateSwapchain()
         VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR,
     };
 
-    if (std::find(compositeAlphaFlags.begin(), compositeAlphaFlags.end(), VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR) != compositeAlphaFlags.end()) {
+    if (std::find(compositeAlphaFlags.begin(), compositeAlphaFlags.end(), VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR) !=
+        compositeAlphaFlags.end()) {
         compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     } else {
         // TODO: print warn
@@ -474,8 +485,10 @@ void Graphics::CreateRenderPass()
     auto colorAttachmentRef = GraphicsTools::MakeAttachmentReference(0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     auto depthAttachmentRef = GraphicsTools::MakeAttachmentReference(1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
-    auto subpass = GraphicsTools::MakeSubpassDescription(1,&colorAttachmentRef, &depthAttachmentRef);
-    auto dependency = GraphicsTools::MakeSubpassDependency(VK_SUBPASS_EXTERNAL,0,
+    auto subpass = GraphicsTools::MakeSubpassDescription(1, &colorAttachmentRef, &depthAttachmentRef);
+    auto dependency = GraphicsTools::MakeSubpassDependency(
+        VK_SUBPASS_EXTERNAL,
+        0,
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
         0,
@@ -483,8 +496,7 @@ void Graphics::CreateRenderPass()
     std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
     std::array<VkSubpassDescription, 1> subpasses = {subpass};
     std::array<VkSubpassDependency, 1> dependencies = {dependency};
-    VkRenderPassCreateInfo renderPassCI
-    {
+    VkRenderPassCreateInfo renderPassCI{
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -519,9 +531,8 @@ void Graphics::CreateGraphicsPipeline()
         .minDepth = 0.0f,
         .maxDepth = 1.0f,
     };
-    VkRect2D scissor
-    {
-        .offset = {0,0},
+    VkRect2D scissor{
+        .offset = {0, 0},
         .extent = swapchainExtent_,
     };
     auto viewportStateCI = GraphicsTools::MakePipelineViewportStateCreateInfo(1, &viewport, 1, &scissor);
@@ -529,7 +540,8 @@ void Graphics::CreateGraphicsPipeline()
     auto multisampleStateCI = GraphicsTools::MakePipelineMultisampleStateCreateInfo();
     auto depthStencilStateCI = GraphicsTools::MakePipelineDepthStencilStateCreateInfo();
     auto colorBlendAttachmentState = GraphicsTools::MakePipelineColorBlendAttachmentState();
-    auto colorBlendStateCI = GraphicsTools::MakePipelineColorBlendStateCreateInfo(VK_FALSE, VK_LOGIC_OP_COPY, 1,&colorBlendAttachmentState);
+    auto colorBlendStateCI =
+        GraphicsTools::MakePipelineColorBlendStateCreateInfo(VK_FALSE, VK_LOGIC_OP_COPY, 1, &colorBlendAttachmentState);
     auto dynamicStateCI = GraphicsTools::MakePipelineDynamicStateCreateInfo();
 
     auto pipelineLayoutCI = GraphicsTools::MakePipelineLayoutCreateInfo();
@@ -554,7 +566,8 @@ void Graphics::CreateGraphicsPipeline()
         //.basePipelineHandle = basePipelineHandle,
         //.basePipelineIndex = basePipelineIndex,
     };
-    VK_ASSERT_SUCCESSED(vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1, &GraphicsPipelineCI, nullptr, &graphicsPipeline_));
+    VK_ASSERT_SUCCESSED(
+        vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1, &GraphicsPipelineCI, nullptr, &graphicsPipeline_));
     vkDestroyShaderModule(device_, vertShaderModule, nullptr);
     vkDestroyShaderModule(device_, fragShaderModule, nullptr);
 }
@@ -657,14 +670,14 @@ void Graphics::FreeCommandBuffers()
 
 void Graphics::DestroyFramebuffers()
 {
-    for (auto swapahainFramebuffer : swapahainFramebuffers_) 
+    for (auto swapahainFramebuffer : swapahainFramebuffers_)
         vkDestroyFramebuffer(device_, swapahainFramebuffer, nullptr);
     swapahainFramebuffers_.clear();
 }
 
 void Graphics::DestroyGraphicsPipeline()
 {
-    vkDestroyPipelineLayout(device_, graphicsPipelineLayout_,nullptr);
+    vkDestroyPipelineLayout(device_, graphicsPipelineLayout_, nullptr);
     vkDestroyPipeline(device_, graphicsPipeline_, nullptr);
 }
 
@@ -683,7 +696,7 @@ void Graphics::DestroyDepthResources()
 void Graphics::DestroySwapchainImageViews()
 {
     for (auto imageView : swapahainImageViews_)
-            vkDestroyImageView(device_, imageView, nullptr);
+        vkDestroyImageView(device_, imageView, nullptr);
     swapahainImageViews_.clear();
 }
 
@@ -735,7 +748,7 @@ void Graphics::RecreateSwapchain()
     DestroyGraphicsPipeline();
     DestroyRenderPass();
     DestroyDepthResources();
-    
+
     // create
     CreateSwapchain();
     CreateDepthResources();
@@ -922,16 +935,16 @@ void Graphics::CreateImage(uint32_t width,
                            VkImage &image,
                            VkDeviceMemory &imageMemory)
 {
-    VkImageCreateInfo imageCI
-    {
+    VkImageCreateInfo imageCI{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .imageType = VK_IMAGE_TYPE_2D,
         .format = format,
-        .extent = {
-            .width = width,
-            .height = height,
-            .depth = 1,
-        },
+        .extent =
+            {
+                .width = width,
+                .height = height,
+                .depth = 1,
+            },
         .mipLevels = 1,
         .arrayLayers = 1,
         .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -960,21 +973,18 @@ void Graphics::CreateImage(uint32_t width,
 VkImageView Graphics::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
 {
     VkImageView imageView;
-    VkImageViewCreateInfo imageViewCI
-    {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .image = image,
-        .viewType = VK_IMAGE_VIEW_TYPE_2D,
-        .format = format,
-        .components = {},
-        .subresourceRange{
-            .aspectMask = aspectFlags,
-            .baseMipLevel = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = 1,
-        }
-    };
+    VkImageViewCreateInfo imageViewCI{.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                                      .image = image,
+                                      .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                                      .format = format,
+                                      .components = {},
+                                      .subresourceRange{
+                                          .aspectMask = aspectFlags,
+                                          .baseMipLevel = 0,
+                                          .levelCount = 1,
+                                          .baseArrayLayer = 0,
+                                          .layerCount = 1,
+                                      }};
     VK_ASSERT_SUCCESSED(vkCreateImageView(device_, &imageViewCI, nullptr, &imageView))
     return imageView;
 }
@@ -1033,23 +1043,25 @@ SwapChainSupportDetails Graphics::QuerySwapChainSupport()
     vkGetPhysicalDeviceSurfacePresentModesKHR(deviceInfo_.physicalDevice, surfaceKHR_, &presentModeCount, nullptr);
     if (presentModeCount != 0) {
         details.presentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(deviceInfo_.physicalDevice, surfaceKHR_, &presentModeCount, details.presentModes.data());
+        vkGetPhysicalDeviceSurfacePresentModesKHR(
+            deviceInfo_.physicalDevice, surfaceKHR_, &presentModeCount, details.presentModes.data());
     }
     return details;
 }
 
 VkSurfaceFormatKHR Graphics::GetAvailableFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats)
 {
-    for (const auto &availableFormat : availableFormats) 
-        if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) 
+    for (const auto &availableFormat : availableFormats)
+        if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
+            availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
             return availableFormat;
     return availableFormats[0];
 }
 
 VkPresentModeKHR Graphics::GetAvailablePresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes)
 {
-    for (const auto &availablePresentMode : availablePresentModes) 
-        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) 
+    for (const auto &availablePresentMode : availablePresentModes)
+        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
             return availablePresentMode;
     return VK_PRESENT_MODE_FIFO_KHR;
 }
@@ -1062,8 +1074,10 @@ VkExtent2D Graphics::GetAvailableExtent(const VkSurfaceCapabilitiesKHR &capabili
         int width, height;
         glfwGetFramebufferSize(pWindow_->pGLFWWindow(), &width, &height);
         VkExtent2D actualExtent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
-        actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
-        actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
+        actualExtent.width =
+            std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
+        actualExtent.height =
+            std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
         return actualExtent;
     }
 }
@@ -1098,7 +1112,7 @@ std::string Graphics::GetShadersPath()
 #ifdef _WIN32
     return File::GetExeDir() + "/../../../../shaders/";
 #else
-    return File::GetExeDir() + "../../../shaders/";
+    return File::GetExeDir() + "/../../../shaders/";
 #endif
 }
 
