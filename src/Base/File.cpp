@@ -2,7 +2,6 @@
 #include "Base/Common.h"
 #include <cstdio>
 #include <fstream>
-#include <sys/syslimits.h>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -10,6 +9,7 @@
 #elif __APPLE__
 #include <limits.h>
 #include <mach-o/dyld.h>
+#include <sys/syslimits.h>
 #endif
 
 namespace gdf
