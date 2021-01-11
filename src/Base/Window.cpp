@@ -4,7 +4,7 @@
 namespace gdf
 {
 
-Window::Window() : pGLFWWindow_(nullptr), width_(0), height_(0), resized_(false)
+Window::Window()
 {
 }
 
@@ -75,7 +75,7 @@ void Window::preProcessing()
 {
     mouse_.preProcessing(*this);
     keyboard_.preProcessing(*this);
-    resized_ = false;
+    framebufferResized_ = false;
 }
 
 void Window::postProcessing()
@@ -141,7 +141,7 @@ void Window::CharCallback(GLFWwindow *window, unsigned int codepoint)
 void Window::WindowSizeCallback(GLFWwindow *window, int width, int height)
 {
     Window *pWindow = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
-    pWindow->resized_ = true;
+    pWindow->framebufferResized_ = true;
     pWindow->width_ = width;
     pWindow->height_ = height;
 }
@@ -149,6 +149,7 @@ void Window::WindowSizeCallback(GLFWwindow *window, int width, int height)
 void Window::FramebufferResizeCallback(GLFWwindow *window, int width, int height)
 {
     Window *pWindow = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
+    pWindow->framebufferResized_ = true;
     pWindow->width_ = width;
     pWindow->height_ = height;
 }

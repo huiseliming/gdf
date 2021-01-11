@@ -47,9 +47,9 @@ public:
     {
         return keyboard_;
     }
-    bool resized()
+    bool framebufferResized()
     {
-        return resized_;
+        return framebufferResized_;
     }
 
     static bool GetRequiredInstanceExtensions(std::vector<const char *> &glfwRequiredInstanceExtensions);
@@ -68,11 +68,12 @@ private:
     static void FramebufferResizeCallback(GLFWwindow *window, int width, int height);
 
 private:
-    GLFWwindow *pGLFWWindow_;
-    int width_;
-    int height_;
+    GLFWwindow *pGLFWWindow_{nullptr};
+    int width_{0};
+    int height_{0};
     Mouse mouse_;
     Keyboard keyboard_;
-    bool resized_;
+    bool framebufferResized_{false};
+    
 };
 } // namespace gdf

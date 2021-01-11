@@ -46,13 +46,13 @@ void Graphics::DrawFrame()
     //ImGui::NewFrame();
     //ImGui::ShowDemoWindow();
     //ImGui::Render();
-
+    if (RequireRecreateSwapchain_) RecreateSwapchain();
     vkWaitForFences(device_, 1, &inFlightFences[currentFrame_], VK_TRUE, UINT64_MAX);
     uint32_t imageIndex;
     VkResult result = vkAcquireNextImageKHR( device_, swapchainKHR_, UINT64_MAX, imageAvailableSemaphores[currentFrame_], VK_NULL_HANDLE, &imageIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         GDF_LOG(GraphicsLog, LogLevel::Warning, "Recreate swapchain");
-        // TODO : recreateSwapChain();
+        RecreateSwapchain();
         return;
     } else if (result != VK_SUBOPTIMAL_KHR) {
         GDF_LOG(GraphicsLog, LogLevel::Warning, "Swapchine image no longer matches the surface properties");
@@ -77,10 +77,10 @@ void Graphics::DrawFrame()
     result = vkQueuePresentKHR(presentQueue_, &presentInfoKHR);
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         GDF_LOG(GraphicsLog, LogLevel::Warning, "VK_ERROR_OUT_OF_DATE_KHR : Recreate swapchain");
-        // TODO : recreateSwapChain();
+        RecreateSwapchain();
         return;
     } else if (result != VK_SUBOPTIMAL_KHR) {
-        // TODO : recreateSwapChain();
+        RecreateSwapchain();
         GDF_LOG(GraphicsLog, LogLevel::Warning, "VK_SUBOPTIMAL_KHR : Swapchine image no longer matches the surface properties");
     } else if (result != VK_SUCCESS) {
         THROW_EXCEPT("Failed to present swap chain image!");
@@ -716,6 +716,33 @@ void Graphics::DestroyInstance()
 {
     vkDestroyInstance(instance_, nullptr);
     instance_ = VK_NULL_HANDLE;
+}
+
+void Graphics::RecreateSwapchain()
+{
+    RequireRecreateSwapchain_ = false;
+    int width = 0, height = 0;
+    glfwGetFramebufferSize(pWindow_->pGLFWWindow(), &width, &height);
+    while (width == 0 || height == 0) {
+        glfwGetFramebufferSize(pWindow_->pGLFWWindow(), &width, &height);
+        glfwWaitEvents();
+    }
+
+    // cleanup
+    DeviceWaitIdle();
+    FreeCommandBuffers();
+    DestroyFramebuffers();
+    DestroyGraphicsPipeline();
+    DestroyRenderPass();
+    DestroyDepthResources();
+    
+    // create
+    CreateSwapchain();
+    CreateDepthResources();
+    CreateRenderPass();
+    CreateGraphicsPipeline();
+    CreateFramebuffers();
+    AllocateCommandBuffers();
 }
 
 void Graphics::ImGuiCreate()

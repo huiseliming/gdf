@@ -68,6 +68,15 @@ public:
     void DestroyDebugReporter();
     void DestroyInstance();
 
+    // Recreate 
+    
+    void RecreateSwapchain();
+    void RequireRecreateSwapchain(bool required)
+    {
+        RequireRecreateSwapchain_ = required;
+    }
+    bool RequireRecreateSwapchain_{false};
+
     // ImGui
     void ImGuiCreate();
     void ImGuiDestroy();

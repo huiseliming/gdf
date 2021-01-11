@@ -39,6 +39,9 @@ void GfxApp::MainLoop()
 {
     while (!window_.ShouldClose()) {
         window_.PollEvents();
+        if (window_.framebufferResized()) {
+            gfx_.RequireRecreateSwapchain(true);
+        }
         timerManager_.Update();
         gfx_.DrawFrame();
         // if (window.resized()) {
