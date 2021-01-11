@@ -41,8 +41,10 @@ std::string File::GetExePath()
     char buf[PATH_MAX]; /* PATH_MAX incudes the \0 so +1 is not required */
     realpath(buffer, result);
     if (!realpath(buffer, result)) {
+        delete buffer;
         return "";
     }
+    delete buffer;
     return result;
 #else
     char result[PATH_MAX];
