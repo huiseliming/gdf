@@ -64,3 +64,4 @@ out
 include/Git.h
 
 .DS_store
+*.ini
