@@ -773,7 +773,8 @@ void Graphics::ImGuiCreate()
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
-    //ImGuiIO &io = ImGui::GetIO().ConfigFlags|= ImGuiConfigFlags_DockingEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
     io.Fonts->AddFontDefault();
     io.Fonts->AddFontFromFileTTF((File::GetExeDir() + "/fonts/Roboto-Medium.ttf").c_str(), 16.0f);
@@ -869,6 +870,11 @@ void Graphics::ImGuiFrameRender(uint32_t imageIndex)
 
 void Graphics::ImGuiFrameEnd()
 {
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+    }
 }
 
 void Graphics::ImGuiCreateDescriptorPool()
