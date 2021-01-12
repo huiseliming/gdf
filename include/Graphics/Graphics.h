@@ -83,6 +83,8 @@ public:
     // ImGui
     void ImGuiCreate();
     void ImGuiDestroy();
+    void ImGuiResourceCreate();
+    void ImGuiResourceDestroy();
     void ImGuiFrameBegin();
     void ImGuiFrameRender(uint32_t imageIndex);
     void ImGuiFrameEnd();

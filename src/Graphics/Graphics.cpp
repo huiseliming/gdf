@@ -67,7 +67,7 @@ void Graphics::DrawFrame()
     imagesInFlight_[imageIndex] = inFlightFences_[currentFrame_];
     vkResetFences(device_, 1, &inFlightFences_[currentFrame_]);
 
-    VK_ASSERT_SUCCESSED(vkResetCommandPool(device_, commandPool_, 0));
+    //VK_ASSERT_SUCCESSED(vkResetCommandPool(device_, commandPool_, 0));
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     VK_ASSERT_SUCCESSED(vkBeginCommandBuffer(commandBuffers_[imageIndex], &beginInfo))
@@ -746,6 +746,9 @@ void Graphics::RecreateSwapchain()
 
     // cleanup
     DeviceWaitIdle();
+
+    ImGuiResourceDestroy();
+
     FreeCommandBuffers();
     DestroyFramebuffers();
     DestroyGraphicsPipeline();
@@ -761,6 +764,7 @@ void Graphics::RecreateSwapchain()
     AllocateCommandBuffers();
 
     ImGuiUpdateMinImageCount(swapchainMinImageCount_);
+    ImGuiResourceCreate();
 }
 
 void Graphics::ImGuiCreate()
@@ -774,9 +778,7 @@ void Graphics::ImGuiCreate()
     ImGui::StyleColorsDark();
 
     ImGuiCreateDescriptorPool();
-    ImGuiCreateRenderPass();
-    ImGuiCreateFramebuffer();
-    ImGuiCreateCommandBuffer();
+    ImGuiResourceCreate();
 
     ImGui_ImplGlfw_InitForVulkan(pWindow_->pGLFWWindow(), true);
     ImGui_ImplVulkan_InitInfo initInfo = {};
@@ -791,22 +793,34 @@ void Graphics::ImGuiCreate()
     initInfo.MinImageCount = swapchainMinImageCount_;
     initInfo.ImageCount = swapchainImageCount_;
     initInfo.CheckVkResultFn = ImGuiCheckVkResultCallback;
-    ImGui_ImplVulkan_Init(&initInfo, renderPass_);
+    ImGui_ImplVulkan_Init(&initInfo, imguiRenderPass_);
 
     ImGuiUploadFonts();
 }
 
 void Graphics::ImGuiDestroy()
 {
+    ImGuiResourceDestroy();
+    vkDestroyDescriptorPool(device_, imguiDescriptorPool_, imguiAllocator_);
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+}
+
+void Graphics::ImGuiResourceCreate()
+{
+    ImGuiCreateRenderPass();
+    ImGuiCreateFramebuffer();
+    ImGuiCreateCommandBuffer();
+}
+
+void Graphics::ImGuiResourceDestroy()
+{
     vkFreeCommandBuffers(device_, commandPool_, static_cast<uint32_t>(imguiFramebuffers_.size()), imguiCommandBuffers_.data());
     for (size_t i = 0; i < imguiFramebuffers_.size(); i++) {
         vkDestroyFramebuffer(device_, imguiFramebuffers_[i], nullptr);
     }
-    vkDestroyDescriptorPool(device_, imguiDescriptorPool_, imguiAllocator_);
     vkDestroyRenderPass(device_, imguiRenderPass_, nullptr);
-    ImGui::DestroyContext();
 }
 
 void Graphics::ImGuiFrameBegin()

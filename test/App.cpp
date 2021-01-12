@@ -35,6 +35,7 @@ void GfxApp::StartUp()
     gfx_.Initialize(&window_);
     GDF_LOG(GfxAppLog, LogLevel::Info, "Entering MainLoop at Time: {}", ProgramClock::CurrentTime());
 }
+
 void GfxApp::MainLoop()
 {
     while (!window_.ShouldClose()) {
