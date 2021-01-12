@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Main(lldb)",
+            "name": "App(lldb)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/out/build/bin/Main",
+            "program": "${workspaceFolder}/out/build/bin/App",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/out/build/bin",

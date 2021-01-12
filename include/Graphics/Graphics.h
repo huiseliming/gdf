@@ -1,10 +1,10 @@
 #pragma once
-#include "Graphics/VulkanApi.h"
 #include "Base/Window.h"
-#include "Log/Logger.h"
 #include "DeviceInfo.h"
-#include <mutex>
+#include "Graphics/VulkanApi.h"
+#include "Log/Logger.h"
 #include <deque>
+#include <mutex>
 
 #ifdef GDF_DEBUG
 #define GDF_ENABLE_VALIDATION_LAYER true
@@ -197,12 +197,17 @@ public:
     VkQueue transferQueue_{VK_NULL_HANDLE};
     VkQueue presentQueue_{VK_NULL_HANDLE};
 
+    // what is enable
     bool enableValidationLayer_;
+    bool enableGetPhysicalDeviceProperty2Extension{false};
     // Device Infomation
     DeviceInfo deviceInfo_;
 
+    // extensions and layers
+    std::vector<const char *> instanceExtensions_;
+    std::vector<const char *> instanceLayers_;
 
-    //setting
+    // setting
     float DPI{1.0f};
 
 private:
@@ -220,6 +225,3 @@ public:
 private:
 };
 } // namespace gdf
-
-
-

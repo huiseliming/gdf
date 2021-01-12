@@ -4,7 +4,11 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
+#include <algorithm>
 #include <array>
+#include <cstdio>
+#include <iterator>
+#include <vulkan/vulkan_core.h>
 
 #define GIT_UINT32_VERSION                                                                                                     \
     (static_cast<uint32_t>(wcstoul(GIT_VERSION_MAJOR, nullptr, 10) && 0xF) << 28) ||                                           \
@@ -67,7 +71,7 @@ void Graphics::DrawFrame()
     imagesInFlight_[imageIndex] = inFlightFences_[currentFrame_];
     vkResetFences(device_, 1, &inFlightFences_[currentFrame_]);
 
-    //VK_ASSERT_SUCCESSED(vkResetCommandPool(device_, commandPool_, 0));
+    // VK_ASSERT_SUCCESSED(vkResetCommandPool(device_, commandPool_, 0));
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     VK_ASSERT_SUCCESSED(vkBeginCommandBuffer(commandBuffers_[imageIndex], &beginInfo))
@@ -145,14 +149,20 @@ void Graphics::Cleanup()
 
 void Graphics::CreateInstance()
 {
-    std::vector<const char *> instanceExtensions;
-    if (!Window::GetRequiredInstanceExtensions(instanceExtensions))
+    uint32_t apiVersion;
+    vkEnumerateInstanceVersion(&apiVersion);
+#ifdef __APPLE__
+    if (VK_VERSION_MAJOR(apiVersion) >= 1 && VK_VERSION_MINOR(apiVersion) >= 1) {
+        instanceExtensions_.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+        enableGetPhysicalDeviceProperty2Extension = true;
+    }
+#endif
+    if (!Window::GetRequiredInstanceExtensions(instanceExtensions_))
         THROW_EXCEPT("Required window instance extensions faild!");
     // Instance
-    std::vector<const char *> instanceLayers;
     if (enableValidationLayer_) {
-        instanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-        instanceLayers.emplace_back("VK_LAYER_KHRONOS_validation");
+        instanceExtensions_.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+        instanceLayers_.emplace_back("VK_LAYER_KHRONOS_validation");
     }
     VkApplicationInfo appinfo{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
                               .pApplicationName = APPLICATION_NAME,
@@ -163,13 +173,17 @@ void Graphics::CreateInstance()
     VkInstanceCreateInfo instanceCI{
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
         .pApplicationInfo = &appinfo,
-        .enabledLayerCount = static_cast<uint32_t>(instanceLayers.size()),
-        .ppEnabledLayerNames = instanceLayers.data(),
-        .enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size()),
-        .ppEnabledExtensionNames = instanceExtensions.data(),
+        .enabledLayerCount = static_cast<uint32_t>(instanceLayers_.size()),
+        .ppEnabledLayerNames = instanceLayers_.data(),
+        .enabledExtensionCount = static_cast<uint32_t>(instanceExtensions_.size()),
+        .ppEnabledExtensionNames = instanceExtensions_.data(),
     };
 
     VK_ASSERT_SUCCESSED(vkCreateInstance(&instanceCI, nullptr, &instance_));
+    if (enableGetPhysicalDeviceProperty2Extension) {
+        VkPhysicalDeviceProperties2 p;
+        vkGetPhysicalDeviceProperties2(deviceInfo_.physicalDevice, );
+    }
 }
 
 void Graphics::CreateDebugReporter()
@@ -311,6 +325,16 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
         deviceInfo_.enableDebugMarkers = true;
     }
 
+#ifdef __APPLE__
+    instanceExtensions_.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+    if ((std::find_if(instanceExtensions_.begin(),
+                      instanceExtensions_.end(),
+                      [](const char *extensionName) {
+                          return !strcmp(extensionName, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+                      }) != instanceExtensions_.end()) &&
+        deviceInfo_.ExtensionSupported("VK_KHR_portability_subset"))
+        deviceExtensions.push_back("VK_KHR_portability_subset");
+#endif
     if (deviceExtensions.size() > 0) {
         for (const char *enabledExtension : deviceExtensions) {
             if (!deviceInfo_.ExtensionSupported(enabledExtension)) {
@@ -633,7 +657,6 @@ void Graphics::CreateCommandBuffers()
     };
 
     VK_ASSERT_SUCCESSED(vkAllocateCommandBuffers(device_, &CommandBufferAI, commandBuffers_.data()));
-    
 }
 
 void Graphics::CreateSyncObjects()
@@ -774,7 +797,7 @@ void Graphics::ImGuiCreate()
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
     io.Fonts->AddFontDefault();
     io.Fonts->AddFontFromFileTTF((File::GetExeDir() + "/fonts/Roboto-Medium.ttf").c_str(), 16.0f);
@@ -946,13 +969,13 @@ void Graphics::ImGuiCreateFramebuffer()
 {
     VkImageView attachment[1];
     VkFramebufferCreateInfo FramebufferCI = {
-    .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-    .renderPass = imguiRenderPass_,
-    .attachmentCount = 1,
-    .pAttachments = attachment,
-    .width = swapchainExtent_.width,
-    .height = swapchainExtent_.height,
-    .layers = 1,
+        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        .renderPass = imguiRenderPass_,
+        .attachmentCount = 1,
+        .pAttachments = attachment,
+        .width = swapchainExtent_.width,
+        .height = swapchainExtent_.height,
+        .layers = 1,
     };
     imguiFramebuffers_.resize(swapchainImageCount_);
     for (uint32_t i = 0; i < swapchainImageCount_; i++) {
@@ -1225,11 +1248,7 @@ VkBool32 Graphics::DebugReportCallbackEXT(VkDebugReportFlagsEXT flags,
 
 std::string Graphics::GetShadersPath()
 {
-#ifdef _WIN32
-    return File::GetExeDir() + "/../../../../shaders/";
-#else
-    return File::GetExeDir() + "/../../../shaders/";
-#endif
+    return File::GetExeDir() + "/shaders/";
 }
 
 } // namespace gdf
