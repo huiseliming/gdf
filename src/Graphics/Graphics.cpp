@@ -328,8 +328,10 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
                       [](const char *extensionName) {
                           return !strcmp(extensionName, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
                       }) != instanceExtensions_.end()) &&
-        deviceInfo_.ExtensionSupported("VK_KHR_portability_subset"))
-        deviceExtensions.push_back("VK_KHR_portability_subset");
+        deviceInfo_.ExtensionSupported(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
+        deviceExtensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+        enablePortabilitySubsetExtension = true;
+    }
 #endif
     if (deviceExtensions.size() > 0) {
         for (const char *enabledExtension : deviceExtensions) {
@@ -471,27 +473,9 @@ void Graphics::CreateSwapchain()
 
 void Graphics::CreateSwapchainImageViews()
 {
-    VkImageViewCreateInfo ImageViewCI{.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-                                      .viewType = VK_IMAGE_VIEW_TYPE_2D,
-                                      .format = swapchainImageFormat_,
-                                      .components =
-                                          {
-                                              VK_COMPONENT_SWIZZLE_R,
-                                              VK_COMPONENT_SWIZZLE_G,
-                                              VK_COMPONENT_SWIZZLE_B,
-                                              VK_COMPONENT_SWIZZLE_A,
-                                          },
-                                      .subresourceRange = {
-                                          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                                          .baseMipLevel = 0,
-                                          .levelCount = 1,
-                                          .baseArrayLayer = 0,
-                                          .layerCount = 1,
-                                      }};
     swapchainImageViews_.resize(swapchainImageCount_);
     for (size_t i = 0; i < swapchainImageCount_; i++) {
-        ImageViewCI.image = swapchainImages_[i];
-        VK_ASSERT_SUCCESSED(vkCreateImageView(device_, &ImageViewCI, nullptr, &swapchainImageViews_[i]));
+        swapchainImageViews_[i] = CreateImageView(swapchainImages_[i], swapchainImageFormat_, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 }
 
@@ -1120,7 +1104,7 @@ VkImageView Graphics::CreateImageView(VkImage image, VkFormat format, VkImageAsp
                                           .baseArrayLayer = 0,
                                           .layerCount = 1,
                                       }};
-    VK_ASSERT_SUCCESSED(vkCreateImageView(device_, &imageViewCI, nullptr, &imageView))
+    VK_ASSERT_SUCCESSED(vkCreateImageView(device_, &imageViewCI, nullptr, &imageView));
     return imageView;
 }
 

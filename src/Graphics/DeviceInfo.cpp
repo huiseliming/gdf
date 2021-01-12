@@ -1,7 +1,6 @@
 #include "Graphics/DeviceInfo.h"
 #include "Base/File.h"
 #include <cassert>
-
 namespace gdf
 {
 
@@ -35,8 +34,16 @@ void DeviceInfo::Parse(VkPhysicalDevice physicalDevice, bool enableGetPhysicalDe
 
     // GetPhysicalDeviceFeatures2
     if (enableGetPhysicalDeviceProperty2Extension) {
+
         features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+
+#ifdef __APPLE__
+        features2.pNext = &portabilitySubsetFeaturesKHR;
+        portabilitySubsetFeaturesKHR.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR,
+        portabilitySubsetFeaturesKHR.pNext = nullptr;
+#else
         features2.pNext = nullptr;
+#endif
         vkGetPhysicalDeviceFeatures2(physicalDevice, &features2);
         // VkPhysicalDeviceProperties2 p;
         // vkGetPhysicalDeviceProperties2(deviceInfo_.physicalDevice, );

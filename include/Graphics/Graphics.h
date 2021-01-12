@@ -200,6 +200,9 @@ public:
     // what is enable
     bool enableValidationLayer_;
     bool enableGetPhysicalDeviceProperty2Extension{false};
+#ifdef __APPLE__
+    bool enablePortabilitySubsetExtension{false};
+#endif
     // Device Infomation
     DeviceInfo deviceInfo_;
 

@@ -12,7 +12,10 @@ struct DeviceInfo {
     VkPhysicalDeviceProperties properties;
     /** @brief Features of the physical device that an application can use to check if a feature is supported */
     VkPhysicalDeviceFeatures features;
-    VkPhysicalDeviceFeatures2 features2;
+    VkPhysicalDeviceFeatures2 features2{};
+#ifdef __APPLE__
+    VkPhysicalDevicePortabilitySubsetFeaturesKHR portabilitySubsetFeaturesKHR{};
+#endif
     /** @brief Features that have been enabled for use on the physical device */
     VkPhysicalDeviceFeatures enabledFeatures;
     /** @brief Memory types and heaps of the physical device */
