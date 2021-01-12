@@ -14,7 +14,8 @@
             "cwd": "${workspaceFolder}/out/build/bin",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb"
+            "MIMode": "lldb",
+            "preLaunchTask": "build",
         },
         {
             "name": "test(lldb)",

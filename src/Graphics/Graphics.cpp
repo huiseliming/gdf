@@ -180,10 +180,6 @@ void Graphics::CreateInstance()
     };
 
     VK_ASSERT_SUCCESSED(vkCreateInstance(&instanceCI, nullptr, &instance_));
-    if (enableGetPhysicalDeviceProperty2Extension) {
-        VkPhysicalDeviceProperties2 p;
-        vkGetPhysicalDeviceProperties2(deviceInfo_.physicalDevice, );
-    }
 }
 
 void Graphics::CreateDebugReporter()
@@ -215,7 +211,7 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
     std::vector<VkPhysicalDevice> availablePhysicalDevices;
     for (auto physicalDevice : physicalDevices) {
         if (IsPhysicalDeviceSuitable(physicalDevice))
-            deviceInfo_.Parse(physicalDevice);
+            deviceInfo_.Parse(physicalDevice, enableGetPhysicalDeviceProperty2Extension);
     }
 
     // Logical Device

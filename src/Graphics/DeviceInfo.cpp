@@ -1,11 +1,11 @@
 #include "Graphics/DeviceInfo.h"
-#include <cassert>
 #include "Base/File.h"
+#include <cassert>
 
 namespace gdf
 {
 
-void DeviceInfo::Parse(VkPhysicalDevice physicalDevice)
+void DeviceInfo::Parse(VkPhysicalDevice physicalDevice, bool enableGetPhysicalDeviceProperty2Extension)
 {
     this->physicalDevice = physicalDevice;
     // Store Properties features, limits and properties of the physical device for later use
@@ -31,6 +31,15 @@ void DeviceInfo::Parse(VkPhysicalDevice physicalDevice)
                 supportedExtensions.push_back(extension.extensionName);
             }
         }
+    }
+
+    // GetPhysicalDeviceFeatures2
+    if (enableGetPhysicalDeviceProperty2Extension) {
+        features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        features2.pNext = nullptr;
+        vkGetPhysicalDeviceFeatures2(physicalDevice, &features2);
+        // VkPhysicalDeviceProperties2 p;
+        // vkGetPhysicalDeviceProperties2(deviceInfo_.physicalDevice, );
     }
 }
 
@@ -59,8 +68,8 @@ VkFormat DeviceInfo::FindDepthFormat()
 }
 
 VkFormat DeviceInfo::FindSupportedFormat(const std::vector<VkFormat> &candidates,
-                                       VkImageTiling tiling,
-                                       VkFormatFeatureFlags features)
+                                         VkImageTiling tiling,
+                                         VkFormatFeatureFlags features)
 {
     for (VkFormat format : candidates) {
         VkFormatProperties props;
