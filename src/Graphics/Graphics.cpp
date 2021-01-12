@@ -34,7 +34,7 @@ void Graphics::Initialize(Window *pWindow, bool enableValidationLayer)
     CreateRenderPass();
     CreateGraphicsPipeline();
     CreateFramebuffers();
-    AllocateCommandBuffers();
+    CreateCommandBuffers();
     CreateSyncObjects();
 
     ImGuiCreate();
@@ -621,7 +621,7 @@ void Graphics::CreateFramebuffers()
     }
 }
 
-void Graphics::AllocateCommandBuffers()
+void Graphics::CreateCommandBuffers()
 {
     commandBuffers_.resize(swapchainImageCount_);
 
@@ -761,7 +761,7 @@ void Graphics::RecreateSwapchain()
     CreateRenderPass();
     CreateGraphicsPipeline();
     CreateFramebuffers();
-    AllocateCommandBuffers();
+    CreateCommandBuffers();
 
     ImGuiUpdateMinImageCount(swapchainMinImageCount_);
     ImGuiResourceCreate();
@@ -773,7 +773,14 @@ void Graphics::ImGuiCreate()
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
-    (void)io;
+    //ImGuiIO &io = ImGui::GetIO().ConfigFlags|= ImGuiConfigFlags_DockingEnable;
+
+    io.Fonts->AddFontDefault();
+    io.Fonts->AddFontFromFileTTF((File::GetExeDir() + "/fonts/Roboto-Medium.ttf").c_str(), 16.0f);
+    io.Fonts->AddFontFromFileTTF((File::GetExeDir() + "/fonts/Cousine-Regular.ttf").c_str(), 15.0f);
+    io.Fonts->AddFontFromFileTTF((File::GetExeDir() + "/fonts/DroidSans.ttf").c_str(), 16.0f);
+    io.Fonts->AddFontFromFileTTF((File::GetExeDir() + "/fonts/ProggyTiny.ttf").c_str(), 10.0f);
+
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
 

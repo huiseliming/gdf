@@ -25,15 +25,13 @@ struct GDF_EXPORT SwapChainSupportDetails {
     std::vector<VkPresentModeKHR> presentModes;
 };
 
-class  GDF_EXPORT Graphics : public NonCopyable
+class GDF_EXPORT Graphics : public NonCopyable
 {
 public:
-
     Graphics() = default;
     ~Graphics() = default;
-    void Initialize(Window *pWindow = nullptr,
-                    bool enableValidationLayer = GDF_ENABLE_VALIDATION_LAYER);
-    
+    void Initialize(Window *pWindow = nullptr, bool enableValidationLayer = GDF_ENABLE_VALIDATION_LAYER);
+
     void FrameBegin();
     void DrawFrame();
     void FrameEnd();
@@ -53,9 +51,8 @@ public:
     void CreateRenderPass();
     void CreateGraphicsPipeline();
     void CreateFramebuffers();
-    void AllocateCommandBuffers();
+    void CreateCommandBuffers();
     void CreateSyncObjects();
-
 
     // Cleanup Funtion
     void DestroySyncObjects();
@@ -71,8 +68,8 @@ public:
     void DestroyDebugReporter();
     void DestroyInstance();
 
-    // Recreate 
-    
+    // Recreate
+
     void RecreateSwapchain();
     void RequireRecreateSwapchain(bool required)
     {
@@ -107,7 +104,7 @@ public:
     // Tool Funtion
     bool IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice);
 
-    //helpful function
+    // helpful function
     VkShaderModule CreateShaderModule(const std::string &code);
     VkShaderModule CreateShaderModule(const std::vector<char> &code);
 
@@ -121,10 +118,9 @@ public:
                      VkDeviceMemory &imageMemory);
     VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
-
     // Command Helper
     VkCommandBuffer BeginSingleTimeCommand();
-    void EndSingleTimeCommand( VkCommandBuffer commandBuffer);
+    void EndSingleTimeCommand(VkCommandBuffer commandBuffer);
 
     //
     void DeviceWaitIdle();
@@ -134,7 +130,6 @@ public:
     VkPresentModeKHR GetAvailablePresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
     VkExtent2D GetAvailableExtent(const VkSurfaceCapabilitiesKHR &capabilities);
     // get
-
 
     VkQueue graphicsQueue()
     {
@@ -161,8 +156,7 @@ public:
     VkDevice device_{VK_NULL_HANDLE};
     VkCommandPool commandPool_;
 
-
-    //SwapchainInfo
+    // SwapchainInfo
     Window *pWindow_;
     VkSurfaceKHR surfaceKHR_{VK_NULL_HANDLE};
     VkSurfaceFormatKHR surfaceFormatKHR_;
@@ -178,11 +172,11 @@ public:
     std::vector<VkImageView> swapchainImageViews_;
     std::vector<VkFramebuffer> swapchainFramebuffers_;
 
-    //Depth Resource
+    // Depth Resource
     VkImage depthImage_{VK_NULL_HANDLE};
     VkImageView depthImageView_{VK_NULL_HANDLE};
     VkDeviceMemory depthImageMemory_{VK_NULL_HANDLE};
-    
+
     // Render Objects
     VkRenderPass renderPass_{VK_NULL_HANDLE};
     VkPipeline graphicsPipeline_{VK_NULL_HANDLE};
@@ -196,17 +190,20 @@ public:
     std::vector<VkFence> inFlightFences_;
     uint32_t currentFrame_{0};
     // ref Fence Object wait render finished
-    std::vector<VkFence> imagesInFlight_; 
+    std::vector<VkFence> imagesInFlight_;
 
     VkQueue graphicsQueue_{VK_NULL_HANDLE};
     VkQueue computeQueue_{VK_NULL_HANDLE};
     VkQueue transferQueue_{VK_NULL_HANDLE};
     VkQueue presentQueue_{VK_NULL_HANDLE};
-    
 
     bool enableValidationLayer_;
     // Device Infomation
     DeviceInfo deviceInfo_;
+
+
+    //setting
+    float DPI{1.0f};
 
 private:
 public:
