@@ -154,7 +154,7 @@ void Graphics::CreateInstance()
 #ifdef __APPLE__
     if (VK_VERSION_MAJOR(apiVersion) >= 1 && VK_VERSION_MINOR(apiVersion) >= 1) {
         instanceExtensions_.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
-        enableGetPhysicalDeviceProperty2Extension = true;
+        enableGetPhysicalDeviceProperty2Extension_ = true;
     }
 #endif
     if (!Window::GetRequiredInstanceExtensions(instanceExtensions_))
@@ -211,7 +211,7 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
     std::vector<VkPhysicalDevice> availablePhysicalDevices;
     for (auto physicalDevice : physicalDevices) {
         if (IsPhysicalDeviceSuitable(physicalDevice))
-            deviceInfo_.Parse(physicalDevice, enableGetPhysicalDeviceProperty2Extension);
+            deviceInfo_.Parse(physicalDevice, enableGetPhysicalDeviceProperty2Extension_);
     }
 
     // Logical Device
@@ -330,7 +330,7 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
                       }) != instanceExtensions_.end()) &&
         deviceInfo_.ExtensionSupported(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
         deviceExtensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
-        enablePortabilitySubsetExtension = true;
+        enablePortabilitySubsetExtension_ = true;
     }
 #endif
     if (deviceExtensions.size() > 0) {
