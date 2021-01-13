@@ -66,7 +66,8 @@ void GfxApp::Cleanup()
 
 int main(int argc, char **argv)
 {
-    Model::Load("");
+    Model model;
+    Model::Load("asset/Monkey.glb", model);
     return 0;
     try {
         GfxApp app;

@@ -32,6 +32,7 @@ find_package(glm REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(Catch2 REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 find_path(TINYGLTF_INCLUDE_DIRS "tiny_gltf.h")
 
 include(cmake/tools.cmake)
@@ -68,7 +69,7 @@ file(GLOB_RECURSE Header include/*.h)
 file(GLOB_RECURSE Source src/*.cpp)
 
 # dependent library 
-set(DependentLibraries glfw Vulkan::Vulkan fmt::fmt)
+set(DependentLibraries glfw Vulkan::Vulkan fmt::fmt nlohmann_json::nlohmann_json)
 if(UNIX AND APPLE)
     list(APPEND DependentLibraries glm::glm)
 else()
