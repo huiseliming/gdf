@@ -1,10 +1,10 @@
-#include "Graphics/DeviceInfo.h"
+#include "Graphics/PhysicalDevice.h"
 #include "Base/File.h"
 #include <cassert>
 namespace gdf
 {
 
-void DeviceInfo::Parse(VkPhysicalDevice physicalDevice, bool enableGetPhysicalDeviceProperty2Extension)
+void PhysicalDevice::Parse(VkPhysicalDevice physicalDevice, bool enableGetPhysicalDeviceProperty2Extension)
 {
     this->physicalDevice = physicalDevice;
     // Store Properties features, limits and properties of the physical device for later use
@@ -50,17 +50,17 @@ void DeviceInfo::Parse(VkPhysicalDevice physicalDevice, bool enableGetPhysicalDe
     }
 }
 
-uint32_t DeviceInfo::GetQueueFamilyIndex(VkQueueFlagBits queueFlags)
+uint32_t PhysicalDevice::GetQueueFamilyIndex(VkQueueFlagBits queueFlags)
 {
     return GraphicsTools::GetQueueFamilyIndex(queueFamilyProperties, queueFlags);
 }
 
-bool DeviceInfo::ExtensionSupported(std::string extension)
+bool PhysicalDevice::ExtensionSupported(std::string extension)
 {
     return (std::find(supportedExtensions.begin(), supportedExtensions.end(), extension) != supportedExtensions.end());
 }
 
-VkFormat DeviceInfo::FindDepthFormat()
+VkFormat PhysicalDevice::FindDepthFormat()
 {
     return FindSupportedFormat(
         {
@@ -74,7 +74,7 @@ VkFormat DeviceInfo::FindDepthFormat()
         VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
-VkFormat DeviceInfo::FindSupportedFormat(const std::vector<VkFormat> &candidates,
+VkFormat PhysicalDevice::FindSupportedFormat(const std::vector<VkFormat> &candidates,
                                          VkImageTiling tiling,
                                          VkFormatFeatureFlags features)
 {
@@ -91,7 +91,7 @@ VkFormat DeviceInfo::FindSupportedFormat(const std::vector<VkFormat> &candidates
     return VK_FORMAT_UNDEFINED;
 }
 
-uint32_t DeviceInfo::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+uint32_t PhysicalDevice::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);

@@ -5,7 +5,7 @@
 namespace gdf
 {
 
-struct DeviceInfo {
+struct PhysicalDevice {
     /** @brief Physical device representation */
     VkPhysicalDevice physicalDevice{VK_NULL_HANDLE};
     /** @brief Properties of the physical device including limits that the application can check against */
@@ -35,8 +35,13 @@ struct DeviceInfo {
         uint32_t present{UINT32_MAX};
     } queueFamilyIndices;
 
-    DeviceInfo() = default;
+    PhysicalDevice() = default;
     void Parse(VkPhysicalDevice physicalDevice, bool enableGetPhysicalDeviceProperty2Extension);
+
+    operator VkPhysicalDevice()
+    {
+        return physicalDevice;
+    }
 
     uint32_t GetQueueFamilyIndex(VkQueueFlagBits queueFlags);
     bool ExtensionSupported(std::string extension);

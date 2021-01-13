@@ -1,6 +1,6 @@
 #pragma once
 #include "Base/Window.h"
-#include "DeviceInfo.h"
+#include "PhysicalDevice.h"
 #include "Graphics/VulkanApi.h"
 #include "Log/Logger.h"
 #include <deque>
@@ -204,7 +204,7 @@ public:
     bool enablePortabilitySubsetExtension_{false};
 #endif
     // Device Infomation
-    DeviceInfo deviceInfo_;
+    PhysicalDevice physicalDevice_;
 
     // extensions and layers
     std::vector<const char *> instanceExtensions_;

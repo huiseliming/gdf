@@ -212,7 +212,7 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
     std::vector<VkPhysicalDevice> availablePhysicalDevices;
     for (auto physicalDevice : physicalDevices) {
         if (IsPhysicalDeviceSuitable(physicalDevice))
-            deviceInfo_.Parse(physicalDevice, enableGetPhysicalDeviceProperty2Extension_);
+            physicalDevice_.Parse(physicalDevice, enableGetPhysicalDeviceProperty2Extension_);
     }
 
     // Logical Device
@@ -220,41 +220,41 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
     std::vector<VkDeviceQueueCreateInfo> deviceQueueCIs;
     const float defaultQueuePriority(0.0f);
     // Graphics queue
-    deviceInfo_.queueFamilyIndices.graphics =
-        GraphicsTools::GetQueueFamilyIndex(deviceInfo_.queueFamilyProperties, VK_QUEUE_GRAPHICS_BIT);
-    if (deviceInfo_.queueFamilyIndices.graphics == UINT32_MAX)
+    physicalDevice_.queueFamilyIndices.graphics =
+        GraphicsTools::GetQueueFamilyIndex(physicalDevice_.queueFamilyProperties, VK_QUEUE_GRAPHICS_BIT);
+    if (physicalDevice_.queueFamilyIndices.graphics == UINT32_MAX)
         THROW_EXCEPT("No found graphics queue family indices!");
     deviceQueueCIs.emplace_back(VkDeviceQueueCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .queueFamilyIndex = deviceInfo_.queueFamilyIndices.graphics,
+        .queueFamilyIndex = physicalDevice_.queueFamilyIndices.graphics,
         .queueCount = 1,
         .pQueuePriorities = &defaultQueuePriority,
     });
 
     // Compute queue
-    deviceInfo_.queueFamilyIndices.compute =
-        GraphicsTools::GetQueueFamilyIndex(deviceInfo_.queueFamilyProperties, VK_QUEUE_COMPUTE_BIT);
-    if (deviceInfo_.queueFamilyIndices.compute == UINT32_MAX)
+    physicalDevice_.queueFamilyIndices.compute =
+        GraphicsTools::GetQueueFamilyIndex(physicalDevice_.queueFamilyProperties, VK_QUEUE_COMPUTE_BIT);
+    if (physicalDevice_.queueFamilyIndices.compute == UINT32_MAX)
         THROW_EXCEPT("No found compute queue family indices!");
-    if (deviceInfo_.queueFamilyIndices.compute != deviceInfo_.queueFamilyIndices.graphics) {
+    if (physicalDevice_.queueFamilyIndices.compute != physicalDevice_.queueFamilyIndices.graphics) {
         deviceQueueCIs.emplace_back(VkDeviceQueueCreateInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-            .queueFamilyIndex = deviceInfo_.queueFamilyIndices.compute,
+            .queueFamilyIndex = physicalDevice_.queueFamilyIndices.compute,
             .queueCount = 1,
             .pQueuePriorities = &defaultQueuePriority,
         });
     }
 
     // Dedicated transfer queue
-    deviceInfo_.queueFamilyIndices.transfer =
-        GraphicsTools::GetQueueFamilyIndex(deviceInfo_.queueFamilyProperties, VK_QUEUE_TRANSFER_BIT);
-    if (deviceInfo_.queueFamilyIndices.transfer == UINT32_MAX)
+    physicalDevice_.queueFamilyIndices.transfer =
+        GraphicsTools::GetQueueFamilyIndex(physicalDevice_.queueFamilyProperties, VK_QUEUE_TRANSFER_BIT);
+    if (physicalDevice_.queueFamilyIndices.transfer == UINT32_MAX)
         THROW_EXCEPT("No found transfer queue family indices!");
-    if ((deviceInfo_.queueFamilyIndices.transfer != deviceInfo_.queueFamilyIndices.graphics) &&
-        (deviceInfo_.queueFamilyIndices.transfer != deviceInfo_.queueFamilyIndices.compute)) {
+    if ((physicalDevice_.queueFamilyIndices.transfer != physicalDevice_.queueFamilyIndices.graphics) &&
+        (physicalDevice_.queueFamilyIndices.transfer != physicalDevice_.queueFamilyIndices.compute)) {
         deviceQueueCIs.emplace_back(VkDeviceQueueCreateInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-            .queueFamilyIndex = deviceInfo_.queueFamilyIndices.transfer,
+            .queueFamilyIndex = physicalDevice_.queueFamilyIndices.transfer,
             .queueCount = 1,
             .pQueuePriorities = &defaultQueuePriority,
         });
@@ -264,17 +264,17 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
     std::vector<const char *> deviceExtensions(enabledExtensions);
     if (surfaceKHR_ != VK_NULL_HANDLE) {
         // Dedicated present queue
-        uint32_t queueFamilyCount = deviceInfo_.queueFamilyProperties.size();
+        uint32_t queueFamilyCount = physicalDevice_.queueFamilyProperties.size();
         std::vector<VkBool32> supportsPresent(queueFamilyCount);
         for (uint32_t i = 0; i < queueFamilyCount; i++)
-            vkGetPhysicalDeviceSurfaceSupportKHR(deviceInfo_.physicalDevice, i, surfaceKHR_, &supportsPresent[i]);
+            vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice_, i, surfaceKHR_, &supportsPresent[i]);
 
         // Search for a graphics and a present queue in the array of queue
         // families, try to find one that supports both
         uint32_t graphicsQueueIndex = UINT32_MAX;
         uint32_t presentQueueIndex = UINT32_MAX;
         for (uint32_t i = 0; i < queueFamilyCount; i++) {
-            if ((deviceInfo_.queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
+            if ((physicalDevice_.queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
                 if (supportsPresent[i] == VK_TRUE) {
                     graphicsQueueIndex = i;
                     presentQueueIndex = i;
@@ -299,15 +299,15 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
             THROW_EXCEPT("Could not find a presenting queue!");
         }
 
-        deviceInfo_.queueFamilyIndices.present = presentQueueIndex;
+        physicalDevice_.queueFamilyIndices.present = presentQueueIndex;
 
         // if present queue not createinfo push createinfo
-        if ((deviceInfo_.queueFamilyIndices.present != deviceInfo_.queueFamilyIndices.graphics) &&
-            (deviceInfo_.queueFamilyIndices.present != deviceInfo_.queueFamilyIndices.compute) &&
-            (deviceInfo_.queueFamilyIndices.present != deviceInfo_.queueFamilyIndices.transfer)) {
+        if ((physicalDevice_.queueFamilyIndices.present != physicalDevice_.queueFamilyIndices.graphics) &&
+            (physicalDevice_.queueFamilyIndices.present != physicalDevice_.queueFamilyIndices.compute) &&
+            (physicalDevice_.queueFamilyIndices.present != physicalDevice_.queueFamilyIndices.transfer)) {
             deviceQueueCIs.emplace_back(VkDeviceQueueCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-                .queueFamilyIndex = deviceInfo_.queueFamilyIndices.present,
+                .queueFamilyIndex = physicalDevice_.queueFamilyIndices.present,
                 .queueCount = 1,
                 .pQueuePriorities = &defaultQueuePriority,
             });
@@ -317,9 +317,9 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
     }
 
     // Enable the debug marker extension if it is present (likely meaning a debugging tool is present)
-    if (deviceInfo_.ExtensionSupported(VK_EXT_DEBUG_MARKER_EXTENSION_NAME)) {
+    if (physicalDevice_.ExtensionSupported(VK_EXT_DEBUG_MARKER_EXTENSION_NAME)) {
         deviceExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
-        deviceInfo_.enableDebugMarkers = true;
+        physicalDevice_.enableDebugMarkers = true;
     }
 
 #ifdef __APPLE__
@@ -336,7 +336,7 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
 #endif
     if (deviceExtensions.size() > 0) {
         for (const char *enabledExtension : deviceExtensions) {
-            if (!deviceInfo_.ExtensionSupported(enabledExtension)) {
+            if (!physicalDevice_.ExtensionSupported(enabledExtension)) {
                 THROW_EXCEPT(std::string("Enabled device extension \"") + enabledExtension +
                              "\" is not present at device level");
             }
@@ -354,13 +354,13 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
         .pEnabledFeatures = &enabledFeatures,
     };
 
-    VK_ASSERT_SUCCESSED(vkCreateDevice(deviceInfo_.physicalDevice, &deviceCI, nullptr, &device_));
+    VK_ASSERT_SUCCESSED(vkCreateDevice(physicalDevice_, &deviceCI, nullptr, &device_));
 
     // GetQueue
-    std::vector<uint32_t> allIndices{deviceInfo_.queueFamilyIndices.graphics,
-                                     deviceInfo_.queueFamilyIndices.compute,
-                                     deviceInfo_.queueFamilyIndices.transfer,
-                                     deviceInfo_.queueFamilyIndices.present};
+    std::vector<uint32_t> allIndices{physicalDevice_.queueFamilyIndices.graphics,
+                                     physicalDevice_.queueFamilyIndices.compute,
+                                     physicalDevice_.queueFamilyIndices.transfer,
+                                     physicalDevice_.queueFamilyIndices.present};
     std::vector<VkQueue *> queues{&graphicsQueue_, &computeQueue_, &transferQueue_, &presentQueue_};
 
     std::vector<uint32_t> queueIndices(allIndices.size(), UINT32_MAX);
@@ -387,7 +387,7 @@ void Graphics::CreateCommandPool()
     VkCommandPoolCreateInfo poolInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-        .queueFamilyIndex = deviceInfo_.queueFamilyIndices.graphics,
+        .queueFamilyIndex = physicalDevice_.queueFamilyIndices.graphics,
     };
     VK_ASSERT_SUCCESSED(vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPool_))
 }
@@ -450,8 +450,8 @@ void Graphics::CreateSwapchain()
         .clipped = VK_TRUE,
         .oldSwapchain = oldSwapchainKHR,
     };
-    uint32_t queueFamilyIndices[] = {deviceInfo_.queueFamilyIndices.graphics, deviceInfo_.queueFamilyIndices.present};
-    if (deviceInfo_.queueFamilyIndices.graphics != deviceInfo_.queueFamilyIndices.present) {
+    uint32_t queueFamilyIndices[] = {physicalDevice_.queueFamilyIndices.graphics, physicalDevice_.queueFamilyIndices.present};
+    if (physicalDevice_.queueFamilyIndices.graphics != physicalDevice_.queueFamilyIndices.present) {
         swapchainCI.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         swapchainCI.queueFamilyIndexCount = 2;
         swapchainCI.pQueueFamilyIndices = queueFamilyIndices;
@@ -482,7 +482,7 @@ void Graphics::CreateSwapchainImageViews()
 
 void Graphics::CreateDepthResources()
 {
-    VkFormat depthFormat = deviceInfo_.FindDepthFormat();
+    VkFormat depthFormat = physicalDevice_.FindDepthFormat();
 
     CreateImage(swapchainExtent_.width,
                 swapchainExtent_.height,
@@ -509,7 +509,7 @@ void Graphics::CreateRenderPass()
     };
 
     VkAttachmentDescription depthAttachment{};
-    depthAttachment.format = deviceInfo_.FindDepthFormat();
+    depthAttachment.format = physicalDevice_.FindDepthFormat();
     depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -795,9 +795,9 @@ void Graphics::ImGuiCreate()
     ImGui_ImplGlfw_InitForVulkan(pWindow_->pGLFWWindow(), true);
     ImGui_ImplVulkan_InitInfo initInfo = {};
     initInfo.Instance = instance_;
-    initInfo.PhysicalDevice = deviceInfo_.physicalDevice;
+    initInfo.PhysicalDevice = physicalDevice_;
     initInfo.Device = device_;
-    initInfo.QueueFamily = deviceInfo_.queueFamilyIndices.graphics;
+    initInfo.QueueFamily = physicalDevice_.queueFamilyIndices.graphics;
     initInfo.Queue = graphicsQueue_;
     initInfo.PipelineCache = imguiPipelineCache_;
     initInfo.DescriptorPool = imguiDescriptorPool_;
@@ -1085,7 +1085,7 @@ void Graphics::CreateImage(uint32_t width,
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = deviceInfo_.FindMemoryType(memRequirements.memoryTypeBits, properties);
+    allocInfo.memoryTypeIndex = physicalDevice_.FindMemoryType(memRequirements.memoryTypeBits, properties);
 
     VK_ASSERT_SUCCESSED(vkAllocateMemory(device_, &allocInfo, nullptr, &imageMemory))
     VK_ASSERT_SUCCESSED(vkBindImageMemory(device_, image, imageMemory, 0));
@@ -1153,19 +1153,19 @@ void Graphics::DeviceWaitIdle()
 SwapChainSupportDetails Graphics::QuerySwapChainSupport()
 {
     SwapChainSupportDetails details;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(deviceInfo_.physicalDevice, surfaceKHR_, &details.capabilities);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice_, surfaceKHR_, &details.capabilities);
     uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(deviceInfo_.physicalDevice, surfaceKHR_, &formatCount, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice_, surfaceKHR_, &formatCount, nullptr);
     if (formatCount != 0) {
         details.formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(deviceInfo_.physicalDevice, surfaceKHR_, &formatCount, details.formats.data());
+        vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice_, surfaceKHR_, &formatCount, details.formats.data());
     }
     uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(deviceInfo_.physicalDevice, surfaceKHR_, &presentModeCount, nullptr);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice_, surfaceKHR_, &presentModeCount, nullptr);
     if (presentModeCount != 0) {
         details.presentModes.resize(presentModeCount);
         vkGetPhysicalDeviceSurfacePresentModesKHR(
-            deviceInfo_.physicalDevice, surfaceKHR_, &presentModeCount, details.presentModes.data());
+            physicalDevice_, surfaceKHR_, &presentModeCount, details.presentModes.data());
     }
     return details;
 }
