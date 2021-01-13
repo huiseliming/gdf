@@ -1,5 +1,6 @@
 #include "Graphics/Graphics.h"
 #include "Base/File.h"
+#include "ImGui/DockSpace.h"
 #include "Git.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -839,6 +840,7 @@ void Graphics::ImGuiFrameBegin()
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+    ImGuiDockSpace();
     ImGui::ShowDemoWindow();
     ImGui::Render();
     imGuiDrawData_ = ImGui::GetDrawData();
