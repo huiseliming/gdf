@@ -32,6 +32,7 @@ find_package(glm REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(Catch2 REQUIRED)
+find_path(TINYGLTF_INCLUDE_DIRS "tiny_gltf.h")
 
 include(cmake/tools.cmake)
 
@@ -87,6 +88,7 @@ endif()
 target_link_libraries(${PROJECT_NAME} 
     ${DependentLibraries}
     )
+target_include_directories(${PROJECT_NAME} PRIVATE ${TINYGLTF_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>    #${CMAKE_INSTALL_PREFIX}/include

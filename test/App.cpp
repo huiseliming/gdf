@@ -5,6 +5,7 @@
 #include "DeveloperTool/DeveloperConsole.h"
 #include "Log/StdSink.h"
 #include "Base/Clock.h"
+#include "Graphics/Mesh.h"
 
 #include "gdf.h"
 using namespace gdf;
@@ -65,6 +66,8 @@ void GfxApp::Cleanup()
 
 int main(int argc, char **argv)
 {
+    Model::Load("");
+    return 0;
     try {
         GfxApp app;
         //pApp = &app;
