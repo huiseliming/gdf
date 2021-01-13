@@ -6,7 +6,7 @@
 #include "Log/StdSink.h"
 #include "Base/Clock.h"
 #include "Graphics/Mesh.h"
-
+#include "Base/File.h"
 #include "gdf.h"
 using namespace gdf;
 
@@ -66,8 +66,8 @@ void GfxApp::Cleanup()
 
 int main(int argc, char **argv)
 {
-    Model model;
-    Model::Load("asset/Monkey.glb", model);
+    Mesh model;
+    Mesh::LoadFromFile(File::GetExeDir() + "/asset/Monkey.gltf");
     return 0;
     try {
         GfxApp app;

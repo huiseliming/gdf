@@ -1,4 +1,5 @@
 #pragma once
+#include "Common.h"
 #include <vector>
 #include <string>
 
@@ -7,13 +8,13 @@ namespace gdf
 
 namespace File
 {
-std::vector<char> ReadBytes(const std::string &filename);
+GDF_EXPORT std::vector<char> ReadBytes(const std::string &filename);
 
-std::string GetExePath();
+GDF_EXPORT std::string GetExePath();
 
-std::string GetExeDir();
+GDF_EXPORT std::string GetExeDir();
 
-std::string_view Separator();
+GDF_EXPORT std::string_view Separator();
 
 
 
