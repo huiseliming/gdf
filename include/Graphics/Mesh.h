@@ -3,13 +3,22 @@
 #include "Graphics/VulkanApi.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <vector>
 #include <string>
+#include <memory>
 
-
+namespace tinygltf
+{
+class Node;
+class Model;
+}
 
 namespace gdf
 {
+
+
+struct Node;
 
 struct Texture {
     VkDevice device;
@@ -43,9 +52,9 @@ struct Material {
 };
 
 struct Primitive{
-    uint32_t fistIndex;
+    uint32_t firstIndex;
     uint32_t indexCount;
-    uint32_t fitstVertex;
+    uint32_t firstVertex;
     uint32_t vertexCount;
     Material*material;
     struct Dimensions {
@@ -54,22 +63,31 @@ struct Primitive{
         glm::vec3 size;
         glm::vec3 center;
         float radius;
-    };
+    } dimensions;
 };
 
 struct Mesh {
     std::string name;
-    std::vector<Primitive> primitives;
+    std::vector<Primitive*> primitives;
     
+};
+
+struct Skin {
+    std::string name;
+    Node *skeletonRoot = nullptr;
+    std::vector<glm::mat4> inverseBindMatrices;
+    std::vector<Node *> joints;
 };
 
 struct Node {
     std::string name;
-    Node *parent;
+    Node *parent = nullptr;
     std::vector<Node *> children;
-    uint32_t index;
+    uint32_t index = UINT32_MAX;
     glm::mat4 matrix;
-    Mesh* mesh;
+    Mesh* mesh = nullptr;
+    Skin *skin = nullptr;
+    int32_t skinIndex = -1;
     glm::vec3 translation{};
     glm::vec3 scale{1.0f};
     glm::quat rotation{};
@@ -99,6 +117,13 @@ struct GDF_EXPORT Vertex {
 };
 
 struct GDF_EXPORT Model {
+    std::vector<Texture> textures;
+    std::vector<Material> materials{{}};
+    std::vector<Primitive *> primitives;
+    std::vector<Node*> nodes;
+
+    std::vector<Node*> linearNodes;
+
     struct {
         uint32_t count;
         VkBuffer buffer;
@@ -112,8 +137,9 @@ struct GDF_EXPORT Model {
     } indices;
 
     //std::vector<Node*>
-
-    static std::vector<Model> LoadFromFile(std::string path);
+    void LoadNode(Node *parent, const tinygltf::Node &node, uint32_t nodeIndex, const tinygltf::Model &model, std::vector<uint32_t> &indexBuffer, std::vector<Vertex> &vertexBuffer, float globalscale);
+    static Model* LoadFromFile(std::string path);
+    ~Model();
 };
 
 } // namespace gdf
