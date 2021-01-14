@@ -66,8 +66,8 @@ void GfxApp::Cleanup()
 
 int main(int argc, char **argv)
 {
-    Mesh model;
-    Mesh::LoadFromFile(File::GetExeDir() + "/asset/Monkey.gltf");
+    Model model;
+    Model::LoadFromFile(File::GetExeDir() + "/asset/Monkey.gltf");
     return 0;
     try {
         GfxApp app;

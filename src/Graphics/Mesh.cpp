@@ -15,9 +15,9 @@
 
 namespace gdf
 {
-std::vector<Mesh> Mesh::LoadFromFile(std::string path)
+std::vector<Model> Model::LoadFromFile(std::string path)
 {
-    std::vector<Mesh> models;
+    std::vector<Model> models;
     tinygltf::Model gltfmodel;
     tinygltf::TinyGLTF loader;
     std::string err;
@@ -30,16 +30,11 @@ std::vector<Mesh> Mesh::LoadFromFile(std::string path)
     for (uint32_t i = 0; i < gltfmodel.meshes.size(); i++){
         const tinygltf::Accessor &accessor = gltfmodel.accessors[gltfmodel.meshes[i].primitives[0].attributes["POSITION"]];
         const tinygltf::BufferView &bufferView = gltfmodel.bufferViews[accessor.bufferView];
-
         const tinygltf::Buffer &buffer = gltfmodel.buffers[bufferView.buffer];
         const float *positions = reinterpret_cast<const float *>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
         for (size_t i = 0; i < accessor.count; ++i) {
-            std::cout << "(" << positions[i * 3 + 0] << ", " 
-                      << positions[i * 3 + 1] << ", "       
-                      << positions[i * 3 + 2] << ")"        
-                      << "\n";
+            std::cout << "(" << positions[i * 3 + 0] << ", " << positions[i * 3 + 1] << ", " << positions[i * 3 + 2] << ")\n";
         }
-
     }
 
     return models;
