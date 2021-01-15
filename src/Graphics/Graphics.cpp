@@ -1,7 +1,7 @@
 #include "Graphics/Graphics.h"
 #include "Base/File.h"
-#include "ImGui/DockSpace.h"
 #include "Git.h"
+#include "ImGui/DockSpace.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
@@ -329,7 +329,7 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
                       [](const char *extensionName) {
                           return !strcmp(extensionName, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
                       }) != instanceExtensions_.end()) &&
-        deviceInfo_.ExtensionSupported(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
+        physicalDevice_.ExtensionSupported(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
         deviceExtensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
         enablePortabilitySubsetExtension_ = true;
     }
@@ -1164,8 +1164,7 @@ SwapChainSupportDetails Graphics::QuerySwapChainSupport()
     vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice_, surfaceKHR_, &presentModeCount, nullptr);
     if (presentModeCount != 0) {
         details.presentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(
-            physicalDevice_, surfaceKHR_, &presentModeCount, details.presentModes.data());
+        vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice_, surfaceKHR_, &presentModeCount, details.presentModes.data());
     }
     return details;
 }

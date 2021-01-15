@@ -33,8 +33,9 @@ find_package(Vulkan REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(Catch2 REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
-find_path(TINYGLTF_INCLUDE_DIRS "tiny_gltf.h")
-
+if(NOT(UINX AND APPLE))
+    find_path(TINYGLTF_INCLUDE_DIRS "tiny_gltf.h")
+endif()
 include(cmake/tools.cmake)
 
 # set output directory
@@ -89,7 +90,11 @@ endif()
 target_link_libraries(${PROJECT_NAME} 
     ${DependentLibraries}
     )
-target_include_directories(${PROJECT_NAME} PRIVATE ${TINYGLTF_INCLUDE_DIRS})
+if(UNIX AND APPLE)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lib/tinyglTF)
+else()
+    target_include_directories(${PROJECT_NAME} PRIVATE ${TINYGLTF_INCLUDE_DIRS})
+endif()
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>    #${CMAKE_INSTALL_PREFIX}/include
