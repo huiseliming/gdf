@@ -148,8 +148,8 @@ public:
         return device_.presentQueue_;
     }
 
-    // data
     friend class Swapchain;
+    // data
 
     VkInstance instance_{VK_NULL_HANDLE};
     VkDebugReportCallbackEXT fpDebugReportCallbackEXT_{VK_NULL_HANDLE};

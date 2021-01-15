@@ -1,6 +1,7 @@
 #pragma once
 #include "Base/Common.h"
 #include "Graphics/VulkanApi.h"
+#include "Resource.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -12,12 +13,13 @@ namespace tinygltf
 {
 class Node;
 class Model;
+class Image;
 }
 
 namespace gdf
 {
 
-
+class VulkanDevice;
 struct Node;
 
 struct Texture {
@@ -31,9 +33,11 @@ struct Texture {
     uint32_t layerCount;
     VkDescriptorImageInfo Descriptor;
     VkSampler sampler;
+    bool Create(tinygltf::Image &gltfImage, std::string path, VulkanDevice *device, VkQueue transferQueue);
+    void Destroy();
 };
 
-struct Material {
+struct Material  {
     enum AplhaMode :uint32_t {kAlphaModeOpaque, kAlphaModeMask, kAlphaModeBlend };
     VkDevice device;
     AplhaMode alphaMode{kAlphaModeOpaque};
@@ -117,11 +121,11 @@ struct GDF_EXPORT Vertex {
 };
 
 struct GDF_EXPORT Model {
+    std::string path;
     std::vector<Texture> textures;
     std::vector<Material> materials{{}};
     std::vector<Primitive *> primitives;
     std::vector<Node*> nodes;
-
     std::vector<Node*> linearNodes;
 
     struct {
@@ -137,8 +141,11 @@ struct GDF_EXPORT Model {
     } indices;
 
     //std::vector<Node*>
-    void LoadNode(Node *parent, const tinygltf::Node &node, uint32_t nodeIndex, const tinygltf::Model &model, std::vector<uint32_t> &indexBuffer, std::vector<Vertex> &vertexBuffer, float globalscale);
-    static Model* LoadFromFile(std::string path);
+    void tinygltfLoadImage(tinygltf::Model gltfModel, VulkanDevice *device, VkQueue transferQueue);
+    void tinygltfLoadNode(Node *parent, const tinygltf::Node &node, uint32_t nodeIndex, const tinygltf::Model &model, std::vector<uint32_t> &indexBuffer, std::vector<Vertex> &vertexBuffer, float globalscale);
+    
+    static Model *LoadFromFile(std::string filename);
+    
     ~Model();
 };
 
