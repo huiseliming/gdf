@@ -66,9 +66,9 @@ void GfxApp::Cleanup()
 
 int main(int argc, char **argv)
 {
-    Model model;
-    Model::LoadFromFile(File::GetExeDir() + "/asset/Monkey.gltf");
-    return 0;
+    //Model model;
+    //Model::LoadFromFile(File::GetExeDir() + "/asset/Monkey.gltf");
+    //return 0;
     try {
         GfxApp app;
         //pApp = &app;

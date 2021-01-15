@@ -1,6 +1,6 @@
 #pragma once
 #include "Base/Window.h"
-#include "PhysicalDevice.h"
+#include "VulkanDevice.h"
 #include "Graphics/VulkanApi.h"
 #include "Log/Logger.h"
 #include <deque>
@@ -133,19 +133,19 @@ public:
 
     VkQueue graphicsQueue()
     {
-        return graphicsQueue_;
+        return device_.graphicsQueue_;
     }
     VkQueue computeQueue()
     {
-        return computeQueue_;
+        return device_.computeQueue_;
     }
     VkQueue transferQueue()
     {
-        return transferQueue_;
+        return device_.transferQueue_;
     }
     VkQueue presentQueue()
     {
-        return presentQueue_;
+        return device_.presentQueue_;
     }
 
     // data
@@ -153,7 +153,7 @@ public:
 
     VkInstance instance_{VK_NULL_HANDLE};
     VkDebugReportCallbackEXT fpDebugReportCallbackEXT_{VK_NULL_HANDLE};
-    VkDevice device_{VK_NULL_HANDLE};
+    VulkanDevice device_;
     VkCommandPool commandPool_;
 
     // SwapchainInfo
@@ -192,19 +192,12 @@ public:
     // ref Fence Object wait render finished
     std::vector<VkFence> imagesInFlight_;
 
-    VkQueue graphicsQueue_{VK_NULL_HANDLE};
-    VkQueue computeQueue_{VK_NULL_HANDLE};
-    VkQueue transferQueue_{VK_NULL_HANDLE};
-    VkQueue presentQueue_{VK_NULL_HANDLE};
-
     // what is enable
     bool enableValidationLayer_;
     bool enableGetPhysicalDeviceProperty2Extension_{false};
 #ifdef __APPLE__
     bool enablePortabilitySubsetExtension_{false};
 #endif
-    // Device Infomation
-    PhysicalDevice physicalDevice_;
 
     // extensions and layers
     std::vector<const char *> instanceExtensions_;

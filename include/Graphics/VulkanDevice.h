@@ -5,7 +5,9 @@
 namespace gdf
 {
 
-struct PhysicalDevice {
+struct VulkanDevice {
+    /** @brief Logical device representation (application's view of the device) */
+    VkDevice logicalDevice{VK_NULL_HANDLE};
     /** @brief Physical device representation */
     VkPhysicalDevice physicalDevice{VK_NULL_HANDLE};
     /** @brief Properties of the physical device including limits that the application can check against */
@@ -27,6 +29,11 @@ struct PhysicalDevice {
     /** @brief Set to true when the debug marker extension is detected */
     bool enableDebugMarkers = false;
 
+    /** @brief queues */
+    VkQueue graphicsQueue_{VK_NULL_HANDLE};
+    VkQueue computeQueue_{VK_NULL_HANDLE};
+    VkQueue transferQueue_{VK_NULL_HANDLE};
+    VkQueue presentQueue_{VK_NULL_HANDLE};
     /** @brief Contains queue family indices */
     struct {
         uint32_t graphics{UINT32_MAX};
@@ -35,12 +42,22 @@ struct PhysicalDevice {
         uint32_t present{UINT32_MAX};
     } queueFamilyIndices;
 
-    PhysicalDevice() = default;
-    void Parse(VkPhysicalDevice physicalDevice, bool enableGetPhysicalDeviceProperty2Extension);
-
+    VulkanDevice() = default;
+    void AttachPhysicalDevice(VkPhysicalDevice physicalDevice, bool enableGetPhysicalDeviceProperty2Extension);
+    void CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
+                             VkSurfaceKHR surface,
+                             std::vector<const char *> enabledExtensions);
+    
+    
+    
     operator VkPhysicalDevice()
     {
         return physicalDevice;
+    }
+
+    operator VkDevice()
+    {
+        return logicalDevice;
     }
 
     uint32_t GetQueueFamilyIndex(VkQueueFlagBits queueFlags);
