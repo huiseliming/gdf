@@ -5,16 +5,16 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <vector>
-#include <string>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace tinygltf
 {
 class Node;
 class Model;
 class Image;
-}
+} // namespace tinygltf
 
 namespace gdf
 {
@@ -37,13 +37,18 @@ struct Texture {
     void Destroy();
 };
 
-struct Material  {
-    enum AplhaMode :uint32_t {kAlphaModeOpaque, kAlphaModeMask, kAlphaModeBlend };
+struct Material {
+    enum AplhaMode : uint32_t
+    {
+        kAlphaModeOpaque,
+        kAlphaModeMask,
+        kAlphaModeBlend
+    };
     VkDevice device;
+    // float alphaCutoff = 1.0f;
+    // float metallicFactor = 1.0f;
+    // float roughnessFactor = 1.0f;
     AplhaMode alphaMode{kAlphaModeOpaque};
-    //float alphaCutoff = 1.0f;
-    //float metallicFactor = 1.0f;
-    //float roughnessFactor = 1.0f;
     glm::vec4 baseColorFactor = glm::vec4(1.0f);
     Texture *baseColorTexture = nullptr;
     Texture *metallicRoughnessTexture = nullptr;
@@ -55,12 +60,12 @@ struct Material  {
     VkDescriptorSet descriptorSet{VK_NULL_HANDLE};
 };
 
-struct Primitive{
+struct Primitive {
     uint32_t firstIndex;
     uint32_t indexCount;
     uint32_t firstVertex;
     uint32_t vertexCount;
-    Material*material;
+    Material *material;
     struct Dimensions {
         glm::vec3 min = glm::vec3(FLT_MAX);
         glm::vec3 max = glm::vec3(-FLT_MAX);
@@ -72,8 +77,7 @@ struct Primitive{
 
 struct Mesh {
     std::string name;
-    std::vector<Primitive*> primitives;
-    
+    std::vector<Primitive *> primitives;
 };
 
 struct Skin {
@@ -89,7 +93,7 @@ struct Node {
     std::vector<Node *> children;
     uint32_t index = UINT32_MAX;
     glm::mat4 matrix;
-    Mesh* mesh = nullptr;
+    Mesh *mesh = nullptr;
     Skin *skin = nullptr;
     int32_t skinIndex = -1;
     glm::vec3 translation{};
@@ -101,13 +105,14 @@ struct Node {
 
 struct GDF_EXPORT Vertex {
 
-    enum class Component {
-        Position, 
-        Normal, 
+    enum class Component
+    {
+        Position,
+        Normal,
         UV,
-        Color, 
-        Tangent, 
-        Joint0, 
+        Color,
+        Tangent,
+        Joint0,
         Weight0
     };
 
@@ -125,8 +130,8 @@ struct GDF_EXPORT Model {
     std::vector<Texture> textures;
     std::vector<Material> materials{{}};
     std::vector<Primitive *> primitives;
-    std::vector<Node*> nodes;
-    std::vector<Node*> linearNodes;
+    std::vector<Node *> nodes;
+    std::vector<Node *> linearNodes;
 
     struct {
         uint32_t count;
@@ -140,12 +145,18 @@ struct GDF_EXPORT Model {
         VkDeviceMemory memory;
     } indices;
 
-    //std::vector<Node*>
+    // std::vector<Node*>
     void tinygltfLoadImage(tinygltf::Model gltfModel, VulkanDevice *device, VkQueue transferQueue);
-    void tinygltfLoadNode(Node *parent, const tinygltf::Node &node, uint32_t nodeIndex, const tinygltf::Model &model, std::vector<uint32_t> &indexBuffer, std::vector<Vertex> &vertexBuffer, float globalscale);
-    
+    void tinygltfLoadNode(Node *parent,
+                          const tinygltf::Node &node,
+                          uint32_t nodeIndex,
+                          const tinygltf::Model &model,
+                          std::vector<uint32_t> &indexBuffer,
+                          std::vector<Vertex> &vertexBuffer,
+                          float globalscale);
+
     static Model *LoadFromFile(std::string filename);
-    
+
     ~Model();
 };
 
