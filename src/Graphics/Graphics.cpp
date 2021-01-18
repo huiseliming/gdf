@@ -214,7 +214,7 @@ void Graphics::CreateDevice(VkPhysicalDeviceFeatures enabledFeatures,
         if (IsPhysicalDeviceSuitable(physicalDevice))
             device_.AttachPhysicalDevice(physicalDevice, enableGetPhysicalDeviceProperty2Extension_);
     }
-    device_.CreateLogicalDevice(enabledFeatures, surfaceKHR_, enabledExtensions);
+    device_.CreateLogicalDevice(enabledFeatures, surfaceKHR_, enabledExtensions, instanceExtensions_);
 }
 
 void Graphics::CreateCommandPool()

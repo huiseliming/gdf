@@ -1,6 +1,7 @@
 #include "Graphics/VulkanDevice.h"
 #include "Base/File.h"
 #include <cassert>
+#include <vector>
 namespace gdf
 {
 
@@ -52,15 +53,15 @@ void VulkanDevice::AttachPhysicalDevice(VkPhysicalDevice physicalDevice, bool en
 
 void VulkanDevice::CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
                                        VkSurfaceKHR surface,
-                                       std::vector<const char *> enabledExtensions)
+                                       std::vector<const char *> enabledExtensions,
+                                       std::vector<const char *> instanceExtensions)
 {
     // Logical Device
     assert(logicalDevice == VK_NULL_HANDLE);
     std::vector<VkDeviceQueueCreateInfo> deviceQueueCIs;
     const float defaultQueuePriority(0.0f);
     // Graphics queue
-    queueFamilyIndices.graphics =
-        GraphicsTools::GetQueueFamilyIndex(queueFamilyProperties, VK_QUEUE_GRAPHICS_BIT);
+    queueFamilyIndices.graphics = GraphicsTools::GetQueueFamilyIndex(queueFamilyProperties, VK_QUEUE_GRAPHICS_BIT);
     if (queueFamilyIndices.graphics == UINT32_MAX)
         THROW_EXCEPT("No found graphics queue family indices!");
     deviceQueueCIs.emplace_back(VkDeviceQueueCreateInfo{
@@ -71,8 +72,7 @@ void VulkanDevice::CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
     });
 
     // Compute queue
-    queueFamilyIndices.compute =
-        GraphicsTools::GetQueueFamilyIndex(queueFamilyProperties, VK_QUEUE_COMPUTE_BIT);
+    queueFamilyIndices.compute = GraphicsTools::GetQueueFamilyIndex(queueFamilyProperties, VK_QUEUE_COMPUTE_BIT);
     if (queueFamilyIndices.compute == UINT32_MAX)
         THROW_EXCEPT("No found compute queue family indices!");
     if (queueFamilyIndices.compute != queueFamilyIndices.graphics) {
@@ -85,8 +85,7 @@ void VulkanDevice::CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
     }
 
     // Dedicated transfer queue
-    queueFamilyIndices.transfer =
-        GraphicsTools::GetQueueFamilyIndex(queueFamilyProperties, VK_QUEUE_TRANSFER_BIT);
+    queueFamilyIndices.transfer = GraphicsTools::GetQueueFamilyIndex(queueFamilyProperties, VK_QUEUE_TRANSFER_BIT);
     if (queueFamilyIndices.transfer == UINT32_MAX)
         THROW_EXCEPT("No found transfer queue family indices!");
     if ((queueFamilyIndices.transfer != queueFamilyIndices.graphics) &&
@@ -162,13 +161,13 @@ void VulkanDevice::CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
     }
 
 #ifdef __APPLE__
-    instanceExtensions_.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
-    if ((std::find_if(instanceExtensions_.begin(),
-                      instanceExtensions_.end(),
+    instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+    if ((std::find_if(instanceExtensions.begin(),
+                      instanceExtensions.end(),
                       [](const char *extensionName) {
                           return !strcmp(extensionName, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
-                      }) != instanceExtensions_.end()) &&
-        physicalDevice.ExtensionSupported(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
+                      }) != instanceExtensions.end()) &&
+        ExtensionSupported(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
         deviceExtensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
         enablePortabilitySubsetExtension_ = true;
     }
@@ -217,7 +216,6 @@ void VulkanDevice::CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
     }
 }
 
-
 uint32_t VulkanDevice::GetQueueFamilyIndex(VkQueueFlagBits queueFlags)
 {
     return GraphicsTools::GetQueueFamilyIndex(queueFamilyProperties, queueFlags);
@@ -243,8 +241,8 @@ VkFormat VulkanDevice::FindDepthFormat()
 }
 
 VkFormat VulkanDevice::FindSupportedFormat(const std::vector<VkFormat> &candidates,
-                                         VkImageTiling tiling,
-                                         VkFormatFeatureFlags features)
+                                           VkImageTiling tiling,
+                                           VkFormatFeatureFlags features)
 {
     for (VkFormat format : candidates) {
         VkFormatProperties props;

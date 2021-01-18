@@ -1,8 +1,8 @@
 #pragma once
 #include "Base/Window.h"
-#include "VulkanDevice.h"
 #include "Graphics/VulkanApi.h"
 #include "Log/Logger.h"
+#include "VulkanDevice.h"
 #include <deque>
 #include <mutex>
 
@@ -195,9 +195,6 @@ public:
     // what is enable
     bool enableValidationLayer_;
     bool enableGetPhysicalDeviceProperty2Extension_{false};
-#ifdef __APPLE__
-    bool enablePortabilitySubsetExtension_{false};
-#endif
 
     // extensions and layers
     std::vector<const char *> instanceExtensions_;

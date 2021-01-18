@@ -29,6 +29,10 @@ struct VulkanDevice {
     /** @brief Set to true when the debug marker extension is detected */
     bool enableDebugMarkers = false;
 
+#ifdef __APPLE__
+    bool enablePortabilitySubsetExtension_{false};
+#endif
+
     /** @brief queues */
     VkQueue graphicsQueue_{VK_NULL_HANDLE};
     VkQueue computeQueue_{VK_NULL_HANDLE};
@@ -46,10 +50,9 @@ struct VulkanDevice {
     void AttachPhysicalDevice(VkPhysicalDevice physicalDevice, bool enableGetPhysicalDeviceProperty2Extension);
     void CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
                              VkSurfaceKHR surface,
-                             std::vector<const char *> enabledExtensions);
-    
-    
-    
+                             std::vector<const char *> enabledExtensions,
+                             std::vector<const char *> instanceExtensions);
+
     operator VkPhysicalDevice()
     {
         return physicalDevice;
