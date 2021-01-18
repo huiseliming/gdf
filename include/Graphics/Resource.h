@@ -2,21 +2,22 @@
 #include "Graphics/VulkanApi.h"
 #include <atomic>
 
-
-
 struct Resource {
 public:
-    enum Type {
+    enum Type
+    {
         kResourceTypeNone,
         kResourceTypeTexture,
         kResourceTypeMaterial,
         kResourceTypeMax,
     };
-    Resource(VkDevice device): device(device) {   
+    Resource(VkDevice device) : device(device)
+    {
         id = nextId++;
         resourceCount++;
     }
-    virtual ~Resource(){
+    virtual ~Resource()
+    {
         resourceCount--;
     }
 
@@ -30,10 +31,3 @@ private:
     static std::atomic<uint32_t> nextId;
     static std::atomic<uint32_t> resourceCount;
 };
-
-
-
-
-
-
-

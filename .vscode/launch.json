@@ -29,17 +29,5 @@
             "externalConsole": false,
             "MIMode": "lldb"
         },
-        {
-            "name": "test(windows)",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/out/build/bin/Main.exe",
-            "args": [],
-            "stopAtEntry": true,
-            "cwd": "${workspaceFolder}/out/build/bin",
-            "environment": [],
-            "externalConsole": false,
-            "preLaunchTask": "NinjaBuild"
-        },
     ]
 }
