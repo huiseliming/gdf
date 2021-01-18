@@ -65,3 +65,5 @@ include/Git.h
 
 .DS_store
 *.ini
+
+.clangd
