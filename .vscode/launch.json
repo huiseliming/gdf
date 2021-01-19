@@ -5,7 +5,27 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "App(lldb)",
+            "name": "App(Windows)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/out/build/bin/App.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "App(MacOS)",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/out/build/bin/App",
@@ -16,18 +36,6 @@
             "externalConsole": false,
             "MIMode": "lldb",
             "preLaunchTask": "build",
-        },
-        {
-            "name": "test(lldb)",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/out/build/bin/gdf_test",
-            "args": [],
-            "stopAtEntry": true,
-            "cwd": "${workspaceFolder}/out/build/bin",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "lldb"
         },
     ]
 }

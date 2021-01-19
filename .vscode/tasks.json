@@ -4,29 +4,12 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "NinjaBuild",
-            "type": "shell",
-            "command": "${workspaceFolder}/NinjaBuild.bat",
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "MSBuild",
-            "type": "shell",
-            "command": "${workspaceFolder}/MSBuild.bat",
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
             "label": "build",
             "type": "shell",
             "command": "${workspaceFolder}/build.sh",
+            "windows": {
+                "command": "${workspaceFolder}/build.bat"
+            },
             "problemMatcher": [],
             "group": {
                 "kind": "build",
@@ -37,6 +20,9 @@
             "label": "clear",
             "type": "shell",
             "command": "${workspaceFolder}/clear.sh",
+            "windows": {
+                "command": "${workspaceFolder}/clear.bat"
+            },
             "problemMatcher": [
                 "$eslint-stylish"
             ]
@@ -45,11 +31,10 @@
             "label": "clearbuild",
             "type": "shell",
             "command": "${workspaceFolder}/clearbuild.sh",
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
+            "windows": {
+                "command": "${workspaceFolder}/clearbuild.bat"
             },
+            "problemMatcher": [],
         },
     ]
 }
