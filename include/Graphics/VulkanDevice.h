@@ -63,12 +63,22 @@ struct VulkanDevice {
         return logicalDevice;
     }
 
+    // Create resource
+    void CreateImage(uint32_t width,
+                     uint32_t height,
+                     VkFormat format,
+                     VkImageTiling tiling,
+                     VkImageUsageFlags usage,
+                     VkMemoryPropertyFlags properties,
+                     VkImage &image,
+                     VkDeviceMemory &imageMemory);
+    VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+
+    // Req infomation
     uint32_t GetQueueFamilyIndex(VkQueueFlagBits queueFlags);
     bool ExtensionSupported(std::string extension);
-
     VkFormat FindDepthFormat();
     VkFormat FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 };
 

@@ -109,6 +109,48 @@ uint32_t GetQueueFamilyIndex(const std::vector<VkQueueFamilyProperties> &queueFa
     return UINT32_MAX;
 }
 
+uint32_t FindProperties(const VkPhysicalDeviceMemoryProperties *pMemoryProperties,
+                        uint32_t memoryTypeBitsRequirement,
+                        VkMemoryPropertyFlags requiredProperties)
+{
+    const uint32_t memoryCount = pMemoryProperties->memoryTypeCount;
+    for (uint32_t memoryIndex = 0; memoryIndex < memoryCount; ++memoryIndex) {
+        const uint32_t memoryTypeBits = (1 << memoryIndex);
+        const bool isRequiredMemoryType = memoryTypeBitsRequirement & memoryTypeBits;
+        const VkMemoryPropertyFlags properties = pMemoryProperties->memoryTypes[memoryIndex].propertyFlags;
+        const bool hasRequiredProperties = (properties & requiredProperties) == requiredProperties;
+        if (isRequiredMemoryType && hasRequiredProperties)
+            return memoryIndex;
+    }
+    // failed to find memory type
+    return UINT32_MAX;
+}
+
+VkMemoryAllocateInfo MakeMemoryAllocateInfo(VkDeviceSize allocationSize, uint32_t memoryTypeIndex)
+{
+    return VkMemoryAllocateInfo{
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .allocationSize = allocationSize,
+        .memoryTypeIndex = memoryTypeIndex,
+    };
+}
+
+VkBufferCreateInfo MakeBufferCreateInfo(VkDeviceSize size,
+                                        VkBufferUsageFlags usage,
+                                        VkSharingMode sharingMode,
+                                        uint32_t queueFamilyIndexCount,
+                                        const uint32_t *pQueueFamilyIndices)
+{
+    return VkBufferCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .size = size,
+        .usage = usage,
+        .sharingMode = sharingMode,
+        .queueFamilyIndexCount = queueFamilyIndexCount,
+        .pQueueFamilyIndices = pQueueFamilyIndices,
+    };
+}
+
 VkAttachmentReference MakeAttachmentReference(uint32_t attachment, VkImageLayout layout)
 {
     return VkAttachmentReference{.attachment = attachment, .layout = layout};

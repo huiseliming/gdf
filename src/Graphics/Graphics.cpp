@@ -311,7 +311,8 @@ void Graphics::CreateSwapchainImageViews()
 {
     swapchainImageViews_.resize(swapchainImageCount_);
     for (size_t i = 0; i < swapchainImageCount_; i++) {
-        swapchainImageViews_[i] = CreateImageView(swapchainImages_[i], swapchainImageFormat_, VK_IMAGE_ASPECT_COLOR_BIT);
+        swapchainImageViews_[i] =
+            device_.CreateImageView(swapchainImages_[i], swapchainImageFormat_, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 }
 
@@ -319,15 +320,15 @@ void Graphics::CreateDepthResources()
 {
     VkFormat depthFormat = device_.FindDepthFormat();
 
-    CreateImage(swapchainExtent_.width,
-                swapchainExtent_.height,
-                depthFormat,
-                VK_IMAGE_TILING_OPTIMAL,
-                VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                depthImage_,
-                depthImageMemory_);
-    depthImageView_ = CreateImageView(depthImage_, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+    device_.CreateImage(swapchainExtent_.width,
+                        swapchainExtent_.height,
+                        depthFormat,
+                        VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                        depthImage_,
+                        depthImageMemory_);
+    depthImageView_ = device_.CreateImageView(depthImage_, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 void Graphics::CreateRenderPass()
@@ -882,68 +883,68 @@ VkShaderModule Graphics::CreateShaderModule(const std::vector<char> &code)
     return shaderModule;
 }
 
-void Graphics::CreateImage(uint32_t width,
-                           uint32_t height,
-                           VkFormat format,
-                           VkImageTiling tiling,
-                           VkImageUsageFlags usage,
-                           VkMemoryPropertyFlags properties,
-                           VkImage &image,
-                           VkDeviceMemory &imageMemory)
-{
-    VkImageCreateInfo imageCI{
-        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-        .imageType = VK_IMAGE_TYPE_2D,
-        .format = format,
-        .extent =
-            {
-                .width = width,
-                .height = height,
-                .depth = 1,
-            },
-        .mipLevels = 1,
-        .arrayLayers = 1,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .tiling = tiling,
-        .usage = usage,
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-        .queueFamilyIndexCount = 0,
-        .pQueueFamilyIndices = nullptr,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    };
+// void Graphics::CreateImage(uint32_t width,
+//                            uint32_t height,
+//                            VkFormat format,
+//                            VkImageTiling tiling,
+//                            VkImageUsageFlags usage,
+//                            VkMemoryPropertyFlags properties,
+//                            VkImage &image,
+//                            VkDeviceMemory &imageMemory)
+// {
+//     VkImageCreateInfo imageCI{
+//         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+//         .imageType = VK_IMAGE_TYPE_2D,
+//         .format = format,
+//         .extent =
+//             {
+//                 .width = width,
+//                 .height = height,
+//                 .depth = 1,
+//             },
+//         .mipLevels = 1,
+//         .arrayLayers = 1,
+//         .samples = VK_SAMPLE_COUNT_1_BIT,
+//         .tiling = tiling,
+//         .usage = usage,
+//         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+//         .queueFamilyIndexCount = 0,
+//         .pQueueFamilyIndices = nullptr,
+//         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+//     };
 
-    VK_ASSERT_SUCCESSED(vkCreateImage(device_, &imageCI, nullptr, &image))
+//     VK_ASSERT_SUCCESSED(vkCreateImage(device_, &imageCI, nullptr, &image))
 
-    VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(device_, image, &memRequirements);
+//     VkMemoryRequirements memRequirements;
+//     vkGetImageMemoryRequirements(device_, image, &memRequirements);
 
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = device_.FindMemoryType(memRequirements.memoryTypeBits, properties);
+//     VkMemoryAllocateInfo allocInfo{};
+//     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+//     allocInfo.allocationSize = memRequirements.size;
+//     allocInfo.memoryTypeIndex = device_.FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-    VK_ASSERT_SUCCESSED(vkAllocateMemory(device_, &allocInfo, nullptr, &imageMemory))
-    VK_ASSERT_SUCCESSED(vkBindImageMemory(device_, image, imageMemory, 0));
-}
+//     VK_ASSERT_SUCCESSED(vkAllocateMemory(device_, &allocInfo, nullptr, &imageMemory))
+//     VK_ASSERT_SUCCESSED(vkBindImageMemory(device_, image, imageMemory, 0));
+// }
 
-VkImageView Graphics::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
-{
-    VkImageView imageView;
-    VkImageViewCreateInfo imageViewCI{.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-                                      .image = image,
-                                      .viewType = VK_IMAGE_VIEW_TYPE_2D,
-                                      .format = format,
-                                      .components = {},
-                                      .subresourceRange{
-                                          .aspectMask = aspectFlags,
-                                          .baseMipLevel = 0,
-                                          .levelCount = 1,
-                                          .baseArrayLayer = 0,
-                                          .layerCount = 1,
-                                      }};
-    VK_ASSERT_SUCCESSED(vkCreateImageView(device_, &imageViewCI, nullptr, &imageView));
-    return imageView;
-}
+// VkImageView Graphics::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
+// {
+//     VkImageView imageView;
+//     VkImageViewCreateInfo imageViewCI{.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+//                                       .image = image,
+//                                       .viewType = VK_IMAGE_VIEW_TYPE_2D,
+//                                       .format = format,
+//                                       .components = {},
+//                                       .subresourceRange{
+//                                           .aspectMask = aspectFlags,
+//                                           .baseMipLevel = 0,
+//                                           .levelCount = 1,
+//                                           .baseArrayLayer = 0,
+//                                           .layerCount = 1,
+//                                       }};
+//     VK_ASSERT_SUCCESSED(vkCreateImageView(device_, &imageViewCI, nullptr, &imageView));
+//     return imageView;
+// }
 
 // Command Helper
 

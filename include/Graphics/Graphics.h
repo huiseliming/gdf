@@ -108,15 +108,15 @@ public:
     VkShaderModule CreateShaderModule(const std::string &code);
     VkShaderModule CreateShaderModule(const std::vector<char> &code);
 
-    void CreateImage(uint32_t width,
-                     uint32_t height,
-                     VkFormat format,
-                     VkImageTiling tiling,
-                     VkImageUsageFlags usage,
-                     VkMemoryPropertyFlags properties,
-                     VkImage &image,
-                     VkDeviceMemory &imageMemory);
-    VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+    // void CreateImage(uint32_t width,
+    //                  uint32_t height,
+    //                  VkFormat format,
+    //                  VkImageTiling tiling,
+    //                  VkImageUsageFlags usage,
+    //                  VkMemoryPropertyFlags properties,
+    //                  VkImage &image,
+    //                  VkDeviceMemory &imageMemory);
+    // VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
     // Command Helper
     VkCommandBuffer BeginSingleTimeCommand();

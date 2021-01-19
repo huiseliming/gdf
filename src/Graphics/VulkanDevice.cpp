@@ -1,6 +1,7 @@
 #include "Graphics/VulkanDevice.h"
 #include "Base/File.h"
 #include <cassert>
+#include <cstdint>
 #include <vector>
 namespace gdf
 {
@@ -214,6 +215,69 @@ void VulkanDevice::CreateLogicalDevice(VkPhysicalDeviceFeatures enabledFeatures,
             }
         }
     }
+}
+
+void VulkanDevice::CreateImage(uint32_t width,
+                               uint32_t height,
+                               VkFormat format,
+                               VkImageTiling tiling,
+                               VkImageUsageFlags usage,
+                               VkMemoryPropertyFlags properties,
+                               VkImage &image,
+                               VkDeviceMemory &imageMemory)
+{
+    VkImageCreateInfo imageCI{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .format = format,
+        .extent =
+            {
+                .width = width,
+                .height = height,
+                .depth = 1,
+            },
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .tiling = tiling,
+        .usage = usage,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = nullptr,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    };
+
+    VK_ASSERT_SUCCESSED(vkCreateImage(logicalDevice, &imageCI, nullptr, &image))
+
+    VkMemoryRequirements memRequirements;
+    vkGetImageMemoryRequirements(logicalDevice, image, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
+
+    VK_ASSERT_SUCCESSED(vkAllocateMemory(logicalDevice, &allocInfo, nullptr, &imageMemory))
+    VK_ASSERT_SUCCESSED(vkBindImageMemory(logicalDevice, image, imageMemory, 0));
+}
+
+VkImageView VulkanDevice::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
+{
+    VkImageView imageView;
+    VkImageViewCreateInfo imageViewCI{.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                                      .image = image,
+                                      .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                                      .format = format,
+                                      .components = {},
+                                      .subresourceRange{
+                                          .aspectMask = aspectFlags,
+                                          .baseMipLevel = 0,
+                                          .levelCount = 1,
+                                          .baseArrayLayer = 0,
+                                          .layerCount = 1,
+                                      }};
+    VK_ASSERT_SUCCESSED(vkCreateImageView(logicalDevice, &imageViewCI, nullptr, &imageView));
+    return imageView;
 }
 
 uint32_t VulkanDevice::GetQueueFamilyIndex(VkQueueFlagBits queueFlags)

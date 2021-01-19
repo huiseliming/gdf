@@ -1,3 +1,6 @@
+#include "Graphics/VulkanApi.h"
+#include "Graphics/VulkanTools.h"
+#include <vulkan/vulkan_core.h>
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -5,8 +8,8 @@
 #define JSON_NOEXCEPTION
 #define TINYGLTF_NOEXCEPTION
 #define TINYGLTF_USE_CPP14
-#include "Graphics/Mesh.h"
 #include "Graphics/Graphics.h"
+#include "Graphics/Mesh.h"
 #include "Log/Logger.h"
 #include <nlohmann/json.hpp>
 #include <tiny_gltf.h>
@@ -45,11 +48,41 @@ bool Texture::Create(tinygltf::Image &gltfImage, std::string path, VulkanDevice 
         }
         VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
 
-        VkFormatProperties formatProperties;
-
         width = gltfImage.width;
         height = gltfImage.height;
         mipLevels = static_cast<uint32_t>(floor(log2(std::max(width, height))) + 1.0);
+        VkFormatProperties formatProperty;
+        vkGetPhysicalDeviceFormatProperties(*device, format, &formatProperty);
+        assert(formatProperty.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT);
+        assert(formatProperty.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT);
+
+        VkMemoryRequirements memoryReqs;
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingMemory;
+
+        auto bufferCI =
+            GraphicsTools::MakeBufferCreateInfo(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_SHARING_MODE_EXCLUSIVE);
+        VK_ASSERT_SUCCESSED(vkCreateBuffer(*device, &bufferCI, nullptr, &stagingBuffer));
+        vkGetBufferMemoryRequirements(*device, stagingBuffer, &memoryReqs);
+        auto memoryAI = GraphicsTools::MakeMemoryAllocateInfo(
+            memoryReqs.size,
+            device->FindMemoryType(memoryReqs.memoryTypeBits,
+                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
+        VK_ASSERT_SUCCESSED(vkAllocateMemory(*device, &memoryAI, nullptr, &stagingMemory));
+        VK_ASSERT_SUCCESSED(vkBindBufferMemory(*device, stagingBuffer, stagingMemory, 0));
+
+        uint8_t *pData;
+        VK_ASSERT_SUCCESSED(vkMapMemory(device->logicalDevice, stagingMemory, 0, memoryReqs.size, 0, (void **)&pData));
+        memcpy(pData, pBuffer, bufferSize);
+        vkUnmapMemory(device->logicalDevice, stagingMemory);
+        // device->CreateImage(width,
+        //                     height,
+        //                     format,
+        //                     VK_,
+        //                     VkImageUsageFlags usage,
+        //                     VkMemoryPropertyFlags properties,
+        //                     VkImage & image,
+        //                     VkDeviceMemory & imageMemory)
     }
     return true;
 }
