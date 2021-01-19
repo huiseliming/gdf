@@ -103,7 +103,7 @@ struct Node {
     glm::mat4 getMatrix();
 };
 
-struct GDF_EXPORT Vertex {
+struct Vertex {
 
     enum class Component
     {
@@ -125,7 +125,7 @@ struct GDF_EXPORT Vertex {
     glm::vec4 weight0;
 };
 
-struct GDF_EXPORT Model {
+struct Model {
     std::string path;
     std::vector<Texture> textures;
     std::vector<Material> materials{{}};

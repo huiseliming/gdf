@@ -19,13 +19,13 @@ namespace gdf
 {
 GDF_DECLARE_EXPORT_LOG_CATEGORY(GraphicsLog, LogLevel::Info, LogLevel::All);
 
-struct GDF_EXPORT SwapChainSupportDetails {
+struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> presentModes;
 };
 
-class GDF_EXPORT Graphics : public NonCopyable
+class Graphics : public NonCopyable
 {
 public:
     Graphics() = default;

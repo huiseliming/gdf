@@ -1,8 +1,9 @@
 #pragma once
-#include "Graphics/VulkanApi.h"
 #include "Base/Window.h"
+#include "Graphics/VulkanApi.h"
 #include "Log/Logger.h"
 #include <mutex>
+
 
 #ifdef GDF_DEBUG
 #define GDF_ENABLE_VALIDATION_LAYER true
@@ -15,10 +16,9 @@ namespace gdf
 
 GDF_DECLARE_EXPORT_LOG_CATEGORY(GraphicsLog, LogLevel::Info, LogLevel::All);
 
-struct GDF_EXPORT Graphics : public NonCopyable
-{
+struct Graphics : public NonCopyable {
     void Initialize(bool enableValidationLayer = GDF_ENABLE_VALIDATION_LAYER);
-    
+
     void DrawFrame();
 
     void Cleanup();
@@ -36,7 +36,7 @@ struct GDF_EXPORT Graphics : public NonCopyable
     // Tool Funtion
     bool IsPhysicalDeviceSuitable(const VkPhysicalDevice physicalDevice);
 
-    //helpful function
+    // helpful function
     VkShaderModule CreateShaderModule(const std::vector<char> &code);
 
     bool GetSupportPresentQueue(VkSurfaceKHR surface, VkQueue &queue);
@@ -56,8 +56,6 @@ struct GDF_EXPORT Graphics : public NonCopyable
     VkInstance instance_{VK_NULL_HANDLE};
     VkDevice device_{VK_NULL_HANDLE};
 
-
-
     VkDebugReportCallbackEXT fpDebugReportCallbackEXT_ = VK_NULL_HANDLE;
     bool enableValidationLayer_;
 
@@ -66,6 +64,3 @@ public:
 private:
 };
 } // namespace gdf
-
-
-

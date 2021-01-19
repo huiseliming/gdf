@@ -8,7 +8,7 @@ if(WIN32)
     if(DEFINED ENV{VCPKG_DEFAULT_TRIPLET} AND NOT DEFINED VCPKG_TARGET_TRIPLET)
       set(VCPKG_TARGET_TRIPLET "$ENV{VCPKG_DEFAULT_TRIPLET}" CACHE STRING "")
     elseif(NOT DEFINED VCPKG_TARGET_TRIPLET)
-      set(VCPKG_TARGET_TRIPLET "x64-windows-static-md" CACHE STRING "")
+      set(VCPKG_TARGET_TRIPLET "x64-mingw-static" CACHE STRING "")
     endif()
     message("CMAKE_TOOLCHAIN_FILE: " ${CMAKE_TOOLCHAIN_FILE})
     message("VCPKG_TARGET_TRIPLET: " ${VCPKG_TARGET_TRIPLET})
@@ -98,15 +98,15 @@ endif()
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>    #${CMAKE_INSTALL_PREFIX}/include
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/exports>
-    $<INSTALL_INTERFACE:exports>    #${CMAKE_INSTALL_PREFIX}/include
+#    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/exports>
+#    $<INSTALL_INTERFACE:exports>    #${CMAKE_INSTALL_PREFIX}/include
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/ImGui>
     $<INSTALL_INTERFACE:/lib/ImGui>    #${CMAKE_INSTALL_PREFIX}/lib/ImGui
     )
 
 # For windows export symbols
-include(GenerateExportHeader)
-generate_export_header(${PROJECT_NAME} EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/exports/gdf_export.h)
+#include(GenerateExportHeader)
+#generate_export_header(${PROJECT_NAME} EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/exports/gdf_export.h)
 
 #set target postfix 
 SET_TARGET_POSTFIX(${PROJECT_NAME})

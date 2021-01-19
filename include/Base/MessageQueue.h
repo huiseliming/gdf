@@ -1,15 +1,13 @@
 #pragma once
 #include "Base/Common.h"
-#include <vector>
-#include <mutex>
 #include <functional>
-
-
+#include <mutex>
+#include <vector>
 
 namespace gdf
 {
 
-class GDF_EXPORT MessageCollector
+class MessageCollector
 {
     MessageCollector(size_t maxNum = 1024) : maxNum_(maxNum), frontOffset_(0)
     {
@@ -47,7 +45,7 @@ class GDF_EXPORT MessageCollector
                                                            : frontOffset_ - 1 - fromLastOffset < 0];
     }
 
-    std::vector<std::string_view>& msgs()
+    std::vector<std::string_view> &msgs()
     {
         return msgs_;
     }
@@ -65,3 +63,5 @@ public:
     std::vector<std::string_view> msgs_;
     size_t maxNum_;
 };
+
+} // namespace gdf

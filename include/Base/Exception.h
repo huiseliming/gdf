@@ -8,7 +8,7 @@
 #define THROW_EXCEPT(...) throw EXCEPT(__VA_ARGS__)
 namespace gdf
 {
-class GDF_EXPORT Exception : public std::exception
+class Exception : public std::exception
 {
 public:
     Exception(int line, const char *file) noexcept : line_(line), file_(file)

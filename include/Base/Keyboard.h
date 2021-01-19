@@ -5,7 +5,7 @@ namespace gdf
 {
 class Window;
 
-struct GDF_EXPORT Keyboard {
+struct Keyboard {
     int32_t unicodePoint;
     int32_t repeatKey;
 

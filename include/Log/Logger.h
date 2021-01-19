@@ -9,19 +9,19 @@
 
 namespace std
 {
-GDF_EXPORT std::string to_string(gdf::LogLevel);
+std::string to_string(gdf::LogLevel);
 }
 
 #define GDF_LOG(CATEGOTY, LOG_LEVEL, MESSAGE, ...)                                                                             \
     if constexpr (static_cast<int>(LOG_LEVEL) <= static_cast<int>(CATEGOTY::compilerLevel)) {                                  \
-        if (LOG_LEVEL <= CATEGOTY::instance()->runtimeLevel_) {                                                                 \
+        if (LOG_LEVEL <= CATEGOTY::instance()->runtimeLevel_) {                                                                \
             ::gdf::Logger::instance().Log(CATEGOTY::instance(), LOG_LEVEL, MESSAGE, ##__VA_ARGS__);                            \
         }                                                                                                                      \
     }
 
 namespace gdf
 {
-class GDF_EXPORT Logger : public Singleton<Logger>
+class Logger : public Singleton<Logger>
 {
 public:
     ~Logger();
@@ -41,7 +41,5 @@ private:
     std::mutex sync;
     std::vector<LogSink *> sinks;
 };
-
-template class GDF_EXPORT Singleton<Logger>;
 
 } // namespace gdf

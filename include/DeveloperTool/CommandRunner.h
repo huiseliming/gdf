@@ -10,7 +10,7 @@
 namespace gdf
 {
 
-class GDF_EXPORT CommandRunner
+class CommandRunner
 {
 public:
     bool RegisterCommand(std::string_view commandName, std::function<void(std::string_view commandName)> &&function);

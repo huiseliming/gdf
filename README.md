@@ -2,21 +2,20 @@
 simple GreyDawnFramework for learn Vulkan Graphics API.
 
 Windows:
+	1. use vkpkginstall glfw3,glm,Vulkan,fmt,Catch2,nlohmann_json(x64-mingw-static)
+	
+	2. set environment path VCPKG_ROOT, add gcc(clang),g++(clang++) to Path
 
-	1.set environment path VCPKG_ROOT
-
-	2.use vcpkg install dependent library
-
-	3.MSBuild.sh or Open Visual Studio 2019 build
+	3. build.bat
 
 Linux:
 
-	1.install dependent library
+	1.install glfw3,glm,Vulkan,fmt,Catch2,nlohmann_json library
 
 	2.build.sh
 
 MacOS:
 
-	1.install dependent library
+	1.install glfw3,glm,Vulkan,fmt,Catch2,nlohmann_json library
 
 	2.build.sh

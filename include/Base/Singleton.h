@@ -5,7 +5,7 @@
 namespace gdf
 {
 template <typename T>
-class GDF_EXPORT Singleton
+class Singleton
 {
 private:
     Singleton<T>(const Singleton<T> &) = delete;

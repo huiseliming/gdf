@@ -3,6 +3,6 @@ cd /d %~dp0
 echo off
 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
 rem Generate Vsual Studio 2019 project.
-cmake -G "Visual Studio 16 2019" -A "x64" -S . -B out/build
+cmake -G "Ninja" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B out/build
 cd out/build
-MSBuild.exe ALL_BUILD.vcxproj -property:Configuration=Debug
+ninja

@@ -9,7 +9,7 @@ namespace gdf
 {
 class Window;
 
-struct GDF_EXPORT Mouse {
+struct Mouse {
     bool inWindow;
     bool oldInWindow;
 

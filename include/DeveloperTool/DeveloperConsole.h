@@ -10,7 +10,7 @@ namespace gdf
 
 GDF_DECLARE_EXPORT_LOG_CATEGORY(ConsoleCommand, LogLevel::All, LogLevel::All)
 
-class GDF_EXPORT DeveloperConsole : public CommandRunner, public LogSink
+class DeveloperConsole : public CommandRunner, public LogSink
 {
 public:
     DeveloperConsole(size_t maxEntries = 1024);

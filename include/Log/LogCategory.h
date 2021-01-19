@@ -6,7 +6,7 @@
 namespace gdf
 {
 
-class GDF_EXPORT LogCategory
+class LogCategory
 {
 public:
     std::string_view displayName_;
@@ -19,7 +19,7 @@ protected:
 };
 
 #define GDF_DECLARE_EXPORT_LOG_CATEGORY(CATEGORY_NAME, RUNTIME_DEFAULT_LEVLE, COMPILER_LEVEL)                                  \
-    class GDF_EXPORT CATEGORY_NAME : public ::gdf::LogCategory                                                                 \
+    class CATEGORY_NAME : public ::gdf::LogCategory                                                                            \
     {                                                                                                                          \
     public:                                                                                                                    \
         static constexpr LogLevel compilerLevel = (COMPILER_LEVEL);                                                            \
@@ -30,7 +30,7 @@ protected:
     CATEGORY_NAME *CATEGORY_NAME::instance()                                                                                   \
     {                                                                                                                          \
         static CATEGORY_NAME logCategory;                                                                                      \
-        return &logCategory;                                                                                                    \
+        return &logCategory;                                                                                                   \
     }                                                                                                                          \
     CATEGORY_NAME::CATEGORY_NAME(std::string_view displayName, LogLevel runtimeLevel) : LogCategory(displayName, runtimeLevel) \
     {                                                                                                                          \

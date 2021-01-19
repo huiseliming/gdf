@@ -9,7 +9,7 @@
 struct GLFWwindow;
 namespace gdf
 {
-class GDF_EXPORT Window : public NonCopyable
+class Window : public NonCopyable
 {
 public:
     Window();
@@ -74,6 +74,5 @@ private:
     Mouse mouse_;
     Keyboard keyboard_;
     bool framebufferResized_{false};
-    
 };
 } // namespace gdf

@@ -3,7 +3,7 @@
 
 namespace gdf
 {
-class GDF_EXPORT LogSink
+class LogSink
 {
 public:
     virtual ~LogSink() = default;

@@ -1,6 +1,5 @@
 #pragma once
 #include "Base/Common.h"
-#include "gdf_export.h"
 #include <chrono>
 #include <iostream>
 
@@ -49,7 +48,7 @@ typename ClockType::time_point Clock<ClockType, Duration>::programStartTime;
 using ProgramClock = Clock<std::chrono::steady_clock, std::chrono::duration<double, std::ratio<1, 1>>>;
 
 #else
-struct GDF_EXPORT ProgramClock {
+struct ProgramClock {
     using rep = double;
     using period = std::ratio<1, 1>;
     using duration = std::chrono::duration<double, std::ratio<1, 1>>;

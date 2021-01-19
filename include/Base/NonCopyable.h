@@ -2,7 +2,7 @@
 #include "Base/Common.h"
 namespace gdf
 {
-class GDF_EXPORT NonCopyable
+class NonCopyable
 {
 private:
     NonCopyable(const NonCopyable &) = delete;

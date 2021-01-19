@@ -1,19 +1,21 @@
-#pragma once 
+#pragma once
 #include "Base/Common.h"
 
 namespace gdf
 {
 
-class GDF_EXPORT Application
+class Application
 {
 public:
     Application() = default;
     virtual ~Application() = default;
+
 private:
-    Application(const Application&) =delete;
-    Application & operator=(const Application&) =delete;
-    Application(Application&&) =delete;
-    Application &operator=(Application&&) =delete;
+    Application(const Application &) = delete;
+    Application &operator=(const Application &) = delete;
+    Application(Application &&) = delete;
+    Application &operator=(Application &&) = delete;
+
 public:
     virtual void Run();
     virtual void StartUp() = 0;
@@ -21,4 +23,4 @@ public:
     virtual void Cleanup() = 0;
 };
 
-}
+} // namespace gdf
