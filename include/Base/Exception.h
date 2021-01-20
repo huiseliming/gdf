@@ -1,5 +1,4 @@
 #pragma once
-#include "Base/Common.h"
 #include <exception>
 #include <sstream>
 #include <string>

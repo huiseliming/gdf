@@ -21,7 +21,7 @@ std::string to_string(gdf::LogLevel);
 
 namespace gdf
 {
-class Logger : public Singleton<Logger>
+class GDF_EXPORT Logger : public Singleton<Logger>
 {
 public:
     ~Logger();

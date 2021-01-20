@@ -8,6 +8,7 @@
 #include "Graphics/Mesh.h"
 #include "Base/File.h"
 #include "gdf.h"
+#include "Base/Window.h"
 using namespace gdf;
 
 GDF_DECLARE_LOG_CATEGORY(GfxAppLog, LogLevel::All, LogLevel::Info)

@@ -13,13 +13,12 @@ namespace tinygltf
 {
 class Node;
 class Model;
-class Image;
+struct Image;
 } // namespace tinygltf
 
 namespace gdf
 {
 
-class VulkanDevice;
 struct Node;
 
 struct Texture {
